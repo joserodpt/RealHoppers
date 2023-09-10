@@ -1,0 +1,5 @@
+RealHoppers:
+  Prefix: "&fReal&dHoppers &7>"
+  Effects:
+    Sounds: true
+Version: 1

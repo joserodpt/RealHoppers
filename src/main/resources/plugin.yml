@@ -1,0 +1,8 @@
+name: RealHoppers
+description: Hoppers with Traits
+version: '${project.version}'
+main: joserodpt.realhoppers.RealHoppers
+load: POSTWORLD
+api-version: '1.13'
+authors: [JoseGamer_PT]
+website: https://www.spigotmc.org/members/40267/
