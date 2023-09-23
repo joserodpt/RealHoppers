@@ -9,21 +9,20 @@ import org.bukkit.entity.Player;
 
 import static joserodpt.realhoppers.utils.LocationUtil.deserializeLocation;
 
-public abstract class RHopperTrait {
+public abstract class RHopperTraitBase {
 
     private RHopper main;
     private RHopper linked;
     private String linkedLoc;
 
-    public RHopperTrait(RHopper main) {
+    public RHopperTraitBase(RHopper main) {
         this.main = main;
+        this.executeLoop();
     }
 
-    public RHopper getMain() {
+    public RHopper getHopper() {
         return main;
     }
-
-    public abstract void executeAction(Player p);
 
     public boolean isLinked() {
         return linked != null;
@@ -41,10 +40,8 @@ public abstract class RHopperTrait {
         return linked;
     }
 
-    public abstract RHopper.Trait getTraitType();
-
     public void loadLink() {
-        if (!linkedLoc.isEmpty()) {
+        if (linkedLoc != null && !linkedLoc.isEmpty()) {
             Location l = deserializeLocation(linkedLoc);
             if (l == null) {
                 RealHoppers.getPlugin().getLogger().severe("Could not parse location for hopper " + linkedLoc + "! Skipping.");
@@ -59,7 +56,17 @@ public abstract class RHopperTrait {
 
             this.setLinked(RealHoppers.getPlugin().getHopperManager().getHopper(b));
         } else {
-            RealHoppers.getPlugin().getLogger().severe("Linked Hopper Location of the Trait " + this.getTraitType().name() + " for the Hopper at " + this.getMain().getSerializedLocation() + "is invalid (" + this.linkedLoc + ")");
+            RealHoppers.getPlugin().getLogger().severe("Linked Hopper Location of the Trait " + this.getTraitType().name() + " for the Hopper at " + this.getHopper().getSerializedLocation() + "is invalid (" + this.linkedLoc + ")");
         }
     }
+
+    public abstract void executeAction(Player p);
+
+    public abstract void executeLoop();
+
+    public abstract RHopper.Trait getTraitType();
+
+    public abstract void stopTask();
+
+    public abstract String getSerializedSave();
 }

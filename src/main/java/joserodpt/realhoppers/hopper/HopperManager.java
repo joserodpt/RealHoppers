@@ -3,9 +3,10 @@ package joserodpt.realhoppers.hopper;
 import com.google.common.collect.ImmutableList;
 import joserodpt.realhoppers.RealHoppers;
 import joserodpt.realhoppers.config.Hoppers;
+import joserodpt.realhoppers.hopper.type.RHBlockBreaking;
+import joserodpt.realhoppers.hopper.type.RHItemTransfer;
 import joserodpt.realhoppers.hopper.type.RHTeleportation;
-import joserodpt.realhoppers.hopper.type.RHopperTrait;
-import org.bukkit.Bukkit;
+import joserodpt.realhoppers.hopper.type.RHopperTraitBase;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -33,6 +34,7 @@ public class HopperManager {
     }
 
     public void loadHoppers() {
+        this.getHoppersMap().clear();
         if (Hoppers.file().isSection("Hoppers")) {
             for (String hopperSTR : Hoppers.file().getSection("Hoppers").getRoutesAsStrings(false)) {
                 Location l = deserializeLocation(hopperSTR);
@@ -47,7 +49,7 @@ public class HopperManager {
                     continue;
                 }
 
-                Map<RHopper.Trait, RHopperTrait> traitMap = new HashMap<>();
+                Map<RHopper.Trait, RHopperTraitBase> traitMap = new HashMap<>();
                 RHopper loaded = new RHopper(b, false);
 
                 if (Hoppers.file().isList("Hoppers." + hopperSTR + ".Traits")) {
@@ -59,6 +61,12 @@ public class HopperManager {
                         switch (RHopper.Trait.valueOf(traitType)) {
                             case TELEPORT:
                                 traitMap.put(RHopper.Trait.TELEPORT, new RHTeleportation(loaded, split[1]));
+                                break;
+                            case ITEM_TRANS:
+                                traitMap.put(RHopper.Trait.ITEM_TRANS, new RHItemTransfer(loaded, split[1]));
+                                break;
+                            case BLOCK_BREAKING:
+                                traitMap.put(RHopper.Trait.BLOCK_BREAKING, new RHBlockBreaking(loaded));
                                 break;
                             default:
                                 RealHoppers.getPlugin().getLogger().severe(traitType + " trait is not supported in this version of RealHoppers! Skipping.");
@@ -73,7 +81,7 @@ public class HopperManager {
             }
 
             //load links
-            this.getHoppersMap().values().forEach(rHopper -> rHopper.loadLinks());
+            this.getHoppersMap().values().forEach(RHopper::loadLinks);
         }
     }
 
@@ -87,5 +95,9 @@ public class HopperManager {
             }
         }
         this.getHoppersMap().remove(h.getBlock());
+    }
+
+    public void stopHoppers() {
+        this.getHoppers().forEach(RHopper::stopTasks);
     }
 }

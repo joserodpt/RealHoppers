@@ -2,10 +2,8 @@ package joserodpt.realhoppers.listener;
 
 import joserodpt.realhoppers.RealHoppers;
 import joserodpt.realhoppers.hopper.RHopper;
-import joserodpt.realhoppers.hopper.type.RHTeleportation;
-import joserodpt.realhoppers.utils.LocationUtil;
+import joserodpt.realhoppers.hopper.type.RHItemTransfer;
 import joserodpt.realhoppers.utils.Text;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -60,13 +58,15 @@ public class PlayerListener implements Listener {
 
             event.setCancelled(true);
 
-            RHopper h = rh.getHopperManager().getHopper(clickedBlock);
+            RHopper clicked = rh.getHopperManager().getHopper(clickedBlock);
 
-            if (h == null) {
+            if (clicked == null) {
                 return;
             }
 
-            if (h.hasTrait(RHopper.Trait.TELEPORT)) {
+            RHopper.Trait trait = RHopper.Trait.ITEM_TRANS;
+
+            if (clicked.hasTrait(trait)) {
                 Text.send(player, "&cThis hopper already has a Teleportation Link.");
                 return;
             }
@@ -74,18 +74,21 @@ public class PlayerListener implements Listener {
             if (rh.getPlayerManager().getClickedHoppers().containsKey(player)) {
                 RHopper prevClicked = rh.getPlayerManager().getClickedHoppers().get(player);
 
-                if (prevClicked == h) {
+                if (prevClicked == clicked) {
                     player.sendMessage("nao pode ser o mm");
                 } else {
-                    prevClicked.setTrait(RHopper.Trait.TELEPORT, new RHTeleportation(prevClicked, h));
-                    h.setTrait(RHopper.Trait.TELEPORT, new RHTeleportation(h, prevClicked));
+                    prevClicked.setTrait(trait, new RHItemTransfer(prevClicked, clicked));
+
+                    // prevClicked.setTrait(trait, new RHTeleportation(prevClicked, clicked));
+                    // clicked.setTrait(trait, new RHTeleportation(clicked, prevClicked));
+                    //
 
                     player.sendMessage("Linked!");
 
                     rh.getPlayerManager().getClickedHoppers().remove(player);
                 }
             } else {
-                rh.getPlayerManager().getClickedHoppers().put(player, h);
+                rh.getPlayerManager().getClickedHoppers().put(player, clicked);
             }
         }
     }

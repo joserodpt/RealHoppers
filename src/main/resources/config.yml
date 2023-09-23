@@ -2,4 +2,6 @@ RealHoppers:
   Prefix: "&fReal&dHoppers &7>"
   Effects:
     Sounds: true
+    Particles: true
+  Teleportation-Cooldown: 20
 Version: 1

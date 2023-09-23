@@ -3,8 +3,12 @@ package joserodpt.realhoppers;
 import joserodpt.realhoppers.config.Config;
 import joserodpt.realhoppers.config.Hoppers;
 import joserodpt.realhoppers.hopper.HopperManager;
+import joserodpt.realhoppers.hopper.RHopper;
 import joserodpt.realhoppers.listener.PlayerListener;
 import joserodpt.realhoppers.manager.PlayerManager;
+import joserodpt.realhoppers.utils.Text;
+import me.mattstudios.mf.base.CommandManager;
+import me.mattstudios.mf.base.components.TypeResult;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -48,6 +52,28 @@ public final class RealHoppers extends JavaPlugin {
         });
          */
 
+        CommandManager cm = new CommandManager(this);
+
+        cm.getMessageHandler().register("cmd.no.permission", (sender) -> Text.send(sender, "&cYou don't have permission to execute this command!"));
+        cm.getMessageHandler().register("cmd.no.exists", (sender) -> Text.send(sender, "&cThe command you're trying to use doesn't exist"));
+        cm.getMessageHandler().register("cmd.wrong.usage", (sender) -> Text.send(sender, "&cWrong usage for the command!"));
+        cm.getMessageHandler().register("cmd.no.console", sender -> Text.send(sender,  "&cCommand can't be used in the console!"));
+
+        cm.hideTabComplete(true);
+
+        cm.getParameterHandler().register(RHopper.Trait.class, argument -> {
+            try {
+                RHopper.Trait tt =RHopper.Trait.valueOf(argument.toString().toUpperCase());
+                return new TypeResult(tt, argument);
+            } catch (Exception e) {
+                return new TypeResult(null, argument);
+            }
+        });
+
+        cm.register(new RealHoppersCMD(this));
+
+        Bukkit.getScheduler().scheduleSyncRepeatingTask(this, () -> hm.getHoppers().forEach(RHopper::loopView), 10, 10);
+
         getLogger().info("Plugin has been loaded.");
         getLogger().info("Author: JoseGamer_PT | " + this.getDescription().getWebsite());
         getLogger().info("<------------------ RealHoppers PT ------------------>".replace("PT", "| " +
@@ -56,6 +82,7 @@ public final class RealHoppers extends JavaPlugin {
     @Override
     public void onDisable() {
         // Plugin shutdown logic
+        hm.stopHoppers();
     }
 
     public PlayerManager getPlayerManager() {
