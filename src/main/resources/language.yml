@@ -1,0 +1,9 @@
+Traits:
+  TELEPORT: "&5Teleport"
+  ITEM_TRANS: "&fItem Transfer"
+  AUTO_SELL: "&eAuto Sell"
+  AUTO_SMELT: "&cAuto Smelt"
+  SUCTION: "&bSuction"
+  BLOCK_BREAKING: "&7Block Breaking"
+  KILL_MOB: "&4Mob Killing"
+Version: 1

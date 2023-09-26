@@ -1,5 +1,18 @@
 package joserodpt.realhoppers.utils;
 
+/*
+ *   ____            _ _   _
+ *  |  _ \ ___  __ _| | | | | ___  _ __  _ __   ___ _ __ ___
+ *  | |_) / _ \/ _` | | |_| |/ _ \| '_ \| '_ \ / _ \ '__/ __|
+ *  |  _ <  __/ (_| | |  _  | (_) | |_) | |_) |  __/ |  \__ \
+ *  |_| \_\___|\__,_|_|_| |_|\___/| .__/| .__/ \___|_|  |___/
+ *                                |_|   |_|
+ *
+ * Licensed under the MIT License
+ * @author José Rodrigues
+ * @link https://github.com/joserodpt/RealHoppers
+ */
+
 import joserodpt.realhoppers.RealHoppers;
 import joserodpt.realhoppers.config.Config;
 import org.bukkit.Bukkit;

@@ -1,4 +1,17 @@
-package joserodpt.realhoppers.hopper.type;
+package joserodpt.realhoppers.hopper.trait;
+
+/*
+ *   ____            _ _   _
+ *  |  _ \ ___  __ _| | | | | ___  _ __  _ __   ___ _ __ ___
+ *  | |_) / _ \/ _` | | |_| |/ _ \| '_ \| '_ \ / _ \ '__/ __|
+ *  |  _ <  __/ (_| | |  _  | (_) | |_) | |_) |  __/ |  \__ \
+ *  |_| \_\___|\__,_|_|_| |_|\___/| .__/| .__/ \___|_|  |___/
+ *                                |_|   |_|
+ *
+ * Licensed under the MIT License
+ * @author José Rodrigues
+ * @link https://github.com/joserodpt/RealHoppers
+ */
 
 import joserodpt.realhoppers.RealHoppers;
 import joserodpt.realhoppers.hopper.RHopper;
@@ -64,7 +77,7 @@ public abstract class RHopperTraitBase {
 
     public abstract void executeLoop();
 
-    public abstract RHopper.Trait getTraitType();
+    public abstract RHopperTrait getTraitType();
 
     public abstract void stopTask();
 

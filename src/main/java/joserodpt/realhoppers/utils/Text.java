@@ -1,11 +1,17 @@
 package joserodpt.realhoppers.utils;
 
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
+/*
+ *   ____            _ _   _
+ *  |  _ \ ___  __ _| | | | | ___  _ __  _ __   ___ _ __ ___
+ *  | |_) / _ \/ _` | | |_| |/ _ \| '_ \| '_ \ / _ \ '__/ __|
+ *  |  _ <  __/ (_| | |  _  | (_) | |_) | |_) |  __/ |  \__ \
+ *  |_| \_\___|\__,_|_|_| |_|\___/| .__/| .__/ \___|_|  |___/
+ *                                |_|   |_|
+ *
+ * Licensed under the MIT License
+ * @author José Rodrigues
+ * @link https://github.com/joserodpt/RealHoppers
+ */
 
 import joserodpt.realhoppers.config.Config;
 import org.bukkit.ChatColor;
@@ -13,6 +19,10 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class Text {
 
@@ -36,7 +46,6 @@ public class Text {
 	}
 
 	public static void send(Player p, String string) {
-		//TODO:
 		p.sendMessage(Text.color( Config.file().getString("RealHoppers.Prefix") + " &r" + string));
 	}
 	public static void send(CommandSender p, String string) {

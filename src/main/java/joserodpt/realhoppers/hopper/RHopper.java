@@ -1,16 +1,34 @@
 package joserodpt.realhoppers.hopper;
 
+/*
+ *   ____            _ _   _
+ *  |  _ \ ___  __ _| | | | | ___  _ __  _ __   ___ _ __ ___
+ *  | |_) / _ \/ _` | | |_| |/ _ \| '_ \| '_ \ / _ \ '__/ __|
+ *  |  _ <  __/ (_| | |  _  | (_) | |_) | |_) |  __/ |  \__ \
+ *  |_| \_\___|\__,_|_|_| |_|\___/| .__/| .__/ \___|_|  |___/
+ *                                |_|   |_|
+ *
+ * Licensed under the MIT License
+ * @author José Rodrigues
+ * @link https://github.com/joserodpt/RealHoppers
+ */
+
+import joserodpt.realhoppers.RealHoppers;
 import joserodpt.realhoppers.config.Hoppers;
-import joserodpt.realhoppers.hopper.type.RHopperTraitBase;
+import joserodpt.realhoppers.hopper.trait.RHopperTrait;
+import joserodpt.realhoppers.hopper.trait.RHopperTraitBase;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Particle;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.Hopper;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,30 +36,12 @@ import java.util.stream.Collectors;
 
 public class RHopper {
 
-    public enum Data { TRAITS }
-    public enum Trait {
-        TELEPORT(Material.ENDER_PEARL),
-        ITEM_TRANS(Material.ENDER_EYE),
-        AUTO_CRAFT(Material.CRAFTING_TABLE),
-        AUTO_SELL(Material.EMERALD),
-        AUTO_SMELT(Material.FURNACE),
-        SUCTION(Material.FEATHER),
-        BLOCK_BREAKING(Material.TNT),
-        KILL_MOB(Material.DIAMOND_SWORD);
-
-        private Material icon;
-        Trait(Material icon) {
-            this.icon = icon;
-        }
-
-        public Material getIcon() {
-            return icon;
-        }
-    }
+    public enum Data {ALL, BALANCE, TRAITS }
 
     private Block block;
     private boolean visualizing;
-    private Map<Trait, RHopperTraitBase> traitMap = new HashMap<>();
+    private double balance;
+    private Map<RHopperTrait, RHopperTraitBase> traitMap = new HashMap<>();
 
     public RHopper(Block b, boolean save) {
         //new hopper
@@ -50,14 +50,18 @@ public class RHopper {
         this.setVisualizing(true);
 
         if (save)
-            this.saveData(Data.TRAITS, true);
+            this.saveData(Data.ALL, true);
     }
 
     public Location getLocation() {
         return this.getBlock().getLocation();
     }
 
-    public void setTraits(Map<Trait, RHopperTraitBase> traitMap, boolean save) {
+    public World getWorld() {
+        return this.getLocation().getWorld();
+    }
+
+    public void setTraits(Map<RHopperTrait, RHopperTraitBase> traitMap, boolean save) {
         this.traitMap = traitMap;
         if (save)
             this.saveData(Data.TRAITS, true);
@@ -67,21 +71,52 @@ public class RHopper {
         return this.getTraitMap().values().stream().map(RHopperTraitBase::getLinkedHopper).collect(Collectors.toList());
     }
 
-    public Map<Trait, RHopperTraitBase> getTraitMap() {
+    public Map<RHopperTrait, RHopperTraitBase> getTraitMap() {
         return traitMap;
     }
 
-    public boolean hasTrait(Trait t) {
+    public double getBalance() {
+        return balance;
+    }
+
+    public List<String> getHopperDescription() {
+        List<String> desc = new ArrayList<>();
+        if (this.hasEconomyCapabilities()) {
+            desc.add("&fBalance: &e" + this.getBalance());
+        }
+        desc.add("&f&nHopper traits:");
+        if (this.getTraitMap().isEmpty()) {
+            desc.add(" &7None.");
+        } else {
+            this.getTraitMap().keySet().forEach(trait -> desc.add("&7- &f" + trait.getName()));
+        }
+        if (this.hasEconomyCapabilities()) {
+            desc.add(""); desc.add("&fClick here to collect hopper's balance.");
+        }
+        return desc;
+    }
+
+    public boolean hasEconomyCapabilities() {
+        for (RHopperTrait trait : this.getTraitMap().keySet()) {
+            if (trait.hasEconomyCapabilities()) {
+                return true;
+            }
+
+        }
+        return false;
+    }
+
+    public boolean hasTrait(RHopperTrait t) {
         return this.getTraitMap().containsKey(t);
     }
 
-    public RHopperTraitBase getTrait(Trait t) {
+    public RHopperTraitBase getTrait(RHopperTrait t) {
         return this.getTraitMap().get(t);
     }
 
     public void removeTrait(RHopper h) {
-        for (Map.Entry<Trait, RHopperTraitBase> entry : this.getTraitMap().entrySet()) {
-            Trait key = entry.getKey();
+        for (Map.Entry<RHopperTrait, RHopperTraitBase> entry : this.getTraitMap().entrySet()) {
+            RHopperTrait key = entry.getKey();
             RHopperTraitBase value = entry.getValue();
             if (value.getLinkedHopper() == h) {
                 this.getTraitMap().remove(key);
@@ -91,9 +126,15 @@ public class RHopper {
         }
     }
 
-    public void setTrait(Trait trait, RHopperTraitBase t) {
+    public void setTrait(RHopperTrait trait, RHopperTraitBase t) {
         this.getTraitMap().put(trait, t);
         this.saveData(Data.TRAITS, true);
+    }
+
+    public void sell(Material type) {
+        if (RealHoppers.getPlugin().getHopperManager().getSellMaterials().containsKey(type)) {
+            this.balance += RealHoppers.getPlugin().getHopperManager().getSellMaterials().get(type);
+        }
     }
 
     public Block getBlock() {
@@ -102,6 +143,19 @@ public class RHopper {
 
     public Inventory getInventory() {
         return ((Hopper) this.getBlock().getState()).getInventory();
+    }
+
+    public void openInventory(Player p) {
+        Hopper hopper = (Hopper) this.getBlock().getState();
+        if (hopper != null) {
+            Inventory hopperInventory = hopper.getInventory();
+
+            p.openInventory(hopperInventory);
+        }
+    }
+
+    public boolean hasHopperSpace(Material m) {
+        return hasHopperSpace(new ItemStack(m));
     }
 
     public boolean hasHopperSpace(ItemStack itemToCheck) {
@@ -123,23 +177,25 @@ public class RHopper {
         return false; // Hopper is full or no matching slots were found
     }
 
-    private boolean addItem(ItemStack i) {
-        if (hasHopperSpace(i)) {
-            this.getInventory().addItem(i);
-            return true;
-        } else {
-            return false;
-        }
+    public void addItem(ItemStack i) {
+        this.getInventory().addItem(i);
     }
 
-    public boolean addItem(Material type) {
-       return this.addItem(new ItemStack(type));
+    public void addItem(Material type) {
+        this.addItem(new ItemStack(type));
     }
 
     public void saveData(Data d, boolean save) {
         switch (d) {
             case TRAITS:
                 Hoppers.file().set("Hoppers." + this.getSerializedLocation() + ".Traits", this.getTraitMap().values().stream().map(RHopperTraitBase::getSerializedSave).collect(Collectors.toList()));
+                break;
+            case BALANCE:
+                Hoppers.file().set("Hoppers." + this.getSerializedLocation() + ".Balance", this.getBalance());
+                break;
+            case ALL:
+                saveData(Data.TRAITS, true);
+                saveData(Data.BALANCE, true);
                 break;
         }
         if (save)

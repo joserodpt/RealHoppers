@@ -1,10 +1,27 @@
 package joserodpt.realhoppers;
 
+/*
+ *   ____            _ _   _
+ *  |  _ \ ___  __ _| | | | | ___  _ __  _ __   ___ _ __ ___
+ *  | |_) / _ \/ _` | | |_| |/ _ \| '_ \| '_ \ / _ \ '__/ __|
+ *  |  _ <  __/ (_| | |  _  | (_) | |_) | |_) |  __/ |  \__ \
+ *  |_| \_\___|\__,_|_|_| |_|\___/| .__/| .__/ \___|_|  |___/
+ *                                |_|   |_|
+ *
+ * Licensed under the MIT License
+ * @author José Rodrigues
+ * @link https://github.com/joserodpt/RealHoppers
+ */
+
 import joserodpt.realhoppers.config.Config;
 import joserodpt.realhoppers.config.Hoppers;
-import joserodpt.realhoppers.hopper.HopperManager;
+import joserodpt.realhoppers.config.Language;
+import joserodpt.realhoppers.hopper.HopperGUI;
+import joserodpt.realhoppers.manager.HopperManager;
 import joserodpt.realhoppers.hopper.RHopper;
+import joserodpt.realhoppers.hopper.trait.RHopperTrait;
 import joserodpt.realhoppers.listener.PlayerListener;
+import joserodpt.realhoppers.listener.EventListener;
 import joserodpt.realhoppers.manager.PlayerManager;
 import joserodpt.realhoppers.utils.Text;
 import me.mattstudios.mf.base.CommandManager;
@@ -16,7 +33,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 public final class RealHoppers extends JavaPlugin {
 
     private PlayerManager pm = new PlayerManager();
-    private HopperManager hm = new HopperManager();
+    private HopperManager hm = new HopperManager(this);
 
     private static RealHoppers pl;
     public static RealHoppers getPlugin() {
@@ -33,9 +50,12 @@ public final class RealHoppers extends JavaPlugin {
 
         Config.setup(this);
         Hoppers.setup(this);
+        Language.setup(this);
 
         PluginManager pm = Bukkit.getPluginManager();
         pm.registerEvents(new PlayerListener(this), this);
+        pm.registerEvents(new EventListener(this), this);
+        pm.registerEvents(HopperGUI.getListener(), this);
 
         hm.loadHoppers();
 
@@ -61,9 +81,9 @@ public final class RealHoppers extends JavaPlugin {
 
         cm.hideTabComplete(true);
 
-        cm.getParameterHandler().register(RHopper.Trait.class, argument -> {
+        cm.getParameterHandler().register(RHopperTrait.class, argument -> {
             try {
-                RHopper.Trait tt =RHopper.Trait.valueOf(argument.toString().toUpperCase());
+                RHopperTrait tt = RHopperTrait.valueOf(argument.toString().toUpperCase());
                 return new TypeResult(tt, argument);
             } catch (Exception e) {
                 return new TypeResult(null, argument);

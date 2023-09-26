@@ -1,8 +1,23 @@
-package joserodpt.realhoppers.hopper.type;
+package joserodpt.realhoppers.hopper.trait.traits;
+
+/*
+ *   ____            _ _   _
+ *  |  _ \ ___  __ _| | | | | ___  _ __  _ __   ___ _ __ ___
+ *  | |_) / _ \/ _` | | |_| |/ _ \| '_ \| '_ \ / _ \ '__/ __|
+ *  |  _ <  __/ (_| | |  _  | (_) | |_) | |_) |  __/ |  \__ \
+ *  |_| \_\___|\__,_|_|_| |_|\___/| .__/| .__/ \___|_|  |___/
+ *                                |_|   |_|
+ *
+ * Licensed under the MIT License
+ * @author José Rodrigues
+ * @link https://github.com/joserodpt/RealHoppers
+ */
 
 import joserodpt.realhoppers.RealHoppers;
 import joserodpt.realhoppers.config.Config;
 import joserodpt.realhoppers.hopper.RHopper;
+import joserodpt.realhoppers.hopper.trait.RHopperTrait;
+import joserodpt.realhoppers.hopper.trait.RHopperTraitBase;
 import joserodpt.realhoppers.utils.LocationUtil;
 import joserodpt.realhoppers.utils.Text;
 import org.bukkit.Bukkit;
@@ -39,8 +54,8 @@ public class RHTeleportation extends RHopperTraitBase {
     public void executeLoop() { }
 
     @Override
-    public RHopper.Trait getTraitType() {
-        return RHopper.Trait.TELEPORT;
+    public RHopperTrait getTraitType() {
+        return RHopperTrait.TELEPORT;
     }
 
     @Override

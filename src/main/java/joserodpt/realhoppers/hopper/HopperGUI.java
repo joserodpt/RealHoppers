@@ -1,5 +1,18 @@
 package joserodpt.realhoppers.hopper;
 
+/*
+ *   ____            _ _   _
+ *  |  _ \ ___  __ _| | | | | ___  _ __  _ __   ___ _ __ ___
+ *  | |_) / _ \/ _` | | |_| |/ _ \| '_ \| '_ \ / _ \ '__/ __|
+ *  |  _ <  __/ (_| | |  _  | (_) | |_) | |_) |  __/ |  \__ \
+ *  |_| \_\___|\__,_|_|_| |_|\___/| .__/| .__/ \___|_|  |___/
+ *                                |_|   |_|
+ *
+ * Licensed under the MIT License
+ * @author José Rodrigues
+ * @link https://github.com/joserodpt/RealHoppers
+ */
+
 import joserodpt.realhoppers.RealHoppers;
 import joserodpt.realhoppers.utils.Itens;
 import joserodpt.realhoppers.utils.Text;
@@ -46,6 +59,10 @@ public class HopperGUI {
 
     public void load() {
         this.inv.setItem(22, close);
+
+        this.inv.setItem(11, Itens.createItem(Material.CHEST, 1, "&eHopper Inventory"));
+
+        this.inv.setItem(13, Itens.createItem(Material.HOPPER, 1, "&dHopper", h.getHopperDescription()));
     }
 
     public void openInventory(Player target) {
@@ -81,7 +98,11 @@ public class HopperGUI {
                         e.setCancelled(true);
 
                         switch (e.getRawSlot()) {
-                            case 22:
+                            case 11:
+                                p.closeInventory();
+                                current.h.openInventory(p);
+                                break;
+                            case 13:
                                 p.closeInventory();
                                 break;
                         }

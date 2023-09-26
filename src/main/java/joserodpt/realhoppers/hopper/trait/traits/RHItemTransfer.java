@@ -1,7 +1,22 @@
-package joserodpt.realhoppers.hopper.type;
+package joserodpt.realhoppers.hopper.trait.traits;
+
+/*
+ *   ____            _ _   _
+ *  |  _ \ ___  __ _| | | | | ___  _ __  _ __   ___ _ __ ___
+ *  | |_) / _ \/ _` | | |_| |/ _ \| '_ \| '_ \ / _ \ '__/ __|
+ *  |  _ <  __/ (_| | |  _  | (_) | |_) | |_) |  __/ |  \__ \
+ *  |_| \_\___|\__,_|_|_| |_|\___/| .__/| .__/ \___|_|  |___/
+ *                                |_|   |_|
+ *
+ * Licensed under the MIT License
+ * @author José Rodrigues
+ * @link https://github.com/joserodpt/RealHoppers
+ */
 
 import joserodpt.realhoppers.RealHoppers;
 import joserodpt.realhoppers.hopper.RHopper;
+import joserodpt.realhoppers.hopper.trait.RHopperTrait;
+import joserodpt.realhoppers.hopper.trait.RHopperTraitBase;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -29,18 +44,21 @@ public class RHItemTransfer extends RHopperTraitBase {
     @Override
     public void executeLoop() {
         taskID = Bukkit.getScheduler().scheduleSyncRepeatingTask(RealHoppers.getPlugin(), () -> {
+
             ItemStack itemStack = getFirst();
             if (itemStack != null) {
-                if (itemStack.getAmount() > 1) {
-                    itemStack.setAmount(itemStack.getAmount() - 1);
-                } else {
-                    super.getHopper().getInventory().removeItem(itemStack);
+                if (super.getLinkedHopper().hasHopperSpace(itemStack.getType())) {
+                    if (itemStack.getAmount() > 1) {
+                        itemStack.setAmount(itemStack.getAmount() - 1);
+                    } else {
+                        super.getHopper().getInventory().removeItem(itemStack);
+                    }
+
+                    final ItemStack clone = itemStack.clone();
+                    clone.setAmount(1);
+
+                    super.getLinkedHopper().getInventory().addItem(clone);
                 }
-
-                final ItemStack clone = itemStack.clone();
-                clone.setAmount(1);
-
-                super.getLinkedHopper().getInventory().addItem(clone);
             }
         }, 10, 10);
     }
@@ -53,8 +71,8 @@ public class RHItemTransfer extends RHopperTraitBase {
     }
 
     @Override
-    public RHopper.Trait getTraitType() {
-        return RHopper.Trait.ITEM_TRANS;
+    public RHopperTrait getTraitType() {
+        return RHopperTrait.ITEM_TRANS;
     }
 
     @Override
