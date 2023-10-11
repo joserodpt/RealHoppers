@@ -18,10 +18,12 @@ import joserodpt.realhoppers.utils.Itens;
 import joserodpt.realhoppers.utils.Text;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.Inventory;
@@ -31,12 +33,13 @@ import org.bukkit.inventory.ItemStack;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 
 
 public class HopperGUI {
 
-    private static Map<UUID, HopperGUI> inventories = new HashMap<>();
+    public static Map<UUID, HopperGUI> inventories = new HashMap<>();
     private Inventory inv;
 
     private ItemStack close = Itens.createItem(Material.OAK_DOOR, 1, "&cClose",
@@ -78,6 +81,10 @@ public class HopperGUI {
         }
     }
 
+    public RHopper getHopper() {
+        return h;
+    }
+
     public static Listener getListener() {
         return new Listener() {
             @EventHandler
@@ -103,7 +110,19 @@ public class HopperGUI {
                                 current.h.openInventory(p);
                                 break;
                             case 13:
-                                p.closeInventory();
+                                if (current.h.getBalance() > 0) {
+                                    if (Objects.requireNonNull(e.getClick()) == ClickType.SHIFT_LEFT) {
+                                        RealHoppers.getVault().depositPlayer(p, current.h.getBalance());
+                                        Text.send(p, "&fYou collected " + Text.formatNumber(current.h.getBalance()) + " &ffrom this hopper.");
+                                        current.h.setBalance(0);
+                                    } else {
+                                        RealHoppers.getVault().depositPlayer(p, current.h.getBalance() / 2);
+                                        Text.send(p, "&fYou collected " + Text.formatNumber(current.h.getBalance() / 2) + " &ffrom this hopper.");
+                                        current.h.setBalance(current.h.getBalance() / 2);
+                                    }
+                                    p.playSound(p.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
+                                    current.load();
+                                }
                                 break;
                         }
                     }

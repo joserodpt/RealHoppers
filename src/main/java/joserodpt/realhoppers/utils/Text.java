@@ -16,10 +16,10 @@ package joserodpt.realhoppers.utils;
 import joserodpt.realhoppers.config.Config;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
-import org.bukkit.World;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -52,12 +52,13 @@ public class Text {
 		p.sendMessage(Text.color(Config.file().getString("RealHoppers.Prefix") +" &r" + string));
 	}
 
-    public static String locToTex(Location pos) {
-		return pos.getBlockX() + "%" + pos.getBlockY() + "%" + pos.getBlockZ();
-    }
-
-	public static Location textToLoc(String string, World w) {
-		String[] s = string.split("%");
-		return new Location(w, Double.parseDouble(s[0]), Double.parseDouble(s[1]), Double.parseDouble(s[2]));
+	public static String formatNumber(double number) {
+		String[] suffixes = {"", "k", "M", "T"};
+		int index = 0;
+		while (number >= 1_000 && index < suffixes.length - 1) {
+			number /= 1_000;
+			index++;
+		}
+		return new DecimalFormat("#.#").format(number) + suffixes[index];
 	}
 }

@@ -20,6 +20,7 @@ import joserodpt.realhoppers.config.Hoppers;
 import joserodpt.realhoppers.hopper.RHopper;
 import joserodpt.realhoppers.hopper.trait.RHopperTrait;
 import joserodpt.realhoppers.hopper.trait.traits.RHBlockBreaking;
+import joserodpt.realhoppers.hopper.trait.traits.RHDummyTrait;
 import joserodpt.realhoppers.hopper.trait.traits.RHItemTransfer;
 import joserodpt.realhoppers.hopper.trait.traits.RHMobKilling;
 import joserodpt.realhoppers.hopper.trait.traits.RHTeleportation;
@@ -41,10 +42,10 @@ public class HopperManager {
         this.rh = rh;
     }
 
-    public HashMap<Block, RHopper> hoppers = new HashMap<>();
-    public HashMap<Material, Double> sellMaterials = new HashMap<>();
+    public Map<Block, RHopper> hoppers = new HashMap<>();
+    public Map<Material, Double> materialCost = new HashMap<>();
 
-    public HashMap<Block, RHopper> getHoppersMap() {
+    public Map<Block, RHopper> getHoppersMap() {
         return hoppers;
     }
 
@@ -55,6 +56,7 @@ public class HopperManager {
     public RHopper getHopper(Block b) {
         return this.getHoppersMap().get(b);
     }
+
 
     public void loadHoppers() {
         this.getHoppersMap().clear();
@@ -74,6 +76,8 @@ public class HopperManager {
 
                 Map<RHopperTrait, RHopperTraitBase> traitMap = new HashMap<>();
                 RHopper loaded = new RHopper(b, false);
+                loaded.setBalance(Hoppers.file().getDouble("Hoppers." + hopperSTR + ".Balance"));
+                System.out.println(loaded.getBalance());
 
                 if (Hoppers.file().isList("Hoppers." + hopperSTR + ".Traits")) {
                     List<String> traits = Hoppers.file().getStringList("Hoppers." + hopperSTR + ".Traits");
@@ -94,6 +98,9 @@ public class HopperManager {
                             case KILL_MOB:
                                 traitMap.put(RHopperTrait.KILL_MOB, new RHMobKilling(loaded));
                                 break;
+                            case AUTO_SELL:
+                                traitMap.put(RHopperTrait.AUTO_SELL, new RHDummyTrait(loaded, RHopperTrait.AUTO_SELL));
+                                break;
                             default:
                                 RealHoppers.getPlugin().getLogger().severe(traitType + " trait is not supported in this version of RealHoppers! Skipping.");
                                 break;
@@ -110,35 +117,26 @@ public class HopperManager {
             this.getHoppersMap().values().forEach(RHopper::loadLinks);
         }
 
-        //load material's prices from config
+        //load material cost
+        this.getMaterialCost().clear();
+
         if (Config.file().isSection("RealHoppers.Material-Values")) {
             for (String material : Config.file().getSection("RealHoppers.Material-Values").getRoutesAsStrings(false)) {
-                Material m = null;
                 try {
-                    m = Material.valueOf(material);
-
-                    try {
-                        Double d = Config.file().getDouble("RealHoppers.Material-Values." + material);
-
-                        getSellMaterials().put(m, d);
-                    } catch (Exception e) {
-                        rh.getLogger().severe(Config.file().getString("RealHoppers.Material-Values." + material) + " isn't a valid double. Skipping.");
-                    }
-                } catch (Exception e) {
-                    rh.getLogger().severe(material + " isn't a valid material type. Skipping.");
+                    Material m = Material.valueOf(material);
+                    Double cost = Config.file().getDouble("RealHoppers.Material-Values." + material);
+                    this.getMaterialCost().put(m, cost);
+                } catch (IllegalArgumentException e) {
+                    RealHoppers.getPlugin().getLogger().severe(material + " isn't a valid material type! Skipping.");
                 }
             }
         }
     }
 
-    public HashMap<Material, Double> getSellMaterials() {
-        return sellMaterials;
-    }
-
     public void delete(RHopper h) {
         Hoppers.file().remove("Hoppers." + h.getSerializedLocation());
         Hoppers.save();
-        h.stopTasks();
+        h.stopHopper();
         //loop through all hoppers and check if any trait constains this hopper and if so remove it
         for (RHopper hopper : this.getHoppers()) {
             if (hopper.getLinkedHoppers().contains(h)) {
@@ -150,6 +148,11 @@ public class HopperManager {
     }
 
     public void stopHoppers() {
-        this.getHoppers().forEach(RHopper::stopTasks);
+        this.getHoppers().forEach(RHopper::stopHopper);
     }
+
+    public Map<Material, Double> getMaterialCost() {
+        return materialCost;
+    }
+
 }

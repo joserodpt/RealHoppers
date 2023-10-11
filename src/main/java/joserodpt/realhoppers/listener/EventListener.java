@@ -15,7 +15,9 @@ package joserodpt.realhoppers.listener;
 
 import joserodpt.realhoppers.RealHoppers;
 import joserodpt.realhoppers.config.Config;
+import joserodpt.realhoppers.hopper.HopperGUI;
 import joserodpt.realhoppers.hopper.RHopper;
+import joserodpt.realhoppers.hopper.events.RHopperStateChangeEvent;
 import joserodpt.realhoppers.hopper.trait.RHopperTrait;
 import joserodpt.realhoppers.utils.Text;
 import org.bukkit.Material;
@@ -85,6 +87,16 @@ public class EventListener implements Listener {
                     }
                 }
                 event.getDrops().clear();
+            }
+        }
+    }
+
+    @EventHandler
+    public void onHopperStateChange(RHopperStateChangeEvent e) {
+        for (HopperGUI value : HopperGUI.inventories.values()) {
+            if (value.getHopper() == e.getHopper()) {
+                value.load();
+                break;
             }
         }
     }

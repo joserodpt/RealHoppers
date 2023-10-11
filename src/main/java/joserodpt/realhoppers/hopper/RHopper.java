@@ -15,8 +15,11 @@ package joserodpt.realhoppers.hopper;
 
 import joserodpt.realhoppers.RealHoppers;
 import joserodpt.realhoppers.config.Hoppers;
+import joserodpt.realhoppers.hopper.events.RHopperStateChangeEvent;
 import joserodpt.realhoppers.hopper.trait.RHopperTrait;
 import joserodpt.realhoppers.hopper.trait.RHopperTraitBase;
+import joserodpt.realhoppers.utils.Text;
+import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -76,20 +79,27 @@ public class RHopper {
     }
 
     public double getBalance() {
-        return balance;
+        return this.balance;
+    }
+
+    public void setBalance(double i) {
+        this.balance = i;
+        Bukkit.getPluginManager().callEvent(new RHopperStateChangeEvent(this));
     }
 
     public List<String> getHopperDescription() {
         List<String> desc = new ArrayList<>();
         if (this.hasEconomyCapabilities()) {
-            desc.add("&fBalance: &e" + this.getBalance());
+            desc.add("&fBalance: &e" + Text.formatNumber(this.getBalance()));
         }
         desc.add("&f&nHopper traits:");
+
         if (this.getTraitMap().isEmpty()) {
             desc.add(" &7None.");
         } else {
             this.getTraitMap().keySet().forEach(trait -> desc.add("&7- &f" + trait.getName()));
         }
+
         if (this.hasEconomyCapabilities()) {
             desc.add(""); desc.add("&fClick here to collect hopper's balance.");
         }
@@ -101,7 +111,6 @@ public class RHopper {
             if (trait.hasEconomyCapabilities()) {
                 return true;
             }
-
         }
         return false;
     }
@@ -132,8 +141,9 @@ public class RHopper {
     }
 
     public void sell(Material type) {
-        if (RealHoppers.getPlugin().getHopperManager().getSellMaterials().containsKey(type)) {
-            this.balance += RealHoppers.getPlugin().getHopperManager().getSellMaterials().get(type);
+        if (RealHoppers.getPlugin().getHopperManager().getMaterialCost().containsKey(type)) {
+            this.setBalance(this.getBalance() + RealHoppers.getPlugin().getHopperManager().getMaterialCost().get(type));
+            this.saveData(Data.BALANCE, true);
         }
     }
 
@@ -230,8 +240,9 @@ public class RHopper {
         this.visualizing = visualizing;
     }
 
-    public void stopTasks() {
+    public void stopHopper() {
         this.getTraitMap().values().forEach(RHopperTraitBase::stopTask);
+        this.saveData(Data.BALANCE, true);
     }
 
     public void loopView() {

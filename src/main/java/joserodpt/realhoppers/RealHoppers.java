@@ -26,14 +26,17 @@ import joserodpt.realhoppers.manager.PlayerManager;
 import joserodpt.realhoppers.utils.Text;
 import me.mattstudios.mf.base.CommandManager;
 import me.mattstudios.mf.base.components.TypeResult;
+import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.PluginManager;
+import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class RealHoppers extends JavaPlugin {
 
     private PlayerManager pm = new PlayerManager();
     private HopperManager hm = new HopperManager(this);
+    private static Economy econ = null;
 
     private static RealHoppers pl;
     public static RealHoppers getPlugin() {
@@ -92,6 +95,19 @@ public final class RealHoppers extends JavaPlugin {
 
         cm.register(new RealHoppersCMD(this));
 
+        //vault hook
+        if (getServer().getPluginManager().getPlugin("Vault") != null) {
+            RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
+            if (rsp != null) {
+                econ = rsp.getProvider();
+
+                if (econ != null) {
+                    getLogger().info("Hooked into Vault!");
+                }
+            }
+        }
+
+
         Bukkit.getScheduler().scheduleSyncRepeatingTask(this, () -> hm.getHoppers().forEach(RHopper::loopView), 10, 10);
 
         getLogger().info("Plugin has been loaded.");
@@ -103,6 +119,10 @@ public final class RealHoppers extends JavaPlugin {
     public void onDisable() {
         // Plugin shutdown logic
         hm.stopHoppers();
+    }
+
+    public static Economy getVault() {
+        return econ;
     }
 
     public PlayerManager getPlayerManager() {
