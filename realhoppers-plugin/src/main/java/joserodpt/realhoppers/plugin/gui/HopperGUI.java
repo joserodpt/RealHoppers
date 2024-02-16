@@ -1,4 +1,4 @@
-package joserodpt.realhoppers.api.hopper;
+package joserodpt.realhoppers.plugin.gui;
 
 /*
  *   ____            _ _   _
@@ -14,6 +14,7 @@ package joserodpt.realhoppers.api.hopper;
  */
 
 import joserodpt.realhoppers.api.RealHoppersAPI;
+import joserodpt.realhoppers.api.hopper.RHopper;
 import joserodpt.realhoppers.api.utils.Itens;
 import joserodpt.realhoppers.api.utils.Text;
 import org.bukkit.Bukkit;
@@ -113,12 +114,18 @@ public class HopperGUI {
                                 break;
                             case 13:
                                 if (current.h.getBalance() > 0) {
+                                    if (current.rh.getVault() == null) {
+                                        Text.send(p, "&cVault is not installed on this server.");
+                                        p.closeInventory();
+                                        return;
+                                    }
+
                                     if (Objects.requireNonNull(e.getClick()) == ClickType.SHIFT_LEFT) {
-                                        RealHoppersAPI.getInstance().getVault().depositPlayer(p, current.h.getBalance());
+                                        current.rh.getVault().depositPlayer(p, current.h.getBalance());
                                         Text.send(p, "&fYou collected " + Text.formatNumber(current.h.getBalance()) + " &ffrom this hopper.");
                                         current.h.setBalance(0);
                                     } else {
-                                        RealHoppersAPI.getInstance().getVault().depositPlayer(p, current.h.getBalance() / 2);
+                                        current.rh.getVault().depositPlayer(p, current.h.getBalance() / 2);
                                         Text.send(p, "&fYou collected " + Text.formatNumber(current.h.getBalance() / 2) + " &ffrom this hopper.");
                                         current.h.setBalance(current.h.getBalance() / 2);
                                     }

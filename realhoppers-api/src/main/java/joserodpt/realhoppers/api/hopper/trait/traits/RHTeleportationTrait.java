@@ -24,14 +24,14 @@ import org.bukkit.Bukkit;
 import org.bukkit.Particle;
 import org.bukkit.entity.Player;
 
-public class RHTeleportation extends RHopperTraitBase {
+public class RHTeleportationTrait extends RHopperTraitBase {
 
-    public RHTeleportation(RHopper main, String linkLocation) {
+    public RHTeleportationTrait(RHopper main, String linkLocation) {
         super(main);
         super.setLinkedLoc(linkLocation);
     }
 
-    public RHTeleportation(RHopper main, RHopper link) {
+    public RHTeleportationTrait(RHopper main, RHopper link) {
         super(main);
         super.setLinked(link);
     }

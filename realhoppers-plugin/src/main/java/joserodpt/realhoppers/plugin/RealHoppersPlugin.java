@@ -14,7 +14,7 @@ package joserodpt.realhoppers.plugin;
  */
 
 import joserodpt.realhoppers.api.RealHoppersAPI;
-import joserodpt.realhoppers.api.hopper.HopperGUI;
+import joserodpt.realhoppers.plugin.gui.HopperGUI;
 import joserodpt.realhoppers.api.hopper.RHopper;
 import joserodpt.realhoppers.api.hopper.trait.RHopperTrait;
 import joserodpt.realhoppers.api.utils.Text;

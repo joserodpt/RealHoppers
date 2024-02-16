@@ -31,7 +31,6 @@ public class RealHoppers extends RealHoppersAPI {
     private final RealHoppersPlugin plugin;
     private final HopperManagerAPI hopperManagerAPI;
     private final PlayerManagerAPI playerManagerAPI;
-    private final Economy econ;
 
     public RealHoppers(RealHoppersPlugin plugin) {
         this.plugin = plugin;
@@ -43,7 +42,6 @@ public class RealHoppers extends RealHoppersAPI {
 
         this.hopperManagerAPI = new HopperManager(this);
         this.playerManagerAPI = new PlayerManager();
-        this.econ = plugin.getVault();
     }
 
     @Override
@@ -74,7 +72,7 @@ public class RealHoppers extends RealHoppersAPI {
 
     @Override
     public Economy getVault() {
-        return this.econ;
+        return plugin.getVault();
     }
 
     @Override

@@ -24,9 +24,9 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.metadata.FixedMetadataValue;
 
-public class RHMobKilling extends RHopperTraitBase {
+public class RHMobKillingTrait extends RHopperTraitBase {
 
-    public RHMobKilling(RHopper main) {
+    public RHMobKillingTrait(RHopper main) {
         super(main);
     }
 

@@ -18,22 +18,16 @@ import joserodpt.realhoppers.api.hopper.RHopper;
 import joserodpt.realhoppers.api.hopper.trait.RHopperTrait;
 import joserodpt.realhoppers.api.hopper.trait.RHopperTraitBase;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
 
-import java.util.Arrays;
-import java.util.Objects;
+public class RHSuctionTrait extends RHopperTraitBase {
 
-public class RHItemTransfer extends RHopperTraitBase {
-
-    public RHItemTransfer(RHopper main, String linkLocation) {
+    public RHSuctionTrait(RHopper main) {
         super(main);
-        super.setLinkedLoc(linkLocation);
-    }
-
-    public RHItemTransfer(RHopper main, RHopper link) {
-        super(main);
-        super.setLinked(link);
     }
 
     @Override
@@ -41,38 +35,32 @@ public class RHItemTransfer extends RHopperTraitBase {
 
     private int taskID;
 
+    private int area = 2;
+
     @Override
     public void executeLoop() {
         taskID = Bukkit.getScheduler().scheduleSyncRepeatingTask(RealHoppersAPI.getInstance().getPlugin(), () -> {
-
-            ItemStack itemStack = getFirst();
-            if (itemStack != null) {
-                if (super.getLinkedHopper().hasHopperSpace(itemStack.getType())) {
-                    if (itemStack.getAmount() > 1) {
-                        itemStack.setAmount(itemStack.getAmount() - 1);
+            for (Entity ent : super.getHopper().getWorld().getNearbyEntities(super.getHopper().getLocation(), area, area, area)) {
+                if (ent.getType() == EntityType.DROPPED_ITEM) {
+                    Item droppedItem = (Item) ent;
+                    Material m = droppedItem.getItemStack().getType();
+                    if (super.getHopper().hasHopperSpace(m)) {
+                        super.getHopper().addItem(m);
+                        ent.remove();
                     } else {
-                        super.getHopper().getInventory().removeItem(itemStack);
+                        if (super.getHopper().hasTrait(RHopperTrait.AUTO_SELL) && RealHoppersAPI.getInstance().getHopperManager().getMaterialCost().containsKey(m)) {
+                            super.getHopper().sell(m, true);
+                            ent.remove();
+                        }
                     }
-
-                    final ItemStack clone = itemStack.clone();
-                    clone.setAmount(1);
-
-                    super.getLinkedHopper().getInventory().addItem(clone);
                 }
             }
-        }, 10, 10);
-    }
-
-    private ItemStack getFirst() {
-        return Arrays.stream(super.getHopper().getInventory().getContents())
-                .filter(Objects::nonNull)
-                .findFirst()
-                .orElse(null);
+        }, 20, 20);
     }
 
     @Override
     public RHopperTrait getTraitType() {
-        return RHopperTrait.ITEM_TRANS;
+        return RHopperTrait.KILL_MOB;
     }
 
     @Override
@@ -82,6 +70,6 @@ public class RHItemTransfer extends RHopperTraitBase {
 
     @Override
     public String getSerializedSave() {
-        return getTraitType() + "|" + getLinkedHopper().getSerializedLocation();
+        return getTraitType().name();
     }
 }

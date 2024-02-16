@@ -86,6 +86,7 @@ public class RHopper {
     public void setBalance(double i) {
         this.balance = i;
         Bukkit.getPluginManager().callEvent(new RHopperStateChangeEvent(this));
+        this.saveData(Data.BALANCE, true);
     }
 
     public List<String> getHopperDescription() {
@@ -141,8 +142,8 @@ public class RHopper {
         this.saveData(Data.TRAITS, true);
     }
 
-    public void sell(Material type) {
-        if (RealHoppersAPI.getInstance().getHopperManager().getMaterialCost().containsKey(type)) {
+    public void sell(Material type, boolean skipMaterialVerify) {
+        if (skipMaterialVerify || RealHoppersAPI.getInstance().getHopperManager().getMaterialCost().containsKey(type)) {
             this.setBalance(this.getBalance() + RealHoppersAPI.getInstance().getHopperManager().getMaterialCost().get(type));
             this.saveData(Data.BALANCE, true);
         }

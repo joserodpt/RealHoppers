@@ -14,10 +14,10 @@ package joserodpt.realhoppers.plugin.listener;
  */
 
 import joserodpt.realhoppers.api.RealHoppersAPI;
-import joserodpt.realhoppers.api.hopper.HopperGUI;
+import joserodpt.realhoppers.plugin.gui.HopperGUI;
 import joserodpt.realhoppers.api.hopper.RHopper;
 import joserodpt.realhoppers.api.hopper.trait.RHopperTrait;
-import joserodpt.realhoppers.api.hopper.trait.traits.RHItemTransfer;
+import joserodpt.realhoppers.api.hopper.trait.traits.RHItemTransferTrait;
 import joserodpt.realhoppers.api.utils.Text;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -48,7 +48,6 @@ public class PlayerListener implements Listener {
         Player player = event.getPlayer();
         Block clickedBlock = event.getClickedBlock();
 
-
         if (clickedBlock != null &&
                 clickedBlock.getType() == Material.HOPPER && event.getAction() == Action.RIGHT_CLICK_BLOCK) {
 
@@ -75,7 +74,7 @@ public class PlayerListener implements Listener {
                     if (prevClicked == clicked) {
                         player.sendMessage("nao pode ser o mm");
                     } else {
-                        prevClicked.setTrait(trait, new RHItemTransfer(prevClicked, clicked));
+                        prevClicked.setTrait(trait, new RHItemTransferTrait(prevClicked, clicked));
 
                         // prevClicked.setTrait(trait, new RHTeleportation(prevClicked, clicked));
                         // clicked.setTrait(trait, new RHTeleportation(clicked, prevClicked));

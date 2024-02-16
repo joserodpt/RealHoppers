@@ -16,9 +16,10 @@ package joserodpt.realhoppers.plugin;
 import joserodpt.realhoppers.api.RealHoppersAPI;
 import joserodpt.realhoppers.api.hopper.RHopper;
 import joserodpt.realhoppers.api.hopper.trait.RHopperTrait;
-import joserodpt.realhoppers.api.hopper.trait.traits.RHBlockBreaking;
+import joserodpt.realhoppers.api.hopper.trait.traits.RHBlockBreakingTrait;
 import joserodpt.realhoppers.api.hopper.trait.traits.RHDummyTrait;
-import joserodpt.realhoppers.api.hopper.trait.traits.RHMobKilling;
+import joserodpt.realhoppers.api.hopper.trait.traits.RHMobKillingTrait;
+import joserodpt.realhoppers.api.hopper.trait.traits.RHSuctionTrait;
 import joserodpt.realhoppers.api.utils.Text;
 import me.mattstudios.mf.annotations.Alias;
 import me.mattstudios.mf.annotations.Command;
@@ -64,7 +65,7 @@ public class RealHoppersCMD extends CommandBase {
     @Permission("realhoppers.admin")
     @Completion("#enum")
     @WrongUsage("&c/rr settrait <trait>")
-    public void loadcmd(final CommandSender commandSender, final RHopperTrait t) {
+    public void set(final CommandSender commandSender, final RHopperTrait t) {
         if (commandSender instanceof Player) {
             Player p = (Player) commandSender;
             Block b = p.getTargetBlock(null, 5);
@@ -73,16 +74,18 @@ public class RealHoppersCMD extends CommandBase {
             if (h != null) {
                 switch (t) {
                     case KILL_MOB:
-                        h.setTrait(t, new RHMobKilling(h));
+                        h.setTrait(t, new RHMobKillingTrait(h));
                         break;
                     case BLOCK_BREAKING:
-                        h.setTrait(t, new RHBlockBreaking(h));
+                        h.setTrait(t, new RHBlockBreakingTrait(h));
+                        break;
+                    case SUCTION:
+                        h.setTrait(t, new RHSuctionTrait(h));
                         break;
                     case AUTO_SELL:
                         h.setTrait(t, new RHDummyTrait(h, RHopperTrait.AUTO_SELL));
                         break;
                 }
-
             }
         } else {
             Text.send(commandSender, onlyPlayers);

@@ -25,9 +25,9 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
-public class RHBlockBreaking extends RHopperTraitBase {
+public class RHBlockBreakingTrait extends RHopperTraitBase {
 
-    public RHBlockBreaking(RHopper main) {
+    public RHBlockBreakingTrait(RHopper main) {
         super(main);
     }
 
@@ -41,17 +41,23 @@ public class RHBlockBreaking extends RHopperTraitBase {
         taskID = Bukkit.getScheduler().scheduleSyncRepeatingTask(RealHoppersAPI.getInstance().getPlugin(), () -> {
             Block toBreak = super.getHopper().getBlock().getRelative(BlockFace.UP);
             if (toBreak != null && toBreak.getType().isSolid()) {
-                if (super.getHopper().hasHopperSpace(toBreak.getType())) {
-                    super.getHopper().addItem(toBreak.getType());
-                } else {
-                    if (super.getHopper().hasTrait(RHopperTrait.AUTO_SELL)) {
-                        super.getHopper().sell(toBreak.getType());
+                if (super.getHopper().hasHopperSpace(toBreak.getType()) ||
+                        (super.getHopper().hasTrait(RHopperTrait.AUTO_SELL) &&
+                                RealHoppersAPI.getInstance().getHopperManager().getMaterialCost().containsKey(toBreak.getType()))) {
+
+                    if (super.getHopper().hasHopperSpace(toBreak.getType())) {
+                        super.getHopper().addItem(toBreak.getType());
                     } else {
-                        if (RHConfig.file().getBoolean("RealHoppers.Drop-Items-If-Full"))
-                            super.getHopper().getWorld().dropItemNaturally(super.getHopper().getTeleportLocation(), new ItemStack(toBreak.getType()));
+                        super.getHopper().sell(toBreak.getType(), true);
+                    }
+
+                    toBreak.setType(Material.AIR);
+                } else {
+                    if (RHConfig.file().getBoolean("RealHoppers.Drop-Items-If-Full")) {
+                        super.getHopper().getWorld().dropItemNaturally(super.getHopper().getTeleportLocation(), new ItemStack(toBreak.getType()));
+                        toBreak.setType(Material.AIR);
                     }
                 }
-                toBreak.setType(Material.AIR);
             }
         }, 10, 10);
     }

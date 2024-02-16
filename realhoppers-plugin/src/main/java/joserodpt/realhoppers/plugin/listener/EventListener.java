@@ -15,7 +15,7 @@ package joserodpt.realhoppers.plugin.listener;
 
 import joserodpt.realhoppers.api.RealHoppersAPI;
 import joserodpt.realhoppers.api.config.RHConfig;
-import joserodpt.realhoppers.api.hopper.HopperGUI;
+import joserodpt.realhoppers.plugin.gui.HopperGUI;
 import joserodpt.realhoppers.api.hopper.RHopper;
 import joserodpt.realhoppers.api.hopper.events.RHopperStateChangeEvent;
 import joserodpt.realhoppers.api.hopper.trait.RHopperTrait;
@@ -79,7 +79,7 @@ public class EventListener implements Listener {
                         source.addItem(drop);
                     } else {
                         if (source.hasTrait(RHopperTrait.AUTO_SELL)) {
-                            source.sell(drop.getType());
+                            source.sell(drop.getType(), false);
                         } else {
                             if (RHConfig.file().getBoolean("RealHoppers.Drop-Items-If-Full"))
                                 source.getWorld().dropItemNaturally(source.getTeleportLocation(), drop);
