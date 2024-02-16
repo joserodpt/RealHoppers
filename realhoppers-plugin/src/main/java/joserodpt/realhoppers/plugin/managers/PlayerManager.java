@@ -1,4 +1,4 @@
-package joserodpt.realhoppers.manager;
+package joserodpt.realhoppers.plugin.managers;
 
 /*
  *   ____            _ _   _
@@ -13,7 +13,8 @@ package joserodpt.realhoppers.manager;
  * @link https://github.com/joserodpt/RealHoppers
  */
 
-import joserodpt.realhoppers.hopper.RHopper;
+import joserodpt.realhoppers.api.hopper.RHopper;
+import joserodpt.realhoppers.api.managers.PlayerManagerAPI;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
@@ -21,15 +22,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class PlayerManager {
+public class PlayerManager extends PlayerManagerAPI {
 
     public List<Player> tpFreeze = new ArrayList<>();
     public Map<Player, RHopper> clickedHoppers = new HashMap<>();
 
+    @Override
     public Map<Player, RHopper> getClickedHoppers() {
         return clickedHoppers;
     }
 
+    @Override
     public List<Player> getTpFreeze() {
         return tpFreeze;
     }

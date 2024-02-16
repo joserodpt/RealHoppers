@@ -1,4 +1,4 @@
-package joserodpt.realhoppers.listener;
+package joserodpt.realhoppers.plugin.listener;
 
 /*
  *   ____            _ _   _
@@ -13,12 +13,12 @@ package joserodpt.realhoppers.listener;
  * @link https://github.com/joserodpt/RealHoppers
  */
 
-import joserodpt.realhoppers.RealHoppers;
-import joserodpt.realhoppers.hopper.HopperGUI;
-import joserodpt.realhoppers.hopper.RHopper;
-import joserodpt.realhoppers.hopper.trait.RHopperTrait;
-import joserodpt.realhoppers.hopper.trait.traits.RHItemTransfer;
-import joserodpt.realhoppers.utils.Text;
+import joserodpt.realhoppers.api.RealHoppersAPI;
+import joserodpt.realhoppers.api.hopper.HopperGUI;
+import joserodpt.realhoppers.api.hopper.RHopper;
+import joserodpt.realhoppers.api.hopper.trait.RHopperTrait;
+import joserodpt.realhoppers.api.hopper.trait.traits.RHItemTransfer;
+import joserodpt.realhoppers.api.utils.Text;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -33,8 +33,8 @@ import org.bukkit.inventory.ItemStack;
 
 public class PlayerListener implements Listener {
 
-    private RealHoppers rh;
-    public PlayerListener(RealHoppers rh) {
+    private final RealHoppersAPI rh;
+    public PlayerListener(RealHoppersAPI rh) {
         this.rh = rh;
     }
 

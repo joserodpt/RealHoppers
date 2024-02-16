@@ -1,4 +1,4 @@
-package joserodpt.realhoppers.listener;
+package joserodpt.realhoppers.plugin.listener;
 
 /*
  *   ____            _ _   _
@@ -13,13 +13,13 @@ package joserodpt.realhoppers.listener;
  * @link https://github.com/joserodpt/RealHoppers
  */
 
-import joserodpt.realhoppers.RealHoppers;
-import joserodpt.realhoppers.config.Config;
-import joserodpt.realhoppers.hopper.HopperGUI;
-import joserodpt.realhoppers.hopper.RHopper;
-import joserodpt.realhoppers.hopper.events.RHopperStateChangeEvent;
-import joserodpt.realhoppers.hopper.trait.RHopperTrait;
-import joserodpt.realhoppers.utils.Text;
+import joserodpt.realhoppers.api.RealHoppersAPI;
+import joserodpt.realhoppers.api.config.RHConfig;
+import joserodpt.realhoppers.api.hopper.HopperGUI;
+import joserodpt.realhoppers.api.hopper.RHopper;
+import joserodpt.realhoppers.api.hopper.events.RHopperStateChangeEvent;
+import joserodpt.realhoppers.api.hopper.trait.RHopperTrait;
+import joserodpt.realhoppers.api.utils.Text;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.event.EventHandler;
@@ -31,8 +31,8 @@ import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.inventory.ItemStack;
 
 public class EventListener implements Listener {
-    private RealHoppers rh;
-    public EventListener(RealHoppers rh) {
+    private final RealHoppersAPI rh;
+    public EventListener(RealHoppersAPI rh) {
         this.rh = rh;
     }
 
@@ -81,7 +81,7 @@ public class EventListener implements Listener {
                         if (source.hasTrait(RHopperTrait.AUTO_SELL)) {
                             source.sell(drop.getType());
                         } else {
-                            if (Config.file().getBoolean("RealHoppers.Drop-Items-If-Full"))
+                            if (RHConfig.file().getBoolean("RealHoppers.Drop-Items-If-Full"))
                                 source.getWorld().dropItemNaturally(source.getTeleportLocation(), drop);
                         }
                     }

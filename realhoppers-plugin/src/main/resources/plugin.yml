@@ -1,7 +1,7 @@
 name: RealHoppers
 description: Hoppers with Traits
 version: '${project.version}'
-main: joserodpt.realhoppers.RealHoppers
+main: joserodpt.realhoppers.plugin.RealHoppersPlugin
 load: POSTWORLD
 api-version: '1.13'
 authors: [JoseGamer_PT]

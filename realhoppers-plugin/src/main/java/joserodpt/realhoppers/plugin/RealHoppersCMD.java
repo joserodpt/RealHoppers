@@ -1,4 +1,4 @@
-package joserodpt.realhoppers;
+package joserodpt.realhoppers.plugin;
 
 /*
  *   ____            _ _   _
@@ -13,14 +13,13 @@ package joserodpt.realhoppers;
  * @link https://github.com/joserodpt/RealHoppers
  */
 
-import joserodpt.realhoppers.config.Config;
-import joserodpt.realhoppers.config.Hoppers;
-import joserodpt.realhoppers.hopper.RHopper;
-import joserodpt.realhoppers.hopper.trait.RHopperTrait;
-import joserodpt.realhoppers.hopper.trait.traits.RHDummyTrait;
-import joserodpt.realhoppers.hopper.trait.traits.RHBlockBreaking;
-import joserodpt.realhoppers.hopper.trait.traits.RHMobKilling;
-import joserodpt.realhoppers.utils.Text;
+import joserodpt.realhoppers.api.RealHoppersAPI;
+import joserodpt.realhoppers.api.hopper.RHopper;
+import joserodpt.realhoppers.api.hopper.trait.RHopperTrait;
+import joserodpt.realhoppers.api.hopper.trait.traits.RHBlockBreaking;
+import joserodpt.realhoppers.api.hopper.trait.traits.RHDummyTrait;
+import joserodpt.realhoppers.api.hopper.trait.traits.RHMobKilling;
+import joserodpt.realhoppers.api.utils.Text;
 import me.mattstudios.mf.annotations.Alias;
 import me.mattstudios.mf.annotations.Command;
 import me.mattstudios.mf.annotations.Completion;
@@ -41,26 +40,22 @@ public class RealHoppersCMD extends CommandBase {
     
     private final String onlyPlayers = "[RealHoppers] Only players can run this command.";
 
-    RealHoppers rh;
-    public RealHoppersCMD(RealHoppers r)
+    RealHoppersAPI rh;
+    public RealHoppersCMD(RealHoppersAPI r)
     {
         this.rh = r;
     }
 
     @Default
     public void defaultCommand(final CommandSender commandSender) {
-        Text.sendList(commandSender, Arrays.asList("         &fReal&dHoppers", "         &7Release &a" + rh.getDescription().getVersion()));
+        Text.sendList(commandSender, Arrays.asList("         &fReal&dHoppers", "         &7Release &a" + rh.getPlugin().getDescription().getVersion()));
     }
 
     @SubCommand("reload")
     @Alias("rl")
     @Permission("realhoppers.admin")
     public void reloadcmd(final CommandSender commandSender) {
-        Config.reload();
-        Hoppers.reload();
-
-        //reload worlds config
-        rh.getHopperManager().loadHoppers();
+        rh.reload();
         Text.send(commandSender, "&aReloaded!");
     }
 
