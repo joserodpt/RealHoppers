@@ -1,4 +1,4 @@
-package joserodpt.realhoppers.utils;
+package joserodpt.realhoppers.api.utils;
 
 /*
  *   ____            _ _   _

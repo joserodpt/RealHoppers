@@ -1,4 +1,4 @@
-package joserodpt.realhoppers.hopper.trait.traits;
+package joserodpt.realhoppers.api.hopper.trait.traits;
 
 /*
  *   ____            _ _   _
@@ -13,9 +13,9 @@ package joserodpt.realhoppers.hopper.trait.traits;
  * @link https://github.com/joserodpt/RealHoppers
  */
 
-import joserodpt.realhoppers.hopper.RHopper;
-import joserodpt.realhoppers.hopper.trait.RHopperTrait;
-import joserodpt.realhoppers.hopper.trait.RHopperTraitBase;
+import joserodpt.realhoppers.api.hopper.RHopper;
+import joserodpt.realhoppers.api.hopper.trait.RHopperTrait;
+import joserodpt.realhoppers.api.hopper.trait.RHopperTraitBase;
 import org.bukkit.entity.Player;
 
 public class RHDummyTrait extends RHopperTraitBase {

@@ -1,4 +1,4 @@
-package joserodpt.realhoppers.utils;
+package joserodpt.realhoppers.api.utils;
 
 /*
  *   ____            _ _   _
@@ -13,7 +13,7 @@ package joserodpt.realhoppers.utils;
  * @link https://github.com/joserodpt/RealHoppers
  */
 
-import joserodpt.realhoppers.config.Config;
+import joserodpt.realhoppers.api.config.RHConfig;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
@@ -46,10 +46,10 @@ public class Text {
 	}
 
 	public static void send(Player p, String string) {
-		p.sendMessage(Text.color( Config.file().getString("RealHoppers.Prefix") + " &r" + string));
+		p.sendMessage(Text.color( RHConfig.file().getString("RealHoppers.Prefix") + " &r" + string));
 	}
 	public static void send(CommandSender p, String string) {
-		p.sendMessage(Text.color(Config.file().getString("RealHoppers.Prefix") +" &r" + string));
+		p.sendMessage(Text.color(RHConfig.file().getString("RealHoppers.Prefix") +" &r" + string));
 	}
 
 	public static String formatNumber(double number) {

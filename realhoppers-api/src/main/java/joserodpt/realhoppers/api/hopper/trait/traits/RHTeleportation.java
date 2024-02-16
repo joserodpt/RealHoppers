@@ -1,4 +1,4 @@
-package joserodpt.realhoppers.hopper.trait.traits;
+package joserodpt.realhoppers.api.hopper.trait.traits;
 
 /*
  *   ____            _ _   _
@@ -13,13 +13,13 @@ package joserodpt.realhoppers.hopper.trait.traits;
  * @link https://github.com/joserodpt/RealHoppers
  */
 
-import joserodpt.realhoppers.RealHoppers;
-import joserodpt.realhoppers.config.Config;
-import joserodpt.realhoppers.hopper.RHopper;
-import joserodpt.realhoppers.hopper.trait.RHopperTrait;
-import joserodpt.realhoppers.hopper.trait.RHopperTraitBase;
-import joserodpt.realhoppers.utils.LocationUtil;
-import joserodpt.realhoppers.utils.Text;
+import joserodpt.realhoppers.api.RealHoppersAPI;
+import joserodpt.realhoppers.api.config.RHConfig;
+import joserodpt.realhoppers.api.utils.LocationUtil;
+import joserodpt.realhoppers.api.utils.Text;
+import joserodpt.realhoppers.api.hopper.RHopper;
+import joserodpt.realhoppers.api.hopper.trait.RHopperTrait;
+import joserodpt.realhoppers.api.hopper.trait.RHopperTraitBase;
 import org.bukkit.Bukkit;
 import org.bukkit.Particle;
 import org.bukkit.entity.Player;
@@ -38,15 +38,15 @@ public class RHTeleportation extends RHopperTraitBase {
 
     @Override
     public void executeAction(Player p) {
-        if (!RealHoppers.getPlugin().getPlayerManager().getTpFreeze().contains(p)) {
-            RealHoppers.getPlugin().getPlayerManager().getTpFreeze().add(p);
+        if (!RealHoppersAPI.getInstance().getPlayerManager().getTpFreeze().contains(p)) {
+            RealHoppersAPI.getInstance().getPlayerManager().getTpFreeze().add(p);
 
             LocationUtil.teleportConservingPitchYaw(p, super.getLinkedHopper().getTeleportLocation());
-            if (Config.file().getBoolean("RealHoppers.Effects.Particles"))
+            if (RHConfig.file().getBoolean("RealHoppers.Effects.Particles"))
                 super.getLinkedHopper().getTeleportLocation().getWorld().spawnParticle(Particle.PORTAL, super.getLinkedHopper().getTeleportLocation(), 20);
 
             Text.send(p, "You have been teleported!");
-            Bukkit.getScheduler().scheduleSyncDelayedTask(RealHoppers.getPlugin(), () -> RealHoppers.getPlugin().getPlayerManager().getTpFreeze().remove(p), Config.file().getInt("RealHoppers.Teleportation-Cooldown"));
+            Bukkit.getScheduler().scheduleSyncDelayedTask(RealHoppersAPI.getInstance().getPlugin(), () -> RealHoppersAPI.getInstance().getPlayerManager().getTpFreeze().remove(p), RHConfig.file().getInt("RealHoppers.Teleportation-Cooldown"));
         }
     }
 

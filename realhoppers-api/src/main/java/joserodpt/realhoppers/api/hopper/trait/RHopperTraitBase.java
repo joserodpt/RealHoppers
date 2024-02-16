@@ -1,4 +1,4 @@
-package joserodpt.realhoppers.hopper.trait;
+package joserodpt.realhoppers.api.hopper.trait;
 
 /*
  *   ____            _ _   _
@@ -13,14 +13,13 @@ package joserodpt.realhoppers.hopper.trait;
  * @link https://github.com/joserodpt/RealHoppers
  */
 
-import joserodpt.realhoppers.RealHoppers;
-import joserodpt.realhoppers.hopper.RHopper;
+import joserodpt.realhoppers.api.RealHoppersAPI;
+import joserodpt.realhoppers.api.hopper.RHopper;
+import joserodpt.realhoppers.api.utils.LocationUtil;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
-
-import static joserodpt.realhoppers.utils.LocationUtil.deserializeLocation;
 
 public abstract class RHopperTraitBase {
 
@@ -55,21 +54,21 @@ public abstract class RHopperTraitBase {
 
     public void loadLink() {
         if (linkedLoc != null && !linkedLoc.isEmpty()) {
-            Location l = deserializeLocation(linkedLoc);
+            Location l = LocationUtil.deserializeLocation(linkedLoc);
             if (l == null) {
-                RealHoppers.getPlugin().getLogger().severe("Could not parse location for hopper " + linkedLoc + "! Skipping.");
+                RealHoppersAPI.getInstance().getLogger().severe("Could not parse location for hopper " + linkedLoc + "! Skipping.");
                 return;
             }
 
             Block b = l.getBlock();
             if (b == null || b.getType() != Material.HOPPER) {
-                RealHoppers.getPlugin().getLogger().severe("Block at location " + linkedLoc + " isn't a Hopper! Skipping.");
+                RealHoppersAPI.getInstance().getLogger().severe("Block at location " + linkedLoc + " isn't a Hopper! Skipping.");
                 return;
             }
 
-            this.setLinked(RealHoppers.getPlugin().getHopperManager().getHopper(b));
+            this.setLinked(RealHoppersAPI.getInstance().getHopperManager().getHopper(b));
         } else {
-            RealHoppers.getPlugin().getLogger().severe("Linked Hopper Location of the Trait " + this.getTraitType().name() + " for the Hopper at " + this.getHopper().getSerializedLocation() + "is invalid (" + this.linkedLoc + ")");
+            RealHoppersAPI.getInstance().getLogger().severe("Linked Hopper Location of the Trait " + this.getTraitType().name() + " for the Hopper at " + this.getHopper().getSerializedLocation() + "is invalid (" + this.linkedLoc + ")");
         }
     }
 

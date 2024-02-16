@@ -1,4 +1,4 @@
-package joserodpt.realhoppers.hopper.events;
+package joserodpt.realhoppers.api.hopper.events;
 
 /*
  *   ____            _ _   _
@@ -14,7 +14,7 @@ package joserodpt.realhoppers.hopper.events;
  */
 
 
-import joserodpt.realhoppers.hopper.RHopper;
+import joserodpt.realhoppers.api.hopper.RHopper;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;

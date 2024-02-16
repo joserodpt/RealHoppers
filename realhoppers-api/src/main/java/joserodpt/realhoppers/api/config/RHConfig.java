@@ -1,4 +1,4 @@
-package joserodpt.realhoppers.config;
+package joserodpt.realhoppers.api.config;
 
 /*
  *   ____            _ _   _
@@ -19,48 +19,49 @@ import dev.dejvokep.boostedyaml.settings.dumper.DumperSettings;
 import dev.dejvokep.boostedyaml.settings.general.GeneralSettings;
 import dev.dejvokep.boostedyaml.settings.loader.LoaderSettings;
 import dev.dejvokep.boostedyaml.settings.updater.UpdaterSettings;
-import org.bukkit.Bukkit;
+import joserodpt.realhoppers.api.RealHoppersAPI;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.logging.Level;
 
-public class Language implements Listener {
+public class RHConfig implements Listener {
 
-    private static final String name = "language.yml";
-    private static YamlDocument configFile;
+    private static final String name = "config.yml";
+
+    private static YamlDocument document;
 
     public static void setup(final JavaPlugin rm) {
         try {
-            configFile = YamlDocument.create(new File(rm.getDataFolder(), name), rm.getResource(name),
+            document = YamlDocument.create(new File(rm.getDataFolder(), name), rm.getResource(name),
                     GeneralSettings.DEFAULT,
                     LoaderSettings.builder().setAutoUpdate(true).build(),
                     DumperSettings.DEFAULT,
                     UpdaterSettings.builder().setVersioning(new BasicVersioning("Version")).build());
         } catch (final IOException e) {
-            Bukkit.getLogger().log(Level.SEVERE, "Couldn't setup " + name + "!");
+            RealHoppersAPI.getInstance().getLogger().severe( "Couldn't setup " + name + "!");
+            RealHoppersAPI.getInstance().getLogger().severe(e.getMessage());
         }
     }
 
     public static YamlDocument file() {
-        return configFile;
+        return document;
     }
 
     public static void save() {
         try {
-            configFile.save();
+            document.save();
         } catch (final IOException e) {
-            Bukkit.getLogger().log(Level.SEVERE, "Couldn't save " + name + "!");
+            RealHoppersAPI.getInstance().getLogger().severe( "Couldn't save " + name + "!");
         }
     }
 
     public static void reload() {
         try {
-            configFile.reload();
+            document.reload();
         } catch (final IOException e) {
-            Bukkit.getLogger().log(Level.SEVERE, "Couldn't reload " + name + "!");
+            RealHoppersAPI.getInstance().getLogger().severe( "Couldn't reload " + name + "!");
         }
     }
 }

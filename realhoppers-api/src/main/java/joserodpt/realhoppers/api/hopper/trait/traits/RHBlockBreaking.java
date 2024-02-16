@@ -1,4 +1,4 @@
-package joserodpt.realhoppers.hopper.trait.traits;
+package joserodpt.realhoppers.api.hopper.trait.traits;
 
 /*
  *   ____            _ _   _
@@ -13,11 +13,11 @@ package joserodpt.realhoppers.hopper.trait.traits;
  * @link https://github.com/joserodpt/RealHoppers
  */
 
-import joserodpt.realhoppers.RealHoppers;
-import joserodpt.realhoppers.config.Config;
-import joserodpt.realhoppers.hopper.RHopper;
-import joserodpt.realhoppers.hopper.trait.RHopperTrait;
-import joserodpt.realhoppers.hopper.trait.RHopperTraitBase;
+import joserodpt.realhoppers.api.RealHoppersAPI;
+import joserodpt.realhoppers.api.config.RHConfig;
+import joserodpt.realhoppers.api.hopper.RHopper;
+import joserodpt.realhoppers.api.hopper.trait.RHopperTrait;
+import joserodpt.realhoppers.api.hopper.trait.RHopperTraitBase;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -38,7 +38,7 @@ public class RHBlockBreaking extends RHopperTraitBase {
 
     @Override
     public void executeLoop() {
-        taskID = Bukkit.getScheduler().scheduleSyncRepeatingTask(RealHoppers.getPlugin(), () -> {
+        taskID = Bukkit.getScheduler().scheduleSyncRepeatingTask(RealHoppersAPI.getInstance().getPlugin(), () -> {
             Block toBreak = super.getHopper().getBlock().getRelative(BlockFace.UP);
             if (toBreak != null && toBreak.getType().isSolid()) {
                 if (super.getHopper().hasHopperSpace(toBreak.getType())) {
@@ -47,7 +47,7 @@ public class RHBlockBreaking extends RHopperTraitBase {
                     if (super.getHopper().hasTrait(RHopperTrait.AUTO_SELL)) {
                         super.getHopper().sell(toBreak.getType());
                     } else {
-                        if (Config.file().getBoolean("RealHoppers.Drop-Items-If-Full"))
+                        if (RHConfig.file().getBoolean("RealHoppers.Drop-Items-If-Full"))
                             super.getHopper().getWorld().dropItemNaturally(super.getHopper().getTeleportLocation(), new ItemStack(toBreak.getType()));
                     }
                 }

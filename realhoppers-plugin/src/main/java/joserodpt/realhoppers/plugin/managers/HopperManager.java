@@ -1,4 +1,4 @@
-package joserodpt.realhoppers.manager;
+package joserodpt.realhoppers.plugin.managers;
 
 /*
  *   ____            _ _   _
@@ -14,17 +14,18 @@ package joserodpt.realhoppers.manager;
  */
 
 import com.google.common.collect.ImmutableList;
-import joserodpt.realhoppers.RealHoppers;
-import joserodpt.realhoppers.config.Config;
-import joserodpt.realhoppers.config.Hoppers;
-import joserodpt.realhoppers.hopper.RHopper;
-import joserodpt.realhoppers.hopper.trait.RHopperTrait;
-import joserodpt.realhoppers.hopper.trait.traits.RHBlockBreaking;
-import joserodpt.realhoppers.hopper.trait.traits.RHDummyTrait;
-import joserodpt.realhoppers.hopper.trait.traits.RHItemTransfer;
-import joserodpt.realhoppers.hopper.trait.traits.RHMobKilling;
-import joserodpt.realhoppers.hopper.trait.traits.RHTeleportation;
-import joserodpt.realhoppers.hopper.trait.RHopperTraitBase;
+import joserodpt.realhoppers.api.RealHoppersAPI;
+import joserodpt.realhoppers.api.config.RHConfig;
+import joserodpt.realhoppers.api.config.RHHoppers;
+import joserodpt.realhoppers.api.hopper.RHopper;
+import joserodpt.realhoppers.api.hopper.trait.RHopperTrait;
+import joserodpt.realhoppers.api.hopper.trait.RHopperTraitBase;
+import joserodpt.realhoppers.api.hopper.trait.traits.RHBlockBreaking;
+import joserodpt.realhoppers.api.hopper.trait.traits.RHDummyTrait;
+import joserodpt.realhoppers.api.hopper.trait.traits.RHItemTransfer;
+import joserodpt.realhoppers.api.hopper.trait.traits.RHTeleportation;
+import joserodpt.realhoppers.api.managers.HopperManagerAPI;
+import joserodpt.realhoppers.api.utils.LocationUtil;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -33,54 +34,56 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static joserodpt.realhoppers.utils.LocationUtil.deserializeLocation;
+public class HopperManager extends HopperManagerAPI {
+    private RealHoppersAPI rh;
 
-public class HopperManager {
-    private RealHoppers rh;
-
-    public HopperManager(RealHoppers rh) {
+    public HopperManager(RealHoppersAPI rh) {
         this.rh = rh;
     }
 
     public Map<Block, RHopper> hoppers = new HashMap<>();
     public Map<Material, Double> materialCost = new HashMap<>();
 
+    @Override
     public Map<Block, RHopper> getHoppersMap() {
         return hoppers;
     }
 
+    @Override
     public List<RHopper> getHoppers() {
         return ImmutableList.copyOf(hoppers.values());
     }
 
+    @Override
     public RHopper getHopper(Block b) {
         return this.getHoppersMap().get(b);
     }
 
 
+    @Override
     public void loadHoppers() {
         this.getHoppersMap().clear();
-        if (Hoppers.file().isSection("Hoppers")) {
-            for (String hopperSTR : Hoppers.file().getSection("Hoppers").getRoutesAsStrings(false)) {
-                Location l = deserializeLocation(hopperSTR);
+        if (RHHoppers.file().isSection("Hoppers")) {
+            for (String hopperSTR : RHHoppers.file().getSection("Hoppers").getRoutesAsStrings(false)) {
+                Location l = LocationUtil.deserializeLocation(hopperSTR);
                 if (l == null) {
-                    RealHoppers.getPlugin().getLogger().severe("Could not parse location for hopper " + hopperSTR + "! Skipping.");
+                    RealHoppersAPI.getInstance().getLogger().severe("Could not parse location for hopper " + hopperSTR + "! Skipping.");
                     continue;
                 }
 
                 Block b = l.getBlock();
                 if (b == null || b.getType() != Material.HOPPER) {
-                    RealHoppers.getPlugin().getLogger().severe("Block at location " + hopperSTR + " isn't a Hopper! Skipping.");
+                    RealHoppersAPI.getInstance().getLogger().severe("Block at location " + hopperSTR + " isn't a Hopper! Skipping.");
                     continue;
                 }
 
                 Map<RHopperTrait, RHopperTraitBase> traitMap = new HashMap<>();
                 RHopper loaded = new RHopper(b, false);
-                loaded.setBalance(Hoppers.file().getDouble("Hoppers." + hopperSTR + ".Balance"));
+                loaded.setBalance(RHHoppers.file().getDouble("Hoppers." + hopperSTR + ".Balance"));
                 System.out.println(loaded.getBalance());
 
-                if (Hoppers.file().isList("Hoppers." + hopperSTR + ".Traits")) {
-                    List<String> traits = Hoppers.file().getStringList("Hoppers." + hopperSTR + ".Traits");
+                if (RHHoppers.file().isList("Hoppers." + hopperSTR + ".Traits")) {
+                    List<String> traits = RHHoppers.file().getStringList("Hoppers." + hopperSTR + ".Traits");
 
                     for (final String trait : traits) {
                         final String[] split = trait.split("\\|");
@@ -96,13 +99,13 @@ public class HopperManager {
                                 traitMap.put(RHopperTrait.BLOCK_BREAKING, new RHBlockBreaking(loaded));
                                 break;
                             case KILL_MOB:
-                                traitMap.put(RHopperTrait.KILL_MOB, new RHMobKilling(loaded));
+                                traitMap.put(RHopperTrait.KILL_MOB, new RHBlockBreaking(loaded));
                                 break;
                             case AUTO_SELL:
                                 traitMap.put(RHopperTrait.AUTO_SELL, new RHDummyTrait(loaded, RHopperTrait.AUTO_SELL));
                                 break;
                             default:
-                                RealHoppers.getPlugin().getLogger().severe(traitType + " trait is not supported in this version of RealHoppers! Skipping.");
+                                RealHoppersAPI.getInstance().getLogger().severe(traitType + " trait is not supported in this version of RealHoppers! Skipping.");
                                 break;
                         }
                     }
@@ -120,22 +123,23 @@ public class HopperManager {
         //load material cost
         this.getMaterialCost().clear();
 
-        if (Config.file().isSection("RealHoppers.Material-Values")) {
-            for (String material : Config.file().getSection("RealHoppers.Material-Values").getRoutesAsStrings(false)) {
+        if (RHConfig.file().isSection("RealHoppers.Material-Values")) {
+            for (String material : RHConfig.file().getSection("RealHoppers.Material-Values").getRoutesAsStrings(false)) {
                 try {
                     Material m = Material.valueOf(material);
-                    Double cost = Config.file().getDouble("RealHoppers.Material-Values." + material);
+                    Double cost = RHConfig.file().getDouble("RealHoppers.Material-Values." + material);
                     this.getMaterialCost().put(m, cost);
                 } catch (IllegalArgumentException e) {
-                    RealHoppers.getPlugin().getLogger().severe(material + " isn't a valid material type! Skipping.");
+                    RealHoppersAPI.getInstance().getLogger().severe(material + " isn't a valid material type! Skipping.");
                 }
             }
         }
     }
 
+    @Override
     public void delete(RHopper h) {
-        Hoppers.file().remove("Hoppers." + h.getSerializedLocation());
-        Hoppers.save();
+        RHHoppers.file().remove("Hoppers." + h.getSerializedLocation());
+        RHHoppers.save();
         h.stopHopper();
         //loop through all hoppers and check if any trait constains this hopper and if so remove it
         for (RHopper hopper : this.getHoppers()) {
@@ -147,10 +151,12 @@ public class HopperManager {
         this.getHoppersMap().remove(h.getBlock());
     }
 
+    @Override
     public void stopHoppers() {
         this.getHoppers().forEach(RHopper::stopHopper);
     }
 
+    @Override
     public Map<Material, Double> getMaterialCost() {
         return materialCost;
     }

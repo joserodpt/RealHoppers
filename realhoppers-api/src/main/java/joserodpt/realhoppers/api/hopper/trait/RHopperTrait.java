@@ -1,4 +1,4 @@
-package joserodpt.realhoppers.hopper.trait;
+package joserodpt.realhoppers.api.hopper.trait;
 
 /*
  *   ____            _ _   _
@@ -14,7 +14,7 @@ package joserodpt.realhoppers.hopper.trait;
  */
 
 
-import joserodpt.realhoppers.config.Language;
+import joserodpt.realhoppers.api.config.RHLanguage;
 import org.bukkit.Material;
 
 public enum RHopperTrait {
@@ -45,19 +45,19 @@ public enum RHopperTrait {
     public String getName() {
         switch (this) {
             case BLOCK_BREAKING:
-                return Language.file().getString("Traits.BLOCK_BREAKING");
+                return RHLanguage.file().getString("Traits.BLOCK_BREAKING");
             case KILL_MOB:
-                return Language.file().getString("Traits.KILL_MOB");
+                return RHLanguage.file().getString("Traits.KILL_MOB");
             case TELEPORT:
-                return Language.file().getString("Traits.TELEPORT");
+                return RHLanguage.file().getString("Traits.TELEPORT");
             case ITEM_TRANS:
-                return Language.file().getString("Traits.ITEM_TRANS");
+                return RHLanguage.file().getString("Traits.ITEM_TRANS");
             case SUCTION:
-                return Language.file().getString("Traits.SUCTION");
+                return RHLanguage.file().getString("Traits.SUCTION");
             case AUTO_SELL:
-                return Language.file().getString("Traits.AUTO_SELL");
+                return RHLanguage.file().getString("Traits.AUTO_SELL");
             case AUTO_SMELT:
-                return Language.file().getString("Traits.AUTO_SMELT");
+                return RHLanguage.file().getString("Traits.AUTO_SMELT");
         }
         return "none";
     }

@@ -1,4 +1,4 @@
-package joserodpt.realhoppers.hopper;
+package joserodpt.realhoppers.api.hopper;
 
 /*
  *   ____            _ _   _
@@ -13,9 +13,9 @@ package joserodpt.realhoppers.hopper;
  * @link https://github.com/joserodpt/RealHoppers
  */
 
-import joserodpt.realhoppers.RealHoppers;
-import joserodpt.realhoppers.utils.Itens;
-import joserodpt.realhoppers.utils.Text;
+import joserodpt.realhoppers.api.RealHoppersAPI;
+import joserodpt.realhoppers.api.utils.Itens;
+import joserodpt.realhoppers.api.utils.Text;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Sound;
@@ -47,9 +47,9 @@ public class HopperGUI {
 
     private final UUID uuid;
     private RHopper h;
-    private RealHoppers rh;
+    private RealHoppersAPI rh;
 
-    public HopperGUI(Player as, RHopper h, RealHoppers rh) {
+    public HopperGUI(Player as, RHopper h, RealHoppersAPI rh) {
         this.rh = rh;
         this.uuid = as.getUniqueId();
         this.h = h;
@@ -105,6 +105,8 @@ public class HopperGUI {
                         e.setCancelled(true);
 
                         switch (e.getRawSlot()) {
+                            case 22:
+                                p.closeInventory();
                             case 11:
                                 p.closeInventory();
                                 current.h.openInventory(p);
@@ -112,11 +114,11 @@ public class HopperGUI {
                             case 13:
                                 if (current.h.getBalance() > 0) {
                                     if (Objects.requireNonNull(e.getClick()) == ClickType.SHIFT_LEFT) {
-                                        RealHoppers.getVault().depositPlayer(p, current.h.getBalance());
+                                        RealHoppersAPI.getInstance().getVault().depositPlayer(p, current.h.getBalance());
                                         Text.send(p, "&fYou collected " + Text.formatNumber(current.h.getBalance()) + " &ffrom this hopper.");
                                         current.h.setBalance(0);
                                     } else {
-                                        RealHoppers.getVault().depositPlayer(p, current.h.getBalance() / 2);
+                                        RealHoppersAPI.getInstance().getVault().depositPlayer(p, current.h.getBalance() / 2);
                                         Text.send(p, "&fYou collected " + Text.formatNumber(current.h.getBalance() / 2) + " &ffrom this hopper.");
                                         current.h.setBalance(current.h.getBalance() / 2);
                                     }

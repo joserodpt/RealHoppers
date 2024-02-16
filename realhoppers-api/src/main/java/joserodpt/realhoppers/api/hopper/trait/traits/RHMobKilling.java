@@ -1,4 +1,4 @@
-package joserodpt.realhoppers.hopper.trait.traits;
+package joserodpt.realhoppers.api.hopper.trait.traits;
 
 /*
  *   ____            _ _   _
@@ -13,10 +13,10 @@ package joserodpt.realhoppers.hopper.trait.traits;
  * @link https://github.com/joserodpt/RealHoppers
  */
 
-import joserodpt.realhoppers.RealHoppers;
-import joserodpt.realhoppers.hopper.RHopper;
-import joserodpt.realhoppers.hopper.trait.RHopperTrait;
-import joserodpt.realhoppers.hopper.trait.RHopperTraitBase;
+import joserodpt.realhoppers.api.RealHoppersAPI;
+import joserodpt.realhoppers.api.hopper.RHopper;
+import joserodpt.realhoppers.api.hopper.trait.RHopperTrait;
+import joserodpt.realhoppers.api.hopper.trait.RHopperTraitBase;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
@@ -37,12 +37,12 @@ public class RHMobKilling extends RHopperTraitBase {
 
     @Override
     public void executeLoop() {
-        taskID = Bukkit.getScheduler().scheduleSyncRepeatingTask(RealHoppers.getPlugin(), () -> {
+        taskID = Bukkit.getScheduler().scheduleSyncRepeatingTask(RealHoppersAPI.getInstance().getPlugin(), () -> {
             for (Entity nearbyEntity : super.getHopper().getWorld().getNearbyEntities(super.getHopper().getLocation(), 1.5, 1.5, 1.5)) {
                 if (nearbyEntity.getType() != EntityType.PLAYER && nearbyEntity instanceof LivingEntity) {
                     ((LivingEntity) nearbyEntity).damage(2);
                     if (!nearbyEntity.hasMetadata("rh"))
-                        nearbyEntity.setMetadata("rh", new FixedMetadataValue(RealHoppers.getPlugin(), super.getHopper()));
+                        nearbyEntity.setMetadata("rh", new FixedMetadataValue(RealHoppersAPI.getInstance().getPlugin(), super.getHopper()));
                 }
             }
         }, 20, 20);

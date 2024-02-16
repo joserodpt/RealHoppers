@@ -1,4 +1,4 @@
-package joserodpt.realhoppers.utils;
+package joserodpt.realhoppers.api.utils;
 
 /*
  *   ____            _ _   _
@@ -13,8 +13,8 @@ package joserodpt.realhoppers.utils;
  * @link https://github.com/joserodpt/RealHoppers
  */
 
-import joserodpt.realhoppers.RealHoppers;
-import joserodpt.realhoppers.config.Config;
+import joserodpt.realhoppers.api.RealHoppersAPI;
+import joserodpt.realhoppers.api.config.RHConfig;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Sound;
@@ -28,7 +28,7 @@ public class LocationUtil {
         l.setYaw(p.getLocation().getYaw());
         p.teleport(l);
 
-        if (Config.file().getBoolean("RealHoppers.Effects.Sounds"))
+        if (RHConfig.file().getBoolean("RealHoppers.Effects.Sounds"))
             p.playSound(l, Sound.ENTITY_ENDERMAN_TELEPORT, 10, 10);
     }
 
@@ -36,7 +36,7 @@ public class LocationUtil {
         String[] parts = serializedLocation.split(":");
 
         if (parts.length != 4) {
-            RealHoppers.getPlugin().getLogger().severe("Invalid serialized location format");
+            RealHoppersAPI.getInstance().getLogger().severe("Invalid serialized location format");
             return null;
         }
 
@@ -47,7 +47,7 @@ public class LocationUtil {
 
         World world = Bukkit.getWorld(worldName);
         if (world == null) {
-            RealHoppers.getPlugin().getLogger().severe("World '" + worldName + "' not found");
+            RealHoppersAPI.getInstance().getLogger().severe("World '" + worldName + "' not found");
             return null;
         }
 

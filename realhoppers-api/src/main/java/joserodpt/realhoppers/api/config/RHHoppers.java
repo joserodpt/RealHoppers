@@ -1,4 +1,4 @@
-package joserodpt.realhoppers.config;
+package joserodpt.realhoppers.api.config;
 
 /*
  *   ____            _ _   _
@@ -14,15 +14,15 @@ package joserodpt.realhoppers.config;
  */
 
 import dev.dejvokep.boostedyaml.YamlDocument;
-import joserodpt.realhoppers.RealHoppers;
+import joserodpt.realhoppers.api.RealHoppersAPI;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
 import java.io.IOException;
 
-public class Hoppers {
+public class RHHoppers {
 
-    private static String name = "hoppers.yml";
+    private static final String name = "hoppers.yml";
 
     private static YamlDocument document;
 
@@ -30,8 +30,8 @@ public class Hoppers {
         try {
             document = YamlDocument.create(new File(rm.getDataFolder(), name));
         } catch (final IOException e) {
-            RealHoppers.getPlugin().getLogger().severe( "Couldn't setup " + name + "!");
-            RealHoppers.getPlugin().getLogger().severe(e.getMessage());
+            RealHoppersAPI.getInstance().getLogger().severe( "Couldn't setup " + name + "!");
+            RealHoppersAPI.getInstance().getLogger().severe(e.getMessage());
         }
     }
 
@@ -43,7 +43,7 @@ public class Hoppers {
         try {
             document.save();
         } catch (final IOException e) {
-            RealHoppers.getPlugin().getLogger().severe( "Couldn't save " + name + "!");
+            RealHoppersAPI.getInstance().getLogger().severe( "Couldn't save " + name + "!");
         }
     }
 
@@ -51,7 +51,7 @@ public class Hoppers {
         try {
             document.reload();
         } catch (final IOException e) {
-            RealHoppers.getPlugin().getLogger().severe( "Couldn't reload " + name + "!");
+            RealHoppersAPI.getInstance().getLogger().severe( "Couldn't reload " + name + "!");
         }
     }
 }

@@ -1,4 +1,4 @@
-package joserodpt.realhoppers.hopper;
+package joserodpt.realhoppers.api.hopper;
 
 /*
  *   ____            _ _   _
@@ -13,12 +13,13 @@ package joserodpt.realhoppers.hopper;
  * @link https://github.com/joserodpt/RealHoppers
  */
 
-import joserodpt.realhoppers.RealHoppers;
-import joserodpt.realhoppers.config.Hoppers;
-import joserodpt.realhoppers.hopper.events.RHopperStateChangeEvent;
-import joserodpt.realhoppers.hopper.trait.RHopperTrait;
-import joserodpt.realhoppers.hopper.trait.RHopperTraitBase;
-import joserodpt.realhoppers.utils.Text;
+
+import joserodpt.realhoppers.api.RealHoppersAPI;
+import joserodpt.realhoppers.api.config.RHHoppers;
+import joserodpt.realhoppers.api.hopper.events.RHopperStateChangeEvent;
+import joserodpt.realhoppers.api.hopper.trait.RHopperTrait;
+import joserodpt.realhoppers.api.hopper.trait.RHopperTraitBase;
+import joserodpt.realhoppers.api.utils.Text;
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.Location;
@@ -141,8 +142,8 @@ public class RHopper {
     }
 
     public void sell(Material type) {
-        if (RealHoppers.getPlugin().getHopperManager().getMaterialCost().containsKey(type)) {
-            this.setBalance(this.getBalance() + RealHoppers.getPlugin().getHopperManager().getMaterialCost().get(type));
+        if (RealHoppersAPI.getInstance().getHopperManager().getMaterialCost().containsKey(type)) {
+            this.setBalance(this.getBalance() + RealHoppersAPI.getInstance().getHopperManager().getMaterialCost().get(type));
             this.saveData(Data.BALANCE, true);
         }
     }
@@ -198,10 +199,10 @@ public class RHopper {
     public void saveData(Data d, boolean save) {
         switch (d) {
             case TRAITS:
-                Hoppers.file().set("Hoppers." + this.getSerializedLocation() + ".Traits", this.getTraitMap().values().stream().map(RHopperTraitBase::getSerializedSave).collect(Collectors.toList()));
+                RHHoppers.file().set("Hoppers." + this.getSerializedLocation() + ".Traits", this.getTraitMap().values().stream().map(RHopperTraitBase::getSerializedSave).collect(Collectors.toList()));
                 break;
             case BALANCE:
-                Hoppers.file().set("Hoppers." + this.getSerializedLocation() + ".Balance", this.getBalance());
+                RHHoppers.file().set("Hoppers." + this.getSerializedLocation() + ".Balance", this.getBalance());
                 break;
             case ALL:
                 saveData(Data.TRAITS, true);
@@ -209,7 +210,7 @@ public class RHopper {
                 break;
         }
         if (save)
-            Hoppers.save();
+            RHHoppers.save();
     }
 
     @Override
