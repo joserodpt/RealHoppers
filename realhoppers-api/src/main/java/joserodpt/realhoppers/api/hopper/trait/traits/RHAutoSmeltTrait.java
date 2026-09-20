@@ -16,14 +16,31 @@ package joserodpt.realhoppers.api.hopper.trait.traits;
 import joserodpt.realhoppers.api.hopper.RHopper;
 import joserodpt.realhoppers.api.hopper.trait.RHopperTrait;
 import joserodpt.realhoppers.api.hopper.trait.RHopperTraitBase;
+import joserodpt.realhoppers.api.utils.Smelting;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
-public class RHDummyTrait extends RHopperTraitBase {
+/**
+ * Smelts what the hopper takes in, by the server's own furnace recipes.
+ *
+ * <p>Has no loop of its own: the hopper asks it on the way in, so it applies to whatever any other
+ * trait feeds the hopper rather than running on a timer of its own.</p>
+ */
+public class RHAutoSmeltTrait extends RHopperTraitBase {
 
-    final RHopperTrait t;
-    public RHDummyTrait(RHopper main, RHopperTrait t) {
+    public RHAutoSmeltTrait(RHopper main) {
         super(main);
-        this.t = t;
+    }
+
+    /**
+     * The smelted form of an incoming stack.
+     *
+     * @return the stack the hopper should store: the smelted one, or the original when the material
+     *         does not smelt into anything
+     */
+    public ItemStack smelt(final ItemStack incoming) {
+        final ItemStack smelted = Smelting.smelt(incoming);
+        return smelted == null ? incoming : smelted;
     }
 
     @Override
@@ -34,12 +51,12 @@ public class RHDummyTrait extends RHopperTraitBase {
 
     @Override
     public RHopperTrait getTraitType() {
-        return this.t;
+        return RHopperTrait.AUTO_SMELT;
     }
 
     @Override
     public void stopTask() {
-        super.getHopper().saveData(RHopper.Data.BALANCE);
+        //nothing scheduled to cancel
     }
 
     @Override

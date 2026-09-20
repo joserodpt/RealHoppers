@@ -18,7 +18,6 @@ import joserodpt.realhoppers.api.config.RHConfig;
 import joserodpt.realhoppers.plugin.RealHoppers;
 import joserodpt.realhoppers.api.hopper.RHopper;
 import joserodpt.realhoppers.api.hopper.events.RHopperStateChangeEvent;
-import joserodpt.realhoppers.api.hopper.trait.RHopperTrait;
 import joserodpt.realhoppers.api.utils.Text;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -115,7 +114,7 @@ public class EventListener implements Listener {
                 for (ItemStack drop : event.getDrops()) {
                     if (source.hasHopperSpace(drop)) {
                         source.addItem(drop);
-                    } else if (!(source.hasTrait(RHopperTrait.AUTO_SELL) && source.sell(drop.getType()))) {
+                    } else if (!source.sell(drop.getType())) {
                         //no room and nothing was sold - an unpriced drop used to vanish here
                         if (RHConfig.file().getBoolean("RealHoppers.Drop-Items-If-Full")) {
                             source.getWorld().dropItemNaturally(source.getTeleportLocation(), drop);

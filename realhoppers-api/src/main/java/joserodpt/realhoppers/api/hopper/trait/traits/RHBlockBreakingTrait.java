@@ -50,7 +50,7 @@ public class RHBlockBreakingTrait extends RHopperTraitBase {
                 if (super.getHopper().hasHopperSpace(type)) {
                     super.getHopper().addItem(type);
                     toBreak.setType(Material.AIR);
-                } else if (super.getHopper().hasTrait(RHopperTrait.AUTO_SELL) && super.getHopper().sell(type)) {
+                } else if (super.getHopper().sell(type)) {
                     toBreak.setType(Material.AIR);
                 } else if (RHConfig.file().getBoolean("RealHoppers.Drop-Items-If-Full")) {
                     super.getHopper().getWorld().dropItemNaturally(super.getHopper().getTeleportLocation(), new ItemStack(type));

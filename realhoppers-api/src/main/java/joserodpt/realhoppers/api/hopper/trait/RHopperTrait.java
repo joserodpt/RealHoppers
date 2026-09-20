@@ -17,7 +17,8 @@ package joserodpt.realhoppers.api.hopper.trait;
 import joserodpt.realhoppers.api.config.RHLanguage;
 import joserodpt.realhoppers.api.hopper.RHopper;
 import joserodpt.realhoppers.api.hopper.trait.traits.RHBlockBreakingTrait;
-import joserodpt.realhoppers.api.hopper.trait.traits.RHDummyTrait;
+import joserodpt.realhoppers.api.hopper.trait.traits.RHAutoSellTrait;
+import joserodpt.realhoppers.api.hopper.trait.traits.RHAutoSmeltTrait;
 import joserodpt.realhoppers.api.hopper.trait.traits.RHItemTransferTrait;
 import joserodpt.realhoppers.api.hopper.trait.traits.RHMobKillingTrait;
 import joserodpt.realhoppers.api.hopper.trait.traits.RHSuctionTrait;
@@ -86,9 +87,9 @@ public enum RHopperTrait {
             case SUCTION:
                 return new RHSuctionTrait(hopper);
             case AUTO_SELL:
-                return new RHDummyTrait(hopper, AUTO_SELL);
+                return new RHAutoSellTrait(hopper);
             case AUTO_SMELT:
-                return new RHDummyTrait(hopper, AUTO_SMELT);
+                return new RHAutoSmeltTrait(hopper);
             default:
                 return null;
         }

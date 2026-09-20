@@ -20,8 +20,9 @@ import joserodpt.realhoppers.api.config.TranslatableLine;
 import joserodpt.realhoppers.api.hopper.events.RHopperStateChangeEvent;
 import joserodpt.realhoppers.api.hopper.trait.RHopperTrait;
 import joserodpt.realhoppers.api.hopper.trait.RHopperTraitBase;
+import joserodpt.realhoppers.api.hopper.trait.traits.RHAutoSellTrait;
+import joserodpt.realhoppers.api.hopper.trait.traits.RHAutoSmeltTrait;
 import joserodpt.realhoppers.api.utils.LocationUtil;
-import joserodpt.realhoppers.api.utils.Smelting;
 import joserodpt.realhoppers.api.utils.Text;
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
@@ -153,6 +154,15 @@ public class RHopper {
     }
 
     /**
+     * The trait as its own type, or null when the hopper has not got it. Lets the hopper ask a
+     * trait to do its job instead of reimplementing it behind a {@code hasTrait} check.
+     */
+    public <T extends RHopperTraitBase> T getTrait(final RHopperTrait t, final Class<T> type) {
+        final RHopperTraitBase base = this.getTraitMap().get(t);
+        return type.isInstance(base) ? type.cast(base) : null;
+    }
+
+    /**
      * Takes a trait off this hopper, stopping whatever it had running. The other overload removes
      * by linked hopper, which is what a deleted hopper needs; this is what the GUI needs.
      *
@@ -193,13 +203,11 @@ public class RHopper {
      * @return whether the material had a price and the balance went up
      */
     public boolean sell(Material type) {
-        //a smelting hopper sells what it would have stored, not what went in
-        final Double price = RealHoppersAPI.getInstance().getHopperManager().getMaterialCost().get(this.transform(type));
-        if (price == null) {
-            return false;
-        }
-        this.setBalance(this.getBalance() + price);
-        return true;
+        final RHAutoSellTrait autoSell = this.getTrait(RHopperTrait.AUTO_SELL, RHAutoSellTrait.class);
+        //a hopper without the trait answers false rather than refusing to be asked, which is what
+        //lets callers write `if (!sell(x))` instead of pairing every call with a hasTrait of
+        //their own. A smelting hopper sells what it would have stored, not what went in.
+        return autoSell != null && autoSell.sell(this.transform(type));
     }
 
     public Block getBlock() {
@@ -255,11 +263,8 @@ public class RHopper {
      * the material the hopper never had.</p>
      */
     public ItemStack transform(ItemStack incoming) {
-        if (!this.hasTrait(RHopperTrait.AUTO_SMELT)) {
-            return incoming;
-        }
-        final ItemStack smelted = Smelting.smelt(incoming);
-        return smelted == null ? incoming : smelted;
+        final RHAutoSmeltTrait autoSmelt = this.getTrait(RHopperTrait.AUTO_SMELT, RHAutoSmeltTrait.class);
+        return autoSmelt == null ? incoming : autoSmelt.smelt(incoming);
     }
 
     public Material transform(Material incoming) {

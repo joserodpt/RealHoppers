@@ -51,7 +51,7 @@ public class RHSuctionTrait extends RHopperTraitBase {
                     if (super.getHopper().hasHopperSpace(m)) {
                         super.getHopper().addItem(m);
                         ent.remove();
-                    } else if (super.getHopper().hasTrait(RHopperTrait.AUTO_SELL) && super.getHopper().sell(m)) {
+                    } else if (super.getHopper().sell(m)) {
                         ent.remove();
                     }
                 }
