@@ -33,6 +33,7 @@ public enum TranslatableLine {
     TRAIT_ALREADY_PRESENT("Hoppers.Traits.Already-Present", ReplacableVar.TRAIT),
     TRAIT_NEEDS_LINK("Hoppers.Traits.Needs-Link", ReplacableVar.TRAIT),
     TRAIT_UNAVAILABLE("Hoppers.Traits.Unavailable", ReplacableVar.TRAIT),
+    TRAIT_REMOVED("Hoppers.Traits.Removed", ReplacableVar.TRAIT),
 
     // Linking two hoppers with the stick
     LINK_SOURCE_SELECTED("Hoppers.Link.Source-Selected"),
@@ -42,6 +43,9 @@ public enum TranslatableLine {
 
     // GUI related messages
     GUI_TITLE("GUI.Title"),
+    GUI_TRAITS_TITLE("GUI.Traits-Title"),
+    GUI_TRAITS_NAME("GUI.Items.Traits.Name"),
+    GUI_BACK_NAME("GUI.Items.Back.Name"),
     GUI_CLOSE_NAME("GUI.Items.Close.Name"),
     GUI_HOPPER_INVENTORY_NAME("GUI.Items.Hopper-Inventory.Name"),
     GUI_HOPPER_NAME("GUI.Items.Hopper.Name"),

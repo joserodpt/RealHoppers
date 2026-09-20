@@ -150,6 +150,22 @@ public class RHopper {
         }
     }
 
+    /**
+     * Takes a trait off this hopper, stopping whatever it had running. The other overload removes
+     * by linked hopper, which is what a deleted hopper needs; this is what the GUI needs.
+     *
+     * @return whether the hopper had the trait at all
+     */
+    public boolean removeTrait(RHopperTrait trait) {
+        final RHopperTraitBase removed = this.getTraitMap().remove(trait);
+        if (removed == null) {
+            return false;
+        }
+        removed.stopTask();
+        this.saveData(Data.TRAITS);
+        return true;
+    }
+
     public void setTrait(RHopperTrait trait, RHopperTraitBase t) {
         this.getTraitMap().put(trait, t);
         t.startTask();

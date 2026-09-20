@@ -16,7 +16,7 @@ package joserodpt.realhoppers.plugin;
 import joserodpt.realhoppers.api.RealHoppersAPI;
 import joserodpt.realhoppers.api.config.RHConfig;
 import joserodpt.realhoppers.api.config.RHHoppers;
-import joserodpt.realhoppers.plugin.gui.HopperGUI;
+import joserodpt.realhoppers.api.utils.GUIBuilder;
 import joserodpt.realhoppers.api.hopper.RHopper;
 import joserodpt.realhoppers.api.utils.Text;
 import joserodpt.realhoppers.plugin.command.RHCommandManager;
@@ -57,7 +57,8 @@ public final class RealHoppersPlugin extends JavaPlugin {
         PluginManager pm = Bukkit.getPluginManager();
         pm.registerEvents(new PlayerListener(realHoppers), this);
         pm.registerEvents(new EventListener(realHoppers), this);
-        pm.registerEvents(HopperGUI.getListener(), this);
+        pm.registerEvents(GUIBuilder.getListener(), this);
+        pm.registerEvents(realHoppers.getGUIManager().getListener(), this);
 
         realHoppers.getHopperManager().loadHoppers();
         getLogger().info("Loaded " + realHoppers.getHopperManager().getHoppersMap().size() + " hoppers.");

@@ -69,7 +69,8 @@ Place a hopper. Every hopper you place is registered with RealHoppers, with no t
 Right-click it to open its panel: the traits it carries, its balance if it has one, and a shortcut into the hopper's
 own inventory.
 
-To give it a trait, look at the hopper and run:
+To give it a trait, click **Traits** in the panel and pick one — clicking a trait it already has
+takes it off again. The same thing from the command line, looking at the hopper:
 
 ```
 /rh settrait SUCTION
@@ -87,8 +88,8 @@ To link two hoppers, hold a stick, right-click the source hopper and then the de
 
 ## Configuration
 
-`config.yml` holds the prefix, the sound and particle toggles, the teleport cooldown, whether a full hopper drops what
-it cannot take, and the sell price of each material:
+`config.yml` holds the prefix, the sound and particle toggles, the teleport cooldown, how often hoppers.yml is
+written, whether a full hopper drops what it cannot take, and the sell price of each material:
 
 ```yaml
 RealHoppers:
@@ -97,6 +98,7 @@ RealHoppers:
     Sounds: true
     Particles: true
   Teleportation-Cooldown: 20
+  Save-Interval-Seconds: 60
   Drop-Items-If-Full: true
   Material-Values:
     COBBLESTONE: 5

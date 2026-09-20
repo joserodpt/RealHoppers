@@ -9,6 +9,7 @@ Hoppers:
     Already-Present: "&cThis hopper already has the %trait% &ctrait."
     Needs-Link: "&cThe %trait% &ctrait needs two hoppers. Hold a stick and right-click both."
     Unavailable: "&cThe %trait% &ctrait is not available yet."
+    Removed: "&fRemoved the %trait% &ftrait from this hopper."
   Link:
     Source-Selected: "&fSource hopper selected. Right-click the destination hopper."
     Same-Hopper: "&cA hopper cannot be linked to itself."
@@ -17,6 +18,7 @@ Hoppers:
 
 GUI:
   Title: "&8Real&dHoppers"
+  Traits-Title: "&8Hopper Traits"
   Items:
     Close:
       Name: "&cClose"
@@ -24,6 +26,30 @@ GUI:
         - "&fClick here to close this hopper."
     Hopper-Inventory:
       Name: "&eHopper Inventory"
+      Description:
+        - "&fClick here to open this hopper's inventory."
+    Traits:
+      Name: "&bTraits"
+      Description:
+        - "&fClick here to manage this hopper's traits."
+    Back:
+      Name: "&eGo Back"
+    Trait:
+      Active-Description:
+        - "&aActive"
+        - ""
+        - "&7Click to &cremove&7."
+      Inactive-Description:
+        - "&7Not active"
+        - ""
+        - "&7Click to &aadd&7."
+      Linked-Description:
+        - "&7Not active"
+        - ""
+        - "&7Needs two hoppers - hold a stick"
+        - "&7and right-click both."
+      Unavailable-Description:
+        - "&7Not implemented yet."
     Hopper:
       Name: "&dHopper"
       Balance: "&fBalance: &e%money%"

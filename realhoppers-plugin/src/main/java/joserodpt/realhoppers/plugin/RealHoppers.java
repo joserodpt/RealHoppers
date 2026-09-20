@@ -19,6 +19,7 @@ import joserodpt.realhoppers.api.config.RHHoppers;
 import joserodpt.realhoppers.api.config.RHLanguage;
 import joserodpt.realhoppers.api.managers.HopperManagerAPI;
 import joserodpt.realhoppers.api.managers.PlayerManagerAPI;
+import joserodpt.realhoppers.plugin.gui.GUIManager;
 import joserodpt.realhoppers.plugin.managers.HopperManager;
 import joserodpt.realhoppers.plugin.managers.PlayerManager;
 import net.milkbowl.vault.economy.Economy;
@@ -31,6 +32,7 @@ public class RealHoppers extends RealHoppersAPI {
     private final RealHoppersPlugin plugin;
     private final HopperManagerAPI hopperManagerAPI;
     private final PlayerManagerAPI playerManagerAPI;
+    private final GUIManager guiManager;
 
     public RealHoppers(RealHoppersPlugin plugin) {
         this.plugin = plugin;
@@ -42,11 +44,20 @@ public class RealHoppers extends RealHoppersAPI {
 
         this.hopperManagerAPI = new HopperManager(this);
         this.playerManagerAPI = new PlayerManager();
+        this.guiManager = new GUIManager(this);
     }
 
     @Override
     public RealHoppersPlugin getPlugin() {
         return this.plugin;
+    }
+
+    /**
+     * Lives on the plugin class rather than on RealHoppersAPI: the GUIs are the plugin's, and the
+     * API module cannot see them.
+     */
+    public GUIManager getGUIManager() {
+        return this.guiManager;
     }
 
     @Override

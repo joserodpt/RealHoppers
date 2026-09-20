@@ -13,10 +13,9 @@ package joserodpt.realhoppers.plugin.listener;
  * @link https://github.com/joserodpt/RealHoppers
  */
 
-import joserodpt.realhoppers.api.RealHoppersAPI;
 import joserodpt.realhoppers.api.config.TranslatableLine;
 import joserodpt.realhoppers.api.config.RHConfig;
-import joserodpt.realhoppers.plugin.gui.HopperGUI;
+import joserodpt.realhoppers.plugin.RealHoppers;
 import joserodpt.realhoppers.api.hopper.RHopper;
 import joserodpt.realhoppers.api.hopper.events.RHopperStateChangeEvent;
 import joserodpt.realhoppers.api.hopper.trait.RHopperTrait;
@@ -34,8 +33,8 @@ import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.inventory.ItemStack;
 
 public class EventListener implements Listener {
-    private final RealHoppersAPI rh;
-    public EventListener(RealHoppersAPI rh) {
+    private final RealHoppers rh;
+    public EventListener(RealHoppers rh) {
         this.rh = rh;
     }
 
@@ -113,11 +112,6 @@ public class EventListener implements Listener {
 
     @EventHandler
     public void onHopperStateChange(RHopperStateChangeEvent e) {
-        for (HopperGUI value : HopperGUI.inventories.values()) {
-            if (value.getHopper() == e.getHopper()) {
-                value.load();
-                break;
-            }
-        }
+        rh.getGUIManager().refresh(e.getHopper());
     }
 }

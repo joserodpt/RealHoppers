@@ -13,12 +13,11 @@ package joserodpt.realhoppers.plugin.listener;
  * @link https://github.com/joserodpt/RealHoppers
  */
 
-import joserodpt.realhoppers.api.RealHoppersAPI;
 import joserodpt.realhoppers.api.config.TranslatableLine;
 import joserodpt.realhoppers.api.hopper.RHopper;
 import joserodpt.realhoppers.api.hopper.trait.RHopperTrait;
 import joserodpt.realhoppers.api.hopper.trait.traits.RHItemTransferTrait;
-import joserodpt.realhoppers.plugin.gui.HopperGUI;
+import joserodpt.realhoppers.plugin.RealHoppers;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -36,9 +35,9 @@ public class PlayerListener implements Listener {
     /** What a player holds to link two hoppers instead of opening one. */
     private static final Material LINK_TOOL = Material.STICK;
 
-    private final RealHoppersAPI rh;
+    private final RealHoppers rh;
 
-    public PlayerListener(RealHoppersAPI rh) {
+    public PlayerListener(RealHoppers rh) {
         this.rh = rh;
     }
 
@@ -71,8 +70,7 @@ public class PlayerListener implements Listener {
             return;
         }
 
-        HopperGUI hg = new HopperGUI(player, clicked, rh);
-        hg.openInventory(player);
+        rh.getGUIManager().openHopper(player, clicked);
     }
 
     /**
