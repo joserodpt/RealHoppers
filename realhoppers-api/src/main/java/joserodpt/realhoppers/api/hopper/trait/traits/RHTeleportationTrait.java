@@ -14,6 +14,7 @@ package joserodpt.realhoppers.api.hopper.trait.traits;
  */
 
 import joserodpt.realhoppers.api.RealHoppersAPI;
+import joserodpt.realhoppers.api.config.TranslatableLine;
 import joserodpt.realhoppers.api.config.RHConfig;
 import joserodpt.realhoppers.api.utils.LocationUtil;
 import joserodpt.realhoppers.api.utils.Text;
@@ -45,7 +46,7 @@ public class RHTeleportationTrait extends RHopperTraitBase {
             if (RHConfig.file().getBoolean("RealHoppers.Effects.Particles"))
                 super.getLinkedHopper().getTeleportLocation().getWorld().spawnParticle(Particle.PORTAL, super.getLinkedHopper().getTeleportLocation(), 20);
 
-            Text.send(p, "You have been teleported!");
+            TranslatableLine.HOPPER_TELEPORTED.send(p);
             Bukkit.getScheduler().scheduleSyncDelayedTask(RealHoppersAPI.getInstance().getPlugin(), () -> RealHoppersAPI.getInstance().getPlayerManager().getTpFreeze().remove(p.getUniqueId()), RHConfig.file().getInt("RealHoppers.Teleportation-Cooldown"));
         }
     }

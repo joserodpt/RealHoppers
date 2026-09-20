@@ -83,23 +83,11 @@ public enum RHopperTrait {
         }
     }
 
+    /**
+     * The trait's display name from language.yml. A constant with no entry falls back to its own
+     * name, which at least says which trait it is - this used to return "none" for all of them.
+     */
     public String getName() {
-        switch (this) {
-            case BLOCK_BREAKING:
-                return RHLanguage.file().getString("Traits.BLOCK_BREAKING");
-            case KILL_MOB:
-                return RHLanguage.file().getString("Traits.KILL_MOB");
-            case TELEPORT:
-                return RHLanguage.file().getString("Traits.TELEPORT");
-            case ITEM_TRANS:
-                return RHLanguage.file().getString("Traits.ITEM_TRANS");
-            case SUCTION:
-                return RHLanguage.file().getString("Traits.SUCTION");
-            case AUTO_SELL:
-                return RHLanguage.file().getString("Traits.AUTO_SELL");
-            case AUTO_SMELT:
-                return RHLanguage.file().getString("Traits.AUTO_SMELT");
-        }
-        return "none";
+        return RHLanguage.file().getString("Traits." + this.name(), this.name());
     }
 }

@@ -13,6 +13,7 @@ package joserodpt.realhoppers.plugin.command;
  * @link https://github.com/joserodpt/RealHoppers
  */
 
+import joserodpt.realhoppers.api.config.TranslatableLine;
 import joserodpt.realhoppers.api.hopper.RHopper;
 import joserodpt.realhoppers.api.hopper.trait.RHopperTrait;
 import joserodpt.realhoppers.api.hopper.trait.RHopperTraitBase;
@@ -53,7 +54,7 @@ public class HopperCMD {
     @SuppressWarnings("unused")
     public void reload(final CommandSender commandSender) {
         rh.reload();
-        Text.send(commandSender, "&aReloaded!");
+        TranslatableLine.SYSTEM_RELOADED.send(commandSender);
     }
 
     /**
@@ -70,12 +71,13 @@ public class HopperCMD {
         final RHopper hopper = rh.getHopperManager().getHopper(b);
 
         if (hopper == null) {
-            Text.send(p, "&cYou are not looking at a hopper.");
+            TranslatableLine.HOPPER_NOT_LOOKING_AT.send(p);
             return;
         }
 
         if (hopper.hasTrait(trait)) {
-            Text.send(p, "&cThis hopper already has the " + trait.getName() + " &ctrait.");
+            TranslatableLine.TRAIT_ALREADY_PRESENT
+                    .setV1(TranslatableLine.ReplacableVar.TRAIT.eq(trait.getName())).send(p);
             return;
         }
 
@@ -83,13 +85,13 @@ public class HopperCMD {
         if (built == null) {
             //TELEPORT and ITEM_TRANS need a second hopper, AUTO_SMELT has no implementation.
             //The old switch covered four constants and did nothing at all for these three.
-            Text.send(p, trait.requiresLink()
-                    ? "&cThe " + trait.getName() + " &ctrait needs two hoppers. Hold a stick and right-click both."
-                    : "&cThe " + trait.getName() + " &ctrait is not available yet.");
+            (trait.requiresLink() ? TranslatableLine.TRAIT_NEEDS_LINK : TranslatableLine.TRAIT_UNAVAILABLE)
+                    .setV1(TranslatableLine.ReplacableVar.TRAIT.eq(trait.getName())).send(p);
             return;
         }
 
         hopper.setTrait(trait, built);
-        Text.send(p, "&fGave this hopper the " + trait.getName() + " &ftrait.");
+        TranslatableLine.TRAIT_ADDED
+                .setV1(TranslatableLine.ReplacableVar.TRAIT.eq(trait.getName())).send(p);
     }
 }

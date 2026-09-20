@@ -16,6 +16,7 @@ package joserodpt.realhoppers.api.hopper;
 
 import joserodpt.realhoppers.api.RealHoppersAPI;
 import joserodpt.realhoppers.api.config.RHHoppers;
+import joserodpt.realhoppers.api.config.TranslatableLine;
 import joserodpt.realhoppers.api.hopper.events.RHopperStateChangeEvent;
 import joserodpt.realhoppers.api.hopper.trait.RHopperTrait;
 import joserodpt.realhoppers.api.hopper.trait.RHopperTraitBase;
@@ -101,18 +102,21 @@ public class RHopper {
     public List<String> getHopperDescription() {
         List<String> desc = new ArrayList<>();
         if (this.hasEconomyCapabilities()) {
-            desc.add("&fBalance: &e" + Text.formatNumber(this.getBalance()));
+            desc.add(TranslatableLine.GUI_HOPPER_BALANCE
+                    .setV1(TranslatableLine.ReplacableVar.MONEY.eq(Text.formatNumber(this.getBalance()))).get());
         }
-        desc.add("&f&nHopper traits:");
+        desc.add(TranslatableLine.GUI_HOPPER_TRAITS_HEADER.get());
 
         if (this.getTraitMap().isEmpty()) {
-            desc.add(" &7None.");
+            desc.add(TranslatableLine.GUI_HOPPER_NO_TRAITS.get());
         } else {
-            this.getTraitMap().keySet().forEach(trait -> desc.add("&7- &f" + trait.getName()));
+            this.getTraitMap().keySet().forEach(trait -> desc.add(TranslatableLine.GUI_HOPPER_TRAIT_ENTRY
+                    .setV1(TranslatableLine.ReplacableVar.TRAIT.eq(trait.getName())).get()));
         }
 
         if (this.hasEconomyCapabilities()) {
-            desc.add(""); desc.add("&fClick here to collect hopper's balance.");
+            desc.add("");
+            desc.add(TranslatableLine.GUI_HOPPER_COLLECT.get());
         }
         return desc;
     }

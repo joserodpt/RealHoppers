@@ -14,6 +14,8 @@ package joserodpt.realhoppers.plugin.gui;
  */
 
 import joserodpt.realhoppers.api.RealHoppersAPI;
+import joserodpt.realhoppers.api.config.RHLanguage;
+import joserodpt.realhoppers.api.config.TranslatableLine;
 import joserodpt.realhoppers.api.hopper.RHopper;
 import joserodpt.realhoppers.api.utils.Itens;
 import joserodpt.realhoppers.api.utils.Text;
@@ -31,7 +33,6 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -43,8 +44,8 @@ public class HopperGUI {
     public static Map<UUID, HopperGUI> inventories = new HashMap<>();
     private Inventory inv;
 
-    private ItemStack close = Itens.createItem(Material.OAK_DOOR, 1, "&cClose",
-            Collections.singletonList("&fClick here to close this hopper."));
+    private final ItemStack close = Itens.createItem(Material.OAK_DOOR, 1, TranslatableLine.GUI_CLOSE_NAME.get(),
+            RHLanguage.file().getStringList("GUI.Items.Close.Description"));
 
     private final UUID uuid;
     private RHopper h;
@@ -54,7 +55,7 @@ public class HopperGUI {
         this.rh = rh;
         this.uuid = as.getUniqueId();
         this.h = h;
-        this.inv = Bukkit.getServer().createInventory(null, 27, Text.color("&8Real&dHoppers"));
+        this.inv = Bukkit.getServer().createInventory(null, 27, TranslatableLine.GUI_TITLE.get());
 
         load();
 
@@ -64,9 +65,9 @@ public class HopperGUI {
     public void load() {
         this.inv.setItem(22, close);
 
-        this.inv.setItem(11, Itens.createItem(Material.CHEST, 1, "&eHopper Inventory"));
+        this.inv.setItem(11, Itens.createItem(Material.CHEST, 1, TranslatableLine.GUI_HOPPER_INVENTORY_NAME.get()));
 
-        this.inv.setItem(13, Itens.createItem(Material.HOPPER, 1, "&dHopper", h.getHopperDescription()));
+        this.inv.setItem(13, Itens.createItem(Material.HOPPER, 1, TranslatableLine.GUI_HOPPER_NAME.get(), h.getHopperDescription()));
     }
 
     public void openInventory(Player target) {
@@ -116,18 +117,20 @@ public class HopperGUI {
                             case 13:
                                 if (current.h.getBalance() > 0) {
                                     if (current.rh.getVault() == null) {
-                                        Text.send(p, "&cVault is not installed on this server.");
+                                        TranslatableLine.SYSTEM_VAULT_MISSING.send(p);
                                         p.closeInventory();
                                         return;
                                     }
 
                                     if (Objects.requireNonNull(e.getClick()) == ClickType.SHIFT_LEFT) {
                                         current.rh.getVault().depositPlayer(p, current.h.getBalance());
-                                        Text.send(p, "&fYou collected " + Text.formatNumber(current.h.getBalance()) + " &ffrom this hopper.");
+                                        TranslatableLine.HOPPER_BALANCE_COLLECTED
+                                                .setV1(TranslatableLine.ReplacableVar.MONEY.eq(Text.formatNumber(current.h.getBalance()))).send(p);
                                         current.h.setBalance(0);
                                     } else {
                                         current.rh.getVault().depositPlayer(p, current.h.getBalance() / 2);
-                                        Text.send(p, "&fYou collected " + Text.formatNumber(current.h.getBalance() / 2) + " &ffrom this hopper.");
+                                        TranslatableLine.HOPPER_BALANCE_COLLECTED
+                                                .setV1(TranslatableLine.ReplacableVar.MONEY.eq(Text.formatNumber(current.h.getBalance() / 2))).send(p);
                                         current.h.setBalance(current.h.getBalance() / 2);
                                     }
                                     p.playSound(p.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);

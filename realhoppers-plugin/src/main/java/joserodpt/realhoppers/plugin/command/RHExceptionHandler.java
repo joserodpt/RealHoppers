@@ -13,6 +13,7 @@ package joserodpt.realhoppers.plugin.command;
  * @link https://github.com/joserodpt/RealHoppers
  */
 
+import joserodpt.realhoppers.api.config.TranslatableLine;
 import joserodpt.realhoppers.api.utils.Text;
 import revxrsal.commands.annotation.Usage;
 import revxrsal.commands.bukkit.actor.BukkitCommandActor;
@@ -33,12 +34,12 @@ public class RHExceptionHandler extends BukkitExceptionHandler {
 
     @Override
     public void onUnknownCommand(final UnknownCommandException e, final BukkitCommandActor actor) {
-        Text.send(actor.sender(), "&cThe command you're trying to use doesn't exist.");
+        TranslatableLine.SYSTEM_ERROR_COMMAND.send(actor.sender());
     }
 
     @Override
     public void onNoPermission(final NoPermissionException e, final BukkitCommandActor actor) {
-        Text.send(actor.sender(), "&cYou don't have permission to execute this command!");
+        TranslatableLine.SYSTEM_ERROR_PERMISSION.send(actor.sender());
     }
 
     /**
@@ -47,7 +48,7 @@ public class RHExceptionHandler extends BukkitExceptionHandler {
      */
     @Override
     public void onSenderNotPlayer(final SenderNotPlayerException e, final BukkitCommandActor actor) {
-        Text.send(actor.sender(), "&cCommand can't be used in the console!");
+        TranslatableLine.SYSTEM_PLAYER_ONLY.send(actor.sender());
     }
 
     @Override
@@ -62,6 +63,6 @@ public class RHExceptionHandler extends BukkitExceptionHandler {
      */
     private static String usageOf(final ExecutableCommand<?> command) {
         final Usage usage = command.annotations().get(Usage.class);
-        return usage == null ? "&cWrong usage for the command!" : usage.value();
+        return usage == null ? TranslatableLine.SYSTEM_ERROR_USAGE.get() : usage.value();
     }
 }

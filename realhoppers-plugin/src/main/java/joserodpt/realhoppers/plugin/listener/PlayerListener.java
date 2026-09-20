@@ -14,10 +14,10 @@ package joserodpt.realhoppers.plugin.listener;
  */
 
 import joserodpt.realhoppers.api.RealHoppersAPI;
+import joserodpt.realhoppers.api.config.TranslatableLine;
 import joserodpt.realhoppers.api.hopper.RHopper;
 import joserodpt.realhoppers.api.hopper.trait.RHopperTrait;
 import joserodpt.realhoppers.api.hopper.trait.traits.RHItemTransferTrait;
-import joserodpt.realhoppers.api.utils.Text;
 import joserodpt.realhoppers.plugin.gui.HopperGUI;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -84,26 +84,26 @@ public class PlayerListener implements Listener {
 
         if (source == null) {
             rh.getPlayerManager().getClickedHoppers().put(player.getUniqueId(), clicked);
-            Text.send(player, "&fSource hopper selected. Right-click the destination hopper.");
+            TranslatableLine.LINK_SOURCE_SELECTED.send(player);
             return;
         }
 
         if (source == clicked) {
-            Text.send(player, "&cA hopper cannot be linked to itself.");
+            TranslatableLine.LINK_SAME_HOPPER.send(player);
             return;
         }
 
         //the trait goes on the source, so the source is what has to be free. This used to test the
         //hopper being clicked, which refused valid links and silently overwrote invalid ones.
         if (source.hasTrait(RHopperTrait.ITEM_TRANS)) {
-            Text.send(player, "&cThe source hopper already has an Item Transfer link.");
+            TranslatableLine.LINK_ALREADY_LINKED.send(player);
             rh.getPlayerManager().getClickedHoppers().remove(player.getUniqueId());
             return;
         }
 
         source.setTrait(RHopperTrait.ITEM_TRANS, new RHItemTransferTrait(source, clicked));
         rh.getPlayerManager().getClickedHoppers().remove(player.getUniqueId());
-        Text.send(player, "&aHoppers linked.");
+        TranslatableLine.LINK_DONE.send(player);
     }
 
     @EventHandler

@@ -14,6 +14,7 @@ package joserodpt.realhoppers.plugin.listener;
  */
 
 import joserodpt.realhoppers.api.RealHoppersAPI;
+import joserodpt.realhoppers.api.config.TranslatableLine;
 import joserodpt.realhoppers.api.config.RHConfig;
 import joserodpt.realhoppers.plugin.gui.HopperGUI;
 import joserodpt.realhoppers.api.hopper.RHopper;
@@ -56,7 +57,7 @@ public class EventListener implements Listener {
             if (h != null) {
                 payOut(h, e.getPlayer());
                 rh.getHopperManager().delete(h);
-                Text.send(e.getPlayer(), "You removed this special hopper.");
+                TranslatableLine.HOPPER_REMOVED.send(e.getPlayer());
                 //TODO: drop special hopper item
             }
         }
@@ -84,7 +85,8 @@ public class EventListener implements Listener {
             return;
         }
         rh.getVault().depositPlayer(p, h.getBalance());
-        Text.send(p, "&fCollected " + Text.formatNumber(h.getBalance()) + " &ffrom the hopper you broke.");
+        TranslatableLine.HOPPER_BALANCE_COLLECTED_ON_BREAK
+                .setV1(TranslatableLine.ReplacableVar.MONEY.eq(Text.formatNumber(h.getBalance()))).send(p);
         h.setBalance(0);
     }
 
