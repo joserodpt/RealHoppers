@@ -40,6 +40,7 @@ public enum TranslatableLine {
     LINK_SAME_HOPPER("Hoppers.Link.Same-Hopper"),
     LINK_ALREADY_LINKED("Hoppers.Link.Already-Linked"),
     LINK_DONE("Hoppers.Link.Done"),
+    LINK_CANCELLED("Hoppers.Link.Cancelled"),
 
     // GUI related messages
     GUI_TITLE("GUI.Title"),

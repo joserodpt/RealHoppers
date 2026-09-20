@@ -26,9 +26,12 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.inventory.EquipmentSlot;
 
 public class PlayerListener implements Listener {
 
@@ -50,16 +53,27 @@ public class PlayerListener implements Listener {
 
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
-        Player player = event.getPlayer();
-        Block clickedBlock = event.getClickedBlock();
-
-        if (clickedBlock == null || clickedBlock.getType() != Material.HOPPER
-                || event.getAction() != Action.RIGHT_CLICK_BLOCK) {
+        //a right-click fires once per hand, and the off-hand pass would run the whole link flow a
+        //second time - far enough along to answer its own first click with "cannot link to itself"
+        if (event.getHand() != EquipmentSlot.HAND) {
             return;
         }
 
-        RHopper clicked = rh.getHopperManager().getHopper(clickedBlock);
-        if (clicked == null) {
+        final Player player = event.getPlayer();
+        final Block clickedBlock = event.getClickedBlock();
+        final Action action = event.getAction();
+
+        final RHopper clicked = clickedBlock == null || clickedBlock.getType() != Material.HOPPER
+                ? null
+                : rh.getHopperManager().getHopper(clickedBlock);
+
+        if (clicked == null || action != Action.RIGHT_CLICK_BLOCK) {
+            //clicking anything else abandons a half-finished link, so it cannot be completed
+            //minutes later against a hopper the player has forgotten about. Swinging at the air is
+            //not clicking something else, and a pressure plate is not a click at all.
+            if (action == Action.LEFT_CLICK_BLOCK || action == Action.RIGHT_CLICK_BLOCK) {
+                cancelLink(player);
+            }
             return;
         }
 
@@ -70,7 +84,31 @@ public class PlayerListener implements Listener {
             return;
         }
 
+        //a hopper right-clicked without the tool opens its panel, and is not the link gesture either
+        cancelLink(player);
         rh.getGUIManager().openHopper(player, clicked);
+    }
+
+    @EventHandler
+    public void onPlayerDropItem(PlayerDropItemEvent event) {
+        if (event.getItemDrop().getItemStack().getType() == LINK_TOOL) {
+            cancelLink(event.getPlayer());
+        }
+    }
+
+    @EventHandler
+    public void onPlayerInteractEntity(PlayerInteractEntityEvent event) {
+        cancelLink(event.getPlayer());
+    }
+
+    /**
+     * Drops a link the player started and never finished, telling them so. Silent when there was
+     * nothing pending, which is almost every click that reaches it.
+     */
+    private void cancelLink(final Player player) {
+        if (rh.getPlayerManager().getClickedHoppers().remove(player.getUniqueId()) != null) {
+            TranslatableLine.LINK_CANCELLED.send(player);
+        }
     }
 
     /**

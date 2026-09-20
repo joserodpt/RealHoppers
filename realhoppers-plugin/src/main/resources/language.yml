@@ -15,6 +15,7 @@ Hoppers:
     Same-Hopper: "&cA hopper cannot be linked to itself."
     Already-Linked: "&cThe source hopper already has an Item Transfer link."
     Done: "&aHoppers linked."
+    Cancelled: "&cLinking cancelled."
 
 GUI:
   Title: "&8Real&dHoppers"
@@ -40,11 +41,11 @@ GUI:
         - ""
         - "&7Click to &cremove&7."
       Inactive-Description:
-        - "&7Not active"
+        - "&8Not active"
         - ""
         - "&7Click to &aadd&7."
       Linked-Description:
-        - "&7Not active"
+        - "&8Not active"
         - ""
         - "&7Needs two hoppers - hold a stick"
         - "&7and right-click both."
@@ -75,4 +76,4 @@ Traits:
   BLOCK_BREAKING: "&7Block Breaking"
   KILL_MOB: "&4Mob Killing"
 
-Version: 2
+Version: 3

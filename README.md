@@ -84,7 +84,9 @@ takes it off again. The same thing from the command line, looking at the hopper:
 /rh settrait SUCTION
 ```
 
-To link two hoppers, hold a stick, right-click the source hopper and then the destination.
+To link two hoppers, hold a stick, right-click the source hopper and then the destination. Anything else in between
+calls it off — dropping the stick, clicking another block, clicking a mob, or opening a hopper's panel without the
+stick in hand.
 
 ## Commands and Permissions
 
