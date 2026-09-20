@@ -9,11 +9,12 @@ package joserodpt.realhoppers.api.hopper.trait.traits;
  *                                |_|   |_|
  *
  * Licensed under the MIT License
- * @author José Rodrigues
+ * @author José Rodrigues © 2023-2026
  * @link https://github.com/joserodpt/RealHoppers
  */
 
 import joserodpt.realhoppers.api.RealHoppersAPI;
+import joserodpt.realhoppers.api.config.TranslatableLine;
 import joserodpt.realhoppers.api.config.RHConfig;
 import joserodpt.realhoppers.api.utils.LocationUtil;
 import joserodpt.realhoppers.api.utils.Text;
@@ -38,20 +39,20 @@ public class RHTeleportationTrait extends RHopperTraitBase {
 
     @Override
     public void executeAction(Player p) {
-        if (!RealHoppersAPI.getInstance().getPlayerManager().getTpFreeze().contains(p)) {
-            RealHoppersAPI.getInstance().getPlayerManager().getTpFreeze().add(p);
+        if (!RealHoppersAPI.getInstance().getPlayerManager().getTpFreeze().contains(p.getUniqueId())) {
+            RealHoppersAPI.getInstance().getPlayerManager().getTpFreeze().add(p.getUniqueId());
 
             LocationUtil.teleportConservingPitchYaw(p, super.getLinkedHopper().getTeleportLocation());
             if (RHConfig.file().getBoolean("RealHoppers.Effects.Particles"))
                 super.getLinkedHopper().getTeleportLocation().getWorld().spawnParticle(Particle.PORTAL, super.getLinkedHopper().getTeleportLocation(), 20);
 
-            Text.send(p, "You have been teleported!");
-            Bukkit.getScheduler().scheduleSyncDelayedTask(RealHoppersAPI.getInstance().getPlugin(), () -> RealHoppersAPI.getInstance().getPlayerManager().getTpFreeze().remove(p), RHConfig.file().getInt("RealHoppers.Teleportation-Cooldown"));
+            TranslatableLine.HOPPER_TELEPORTED.send(p);
+            Bukkit.getScheduler().scheduleSyncDelayedTask(RealHoppersAPI.getInstance().getPlugin(), () -> RealHoppersAPI.getInstance().getPlayerManager().getTpFreeze().remove(p.getUniqueId()), RHConfig.file().getInt("RealHoppers.Teleportation-Cooldown"));
         }
     }
 
     @Override
-    public void executeLoop() { }
+    protected void executeLoop() { }
 
     @Override
     public RHopperTrait getTraitType() {

@@ -9,31 +9,37 @@ package joserodpt.realhoppers.plugin.managers;
  *                                |_|   |_|
  *
  * Licensed under the MIT License
- * @author José Rodrigues
+ * @author José Rodrigues © 2023-2026
  * @link https://github.com/joserodpt/RealHoppers
  */
 
 import joserodpt.realhoppers.api.hopper.RHopper;
 import joserodpt.realhoppers.api.managers.PlayerManagerAPI;
-import org.bukkit.entity.Player;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 
 public class PlayerManager extends PlayerManagerAPI {
 
-    public List<Player> tpFreeze = new ArrayList<>();
-    public Map<Player, RHopper> clickedHoppers = new HashMap<>();
+    private final Set<UUID> tpFreeze = new HashSet<>();
+    private final Map<UUID, RHopper> clickedHoppers = new HashMap<>();
 
     @Override
-    public Map<Player, RHopper> getClickedHoppers() {
+    public Map<UUID, RHopper> getClickedHoppers() {
         return clickedHoppers;
     }
 
     @Override
-    public List<Player> getTpFreeze() {
+    public Set<UUID> getTpFreeze() {
         return tpFreeze;
+    }
+
+    @Override
+    public void clear(final UUID uuid) {
+        this.tpFreeze.remove(uuid);
+        this.clickedHoppers.remove(uuid);
     }
 }

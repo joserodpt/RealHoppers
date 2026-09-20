@@ -1,9 +1,78 @@
+Hoppers:
+  Teleported: "&fYou have been teleported!"
+  Removed: "&fYou removed this special hopper."
+  Balance-Collected: "&fYou collected &e%money% &ffrom this hopper."
+  Balance-Collected-On-Break: "&fYou collected &e%money% &ffrom the hopper you broke."
+  Not-Looking-At: "&cYou are not looking at a hopper."
+  Traits:
+    Added: "&fGave this hopper the %trait% &ftrait."
+    Already-Present: "&cThis hopper already has the %trait% &ctrait."
+    Needs-Link: "&cThe %trait% &ctrait needs two hoppers. Hold a stick and right-click both."
+    Unavailable: "&cThe %trait% &ctrait is not available yet."
+    Removed: "&fRemoved the %trait% &ftrait from this hopper."
+  Link:
+    Source-Selected: "&fSource hopper selected. Right-click the destination hopper."
+    Same-Hopper: "&cA hopper cannot be linked to itself."
+    Already-Linked: "&cThe source hopper already has an Item Transfer link."
+    Done: "&aHoppers linked."
+
+GUI:
+  Title: "&8Real&dHoppers"
+  Traits-Title: "&8Hopper Traits"
+  Items:
+    Close:
+      Name: "&cClose"
+      Description:
+        - "&fClick here to close this hopper."
+    Hopper-Inventory:
+      Name: "&eHopper Inventory"
+      Description:
+        - "&fClick here to open this hopper's inventory."
+    Traits:
+      Name: "&bTraits"
+      Description:
+        - "&fClick here to manage this hopper's traits."
+    Back:
+      Name: "&eGo Back"
+    Trait:
+      Active-Description:
+        - "&aActive"
+        - ""
+        - "&7Click to &cremove&7."
+      Inactive-Description:
+        - "&7Not active"
+        - ""
+        - "&7Click to &aadd&7."
+      Linked-Description:
+        - "&7Not active"
+        - ""
+        - "&7Needs two hoppers - hold a stick"
+        - "&7and right-click both."
+      Unavailable-Description:
+        - "&7Not available in this version."
+    Hopper:
+      Name: "&dHopper"
+      Balance: "&fBalance: &e%money%"
+      Traits-Header: "&f&nHopper traits:"
+      No-Traits: " &7None."
+      Trait-Entry: "&7- &f%trait%"
+      Collect: "&fClick here to collect hopper's balance."
+
+System:
+  Reloaded: "&aReloaded!"
+  Player-Only: "&cCommand can't be used in the console!"
+  Vault-Missing: "&cVault is not installed on this server."
+  Error-Permission: "&cYou don't have permission to execute this command!"
+  Error-Command: "&cThe command you're trying to use doesn't exist."
+  Error-Usage: "&cWrong usage for the command!"
+
 Traits:
   TELEPORT: "&5Teleport"
   ITEM_TRANS: "&fItem Transfer"
   AUTO_SELL: "&eAuto Sell"
-  AUTO_SMELT: "&cAuto Smelt"
+  AUTO_SMELT: "&6Auto Smelt"
   SUCTION: "&bSuction"
   BLOCK_BREAKING: "&7Block Breaking"
   KILL_MOB: "&4Mob Killing"
-Version: 1
+
+Version: 2

@@ -9,7 +9,7 @@ package joserodpt.realhoppers.api.hopper.trait;
  *                                |_|   |_|
  *
  * Licensed under the MIT License
- * @author José Rodrigues
+ * @author José Rodrigues © 2023-2026
  * @link https://github.com/joserodpt/RealHoppers
  */
 
@@ -27,8 +27,25 @@ public abstract class RHopperTraitBase {
     private RHopper linked;
     private String linkedLoc;
 
+    private boolean started;
+
     public RHopperTraitBase(RHopper main) {
         this.main = main;
+    }
+
+    /**
+     * Starts the trait's repeating task, if it has one. Kept out of the constructor: a trait is
+     * constructed before {@link #setLinkedLoc(String)} or {@link #setLinked(RHopper)} has run, so a
+     * loop started there would spin on a link that is not resolved yet.
+     *
+     * <p>Traits that need a link and have not got one are left stopped rather than started against
+     * null - {@link RHopperTrait#requiresLink()} decides which those are.</p>
+     */
+    public void startTask() {
+        if (this.started || (this.getTraitType().requiresLink() && !this.isLinked())) {
+            return;
+        }
+        this.started = true;
         this.executeLoop();
     }
 
@@ -74,11 +91,22 @@ public abstract class RHopperTraitBase {
 
     public abstract void executeAction(Player p);
 
-    public abstract void executeLoop();
+    /**
+     * Schedules whatever the trait does on a timer. Call {@link #startTask()} instead - it is what
+     * decides whether the trait is ready to run.
+     */
+    protected abstract void executeLoop();
 
     public abstract RHopperTrait getTraitType();
 
     public abstract void stopTask();
+
+    /**
+     * Whether {@link #startTask()} has already run. Nothing schedules a trait twice.
+     */
+    protected boolean isStarted() {
+        return this.started;
+    }
 
     public abstract String getSerializedSave();
 }

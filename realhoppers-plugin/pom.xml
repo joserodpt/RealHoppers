@@ -4,39 +4,111 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
+    <parent>
+        <groupId>joserodpt.realhoppers</groupId>
+        <artifactId>realhoppers-parent</artifactId>
+        <version>0.1</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
     <groupId>joserodpt</groupId>
     <artifactId>realhoppers-plugin</artifactId>
     <version>0.1</version>
     <packaging>jar</packaging>
 
     <name>realhoppers-plugin</name>
+    <description>Hoppers with Traits</description>
 
     <properties>
-        <java.version>1.8</java.version>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <lamp.version>4.0.0-rc.18</lamp.version>
+        <!-- JitPack coordinate for joserodpt/RealPermissions, the same commit RealMines pins. -->
+        <realpermissions.version>1e7015a05e</realpermissions.version>
     </properties>
 
     <build>
+        <finalName>realhoppers-${project.version}</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.1</version>
+                <version>3.14.1</version>
                 <configuration>
-                    <source>${java.version}</source>
-                    <target>${java.version}</target>
+                    <release>${maven.compiler.release}</release>
+                    <compilerArgs>
+                        <!-- Lamp names command arguments after the method parameters, so the
+                             usage strings depend on these surviving. -->
+                        <arg>-parameters</arg>
+                    </compilerArgs>
                 </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>3.2.4</version>
+                <version>3.6.1</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
                         <goals>
                             <goal>shade</goal>
                         </goals>
+
+                        <configuration>
+                            <!-- Replace the original jar rather than leaving an original-...jar beside it -->
+                            <outputFile>${project.build.directory}/${project.build.finalName}.jar</outputFile>
+                            <shadedArtifactAttached>false</shadedArtifactAttached>
+                            <minimizeJar>true</minimizeJar>
+
+                            <!-- Only these. Without an artifactSet the plugin shaded every compile
+                                 dependency it could reach, which is how org/bukkit, junit and hamcrest
+                                 ended up inside a 5 MB plugin jar. -->
+                            <artifactSet>
+                                <includes>
+                                    <include>dev.dejvokep:boosted-yaml</include>
+                                    <include>io.github.revxrsal:lamp.common</include>
+                                    <include>io.github.revxrsal:lamp.bukkit</include>
+                                    <include>io.github.revxrsal:lamp.brigadier</include>
+                                    <include>joserodpt:realhoppers-api</include>
+                                </includes>
+                            </artifactSet>
+
+                            <relocations>
+                                <relocation>
+                                    <pattern>dev.dejvokep.boostedyaml</pattern>
+                                    <shadedPattern>joserodpt.realhoppers.shaded.boostedyaml</shadedPattern>
+                                </relocation>
+                                <!-- com.mojang.brigadier is deliberately not relocated: those classes
+                                     come from the server, we only talk to them. -->
+                                <relocation>
+                                    <pattern>revxrsal.commands</pattern>
+                                    <shadedPattern>joserodpt.realhoppers.shaded.lamp</shadedPattern>
+                                </relocation>
+                            </relocations>
+
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/**</exclude>
+                                        <exclude>org/jetbrains/annotations/**</exclude>
+                                    </excludes>
+                                </filter>
+                                <!-- Lamp reaches its Bukkit/Brigadier hooks and parameter types through
+                                     reflection and version probing, so minimizeJar can't see they are used. -->
+                                <filter>
+                                    <artifact>io.github.revxrsal:*</artifact>
+                                    <includes>
+                                        <include>**</include>
+                                    </includes>
+                                </filter>
+                                <!-- Our own module: keep all of it rather than let minimizeJar guess. -->
+                                <filter>
+                                    <artifact>joserodpt:realhoppers-api</artifact>
+                                    <includes>
+                                        <include>**</include>
+                                    </includes>
+                                </filter>
+                            </filters>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
@@ -51,6 +123,10 @@
 
     <repositories>
         <repository>
+            <id>papermc</id>
+            <url>https://repo.papermc.io/repository/maven-public/</url>
+        </repository>
+        <repository>
             <id>spigotmc-repo</id>
             <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
         </repository>
@@ -61,6 +137,10 @@
         <repository>
             <id>jitpack.io</id>
             <url>https://jitpack.io</url>
+        </repository>
+        <repository>
+            <id>placeholderapi</id>
+            <url>https://repo.extendedclip.com/content/repositories/placeholderapi/</url>
         </repository>
     </repositories>
 
@@ -74,18 +154,39 @@
         <dependency>
             <groupId>joserodpt</groupId>
             <artifactId>realhoppers-api</artifactId>
-            <version>0.1</version>
-            <scope>compile</scope>
+            <version>${project.version}</version>
+        </dependency>
+        <!-- lamp.bukkit declares lamp.common and lamp.brigadier at runtime scope, which is enough
+             for shading but leaves them off the compile classpath, so lamp.common is repeated here.
+             lamp.brigadier is only ever reached at runtime, so it does not need the same. -->
+        <dependency>
+            <groupId>io.github.revxrsal</groupId>
+            <artifactId>lamp.common</artifactId>
+            <version>${lamp.version}</version>
         </dependency>
         <dependency>
-            <groupId>me.mattstudios.utils</groupId>
-            <artifactId>matt-framework</artifactId>
-            <version>1.4</version>
+            <groupId>io.github.revxrsal</groupId>
+            <artifactId>lamp.bukkit</artifactId>
+            <version>${lamp.version}</version>
         </dependency>
         <dependency>
             <groupId>com.github.MilkBowl</groupId>
             <artifactId>VaultAPI</artifactId>
             <version>1.7</version>
+            <scope>provided</scope>
+        </dependency>
+        <!-- Soft hooks: only touched when the plugin is actually present at runtime, so both stay
+             provided and are never shaded in. -->
+        <dependency>
+            <groupId>me.clip</groupId>
+            <artifactId>placeholderapi</artifactId>
+            <version>2.11.6</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.joserodpt.RealPermissions</groupId>
+            <artifactId>realpermissions-api</artifactId>
+            <version>${realpermissions.version}</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>

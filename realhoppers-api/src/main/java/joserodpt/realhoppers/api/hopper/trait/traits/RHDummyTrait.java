@@ -9,7 +9,7 @@ package joserodpt.realhoppers.api.hopper.trait.traits;
  *                                |_|   |_|
  *
  * Licensed under the MIT License
- * @author José Rodrigues
+ * @author José Rodrigues © 2023-2026
  * @link https://github.com/joserodpt/RealHoppers
  */
 
@@ -30,7 +30,7 @@ public class RHDummyTrait extends RHopperTraitBase {
     public void executeAction(Player p) { }
 
     @Override
-    public void executeLoop() { }
+    protected void executeLoop() { }
 
     @Override
     public RHopperTrait getTraitType() {
@@ -39,7 +39,7 @@ public class RHDummyTrait extends RHopperTraitBase {
 
     @Override
     public void stopTask() {
-        super.getHopper().saveData(RHopper.Data.BALANCE, true);
+        super.getHopper().saveData(RHopper.Data.BALANCE);
     }
 
     @Override

@@ -9,16 +9,16 @@ package joserodpt.realhoppers.plugin.listener;
  *                                |_|   |_|
  *
  * Licensed under the MIT License
- * @author José Rodrigues
+ * @author José Rodrigues © 2023-2026
  * @link https://github.com/joserodpt/RealHoppers
  */
 
-import joserodpt.realhoppers.api.RealHoppersAPI;
-import joserodpt.realhoppers.plugin.gui.HopperGUI;
+import joserodpt.realhoppers.api.config.TranslatableLine;
 import joserodpt.realhoppers.api.hopper.RHopper;
 import joserodpt.realhoppers.api.hopper.trait.RHopperTrait;
 import joserodpt.realhoppers.api.hopper.trait.traits.RHItemTransferTrait;
-import joserodpt.realhoppers.api.utils.Text;
+import joserodpt.realhoppers.plugin.RealHoppers;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -27,20 +27,25 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.inventory.ItemStack;
+import org.bukkit.event.player.PlayerQuitEvent;
 
 public class PlayerListener implements Listener {
 
-    private final RealHoppersAPI rh;
-    public PlayerListener(RealHoppersAPI rh) {
+    /** What a player holds to link two hoppers instead of opening one. */
+    private static final Material LINK_TOOL = Material.STICK;
+
+    private final RealHoppers rh;
+
+    public PlayerListener(RealHoppers rh) {
         this.rh = rh;
     }
 
     @EventHandler
-    public void playerJoin(PlayerJoinEvent e) {
-        e.getPlayer().getInventory().addItem(new ItemStack(Material.STICK));
+    public void onPlayerQuit(PlayerQuitEvent e) {
+        //a half-finished link and a teleport cooldown are both meaningless once they are gone,
+        //and holding either keeps the entry around for a player who may never come back
+        rh.getPlayerManager().clear(e.getPlayer().getUniqueId());
     }
 
     @EventHandler
@@ -48,57 +53,74 @@ public class PlayerListener implements Listener {
         Player player = event.getPlayer();
         Block clickedBlock = event.getClickedBlock();
 
-        if (clickedBlock != null &&
-                clickedBlock.getType() == Material.HOPPER && event.getAction() == Action.RIGHT_CLICK_BLOCK) {
-
-            RHopper clicked = rh.getHopperManager().getHopper(clickedBlock);
-
-            if (clicked == null) {
-                return;
-            }
-
-            if (player.getInventory().getItemInMainHand().getType() == Material.STICK) {
-                event.setCancelled(true);
-
-                RHopperTrait trait = RHopperTrait.ITEM_TRANS;
-
-                if (clicked.hasTrait(trait)) {
-                    Text.send(player, "&cThis hopper already has a Teleportation Link.");
-                    return;
-                }
-
-                RHopper prevClicked = rh.getPlayerManager().getClickedHoppers().get(player);
-
-                if (rh.getPlayerManager().getClickedHoppers().containsKey(player)) {
-
-                    if (prevClicked == clicked) {
-                        player.sendMessage("nao pode ser o mm");
-                    } else {
-                        prevClicked.setTrait(trait, new RHItemTransferTrait(prevClicked, clicked));
-
-                        // prevClicked.setTrait(trait, new RHTeleportation(prevClicked, clicked));
-                        // clicked.setTrait(trait, new RHTeleportation(clicked, prevClicked));
-                        //
-
-                        player.sendMessage("Linked!");
-
-                        rh.getPlayerManager().getClickedHoppers().remove(player);
-                    }
-                } else {
-                    rh.getPlayerManager().getClickedHoppers().put(player, clicked);
-                }
-            } else {
-                event.setCancelled(true);
-                HopperGUI hg = new HopperGUI(player, clicked, rh);
-                hg.openInventory(player);
-            }
+        if (clickedBlock == null || clickedBlock.getType() != Material.HOPPER
+                || event.getAction() != Action.RIGHT_CLICK_BLOCK) {
+            return;
         }
+
+        RHopper clicked = rh.getHopperManager().getHopper(clickedBlock);
+        if (clicked == null) {
+            return;
+        }
+
+        event.setCancelled(true);
+
+        if (player.getInventory().getItemInMainHand().getType() == LINK_TOOL) {
+            this.link(player, clicked);
+            return;
+        }
+
+        rh.getGUIManager().openHopper(player, clicked);
+    }
+
+    /**
+     * The two-click linking flow: the first click remembers a source hopper, the second points it at
+     * the hopper clicked.
+     */
+    private void link(final Player player, final RHopper clicked) {
+        final RHopper source = rh.getPlayerManager().getClickedHoppers().get(player.getUniqueId());
+
+        if (source == null) {
+            rh.getPlayerManager().getClickedHoppers().put(player.getUniqueId(), clicked);
+            TranslatableLine.LINK_SOURCE_SELECTED.send(player);
+            return;
+        }
+
+        if (source == clicked) {
+            TranslatableLine.LINK_SAME_HOPPER.send(player);
+            return;
+        }
+
+        //the trait goes on the source, so the source is what has to be free. This used to test the
+        //hopper being clicked, which refused valid links and silently overwrote invalid ones.
+        if (source.hasTrait(RHopperTrait.ITEM_TRANS)) {
+            TranslatableLine.LINK_ALREADY_LINKED.send(player);
+            rh.getPlayerManager().getClickedHoppers().remove(player.getUniqueId());
+            return;
+        }
+
+        source.setTrait(RHopperTrait.ITEM_TRANS, new RHItemTransferTrait(source, clicked));
+        rh.getPlayerManager().getClickedHoppers().remove(player.getUniqueId());
+        TranslatableLine.LINK_DONE.send(player);
     }
 
     @EventHandler
     public void onPlayerMove(PlayerMoveEvent event) {
+        final Location to = event.getTo();
+        final Location from = event.getFrom();
+
+        //fires for every look and every fraction of a step. Only a change of block can put somebody
+        //onto a hopper they were not on a moment ago, so everything else is dropped before it costs
+        //a block lookup.
+        if (to == null || (from.getBlockX() == to.getBlockX()
+                && from.getBlockY() == to.getBlockY()
+                && from.getBlockZ() == to.getBlockZ()
+                && from.getWorld() == to.getWorld())) {
+            return;
+        }
+
         Player player = event.getPlayer();
-        Block playerBlock = player.getLocation().getBlock();
+        Block playerBlock = to.getBlock();
 
         if (playerBlock.getType() == Material.HOPPER) {
             executeHopperTeleport(player, playerBlock);

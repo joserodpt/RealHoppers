@@ -9,24 +9,34 @@ package joserodpt.realhoppers.plugin;
  *                                |_|   |_|
  *
  * Licensed under the MIT License
- * @author José Rodrigues
+ * @author José Rodrigues © 2023-2026
  * @link https://github.com/joserodpt/RealHoppers
  */
 
 import joserodpt.realhoppers.api.RealHoppersAPI;
-import joserodpt.realhoppers.plugin.gui.HopperGUI;
+import joserodpt.realhoppers.api.config.RHConfig;
+import joserodpt.realhoppers.api.event.RealHoppersPluginLoadedEvent;
+import joserodpt.realhoppers.api.config.RHHoppers;
+import joserodpt.realhoppers.api.utils.GUIBuilder;
+import joserodpt.realhoppers.api.utils.Smelting;
 import joserodpt.realhoppers.api.hopper.RHopper;
-import joserodpt.realhoppers.api.hopper.trait.RHopperTrait;
 import joserodpt.realhoppers.api.utils.Text;
+import joserodpt.realhoppers.plugin.command.RHCommandManager;
 import joserodpt.realhoppers.plugin.listener.EventListener;
 import joserodpt.realhoppers.plugin.listener.PlayerListener;
-import me.mattstudios.mf.base.CommandManager;
-import me.mattstudios.mf.base.components.TypeResult;
+import joserodpt.realpermissions.api.RealPermissionsAPI;
+import joserodpt.realpermissions.api.pluginhook.ExternalPlugin;
+import joserodpt.realpermissions.api.pluginhook.ExternalPluginPermission;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitTask;
+
+import java.util.Arrays;
+import java.util.Collections;
 
 public final class RealHoppersPlugin extends JavaPlugin {
 
@@ -35,6 +45,8 @@ public final class RealHoppersPlugin extends JavaPlugin {
     private static RealHoppersPlugin instance;
 
     private RealHoppers realHoppers;
+    private BukkitTask hopperHighlight;
+    private BukkitTask hopperFlush;
 
     public static RealHoppersPlugin getPlugin() {
         return instance;
@@ -44,8 +56,6 @@ public final class RealHoppersPlugin extends JavaPlugin {
     public void onEnable() {
         printASCII();
         final long start = System.currentTimeMillis();
-        //new Metrics(this, 19311); TODO metrics
-
 
         instance = this;
         realHoppers = new RealHoppers(this);
@@ -54,41 +64,21 @@ public final class RealHoppersPlugin extends JavaPlugin {
         PluginManager pm = Bukkit.getPluginManager();
         pm.registerEvents(new PlayerListener(realHoppers), this);
         pm.registerEvents(new EventListener(realHoppers), this);
-        pm.registerEvents(HopperGUI.getListener(), this);
+        pm.registerEvents(GUIBuilder.getListener(), this);
+        pm.registerEvents(realHoppers.getGUIManager().getListener(), this);
+
+        //the server's furnace recipes, which is what AUTO_SMELT smelts by. Read here rather than
+        //per item: the recipe list does not change while the server is up.
+        Smelting.load();
+        getLogger().info("Loaded " + Smelting.size() + " smelting recipes.");
 
         realHoppers.getHopperManager().loadHoppers();
         getLogger().info("Loaded " + realHoppers.getHopperManager().getHoppersMap().size() + " hoppers.");
 
-        /* TODO plugin update
-        new UpdateChecker(this, 111629).getVersion(version -> {
-            if (this.getDescription().getVersion().equalsIgnoreCase(version)) {
-                this.getLogger().info("The plugin is updated to the latest version.");
-            } else {
-                this.newUpdate = true;
-                this.getLogger().warning("There is a new update available! Version: " + version + " -> https://www.spigotmc.org/resources/111629/");
-            }
-        });
-         */
-
-        CommandManager cm = new CommandManager(this);
-
-        cm.getMessageHandler().register("cmd.no.permission", (sender) -> Text.send(sender, "&cYou don't have permission to execute this command!"));
-        cm.getMessageHandler().register("cmd.no.exists", (sender) -> Text.send(sender, "&cThe command you're trying to use doesn't exist"));
-        cm.getMessageHandler().register("cmd.wrong.usage", (sender) -> Text.send(sender, "&cWrong usage for the command!"));
-        cm.getMessageHandler().register("cmd.no.console", sender -> Text.send(sender,  "&cCommand can't be used in the console!"));
-
-        cm.hideTabComplete(true);
-
-        cm.getParameterHandler().register(RHopperTrait.class, argument -> {
-            try {
-                RHopperTrait tt = RHopperTrait.valueOf(argument.toString().toUpperCase());
-                return new TypeResult(tt, argument);
-            } catch (Exception e) {
-                return new TypeResult(null, argument);
-            }
-        });
-
-        cm.register(new RealHoppersCMD(realHoppers));
+        //Lamp owns the command tree: the suggestions, the permissions and the error messages.
+        //The RHopperTrait resolver that used to live here is gone - Lamp parses enums
+        //case-insensitively and tab-completes their constants without being told about them.
+        new RHCommandManager(realHoppers);
 
         //vault hook
         if (getServer().getPluginManager().getPlugin("Vault") != null) {
@@ -102,11 +92,48 @@ public final class RealHoppersPlugin extends JavaPlugin {
             }
         }
 
-        Bukkit.getScheduler().scheduleSyncRepeatingTask(this, () -> realHoppers.getHopperManager().getHoppers().forEach(RHopper::loopView), 10, 10);
+        this.hopperHighlight = Bukkit.getScheduler().runTaskTimer(this,
+                () -> realHoppers.getHopperManager().getHoppers().forEach(RHopper::loopView), 10, 10);
+
+        //hoppers write themselves into the document as they go and this is what puts it on disk.
+        //It used to be written in full on every balance change, which for an auto-selling hopper is
+        //once per item swallowed.
+        final long flushTicks = Math.max(1L, RHConfig.file().getInt("RealHoppers.Save-Interval-Seconds", 60)) * 20L;
+        this.hopperFlush = Bukkit.getScheduler().runTaskTimer(this, RHHoppers::saveIfDirty, flushTicks, flushTicks);
+
+        if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
+            new RealHoppersPlaceholderAPI(realHoppers).register();
+            getLogger().info("Hooked onto PlaceholderAPI!");
+        }
+
+        if (getServer().getPluginManager().getPlugin("RealPermissions") != null) {
+            registerRealPermissions();
+        }
+
+        Bukkit.getPluginManager().callEvent(new RealHoppersPluginLoadedEvent());
 
         getLogger().info("Finished loading in " + ((System.currentTimeMillis() - start) / 1000F) + " seconds.");
         getLogger().info("<------------------ RealHoppers vPT ------------------>".replace("PT", this.getDescription().getVersion()));
 
+    }
+
+    /**
+     * Publishes the plugin's permissions to RealPermissions, so they can be handed out from its GUI
+     * instead of being typed from the wiki.
+     */
+    private void registerRealPermissions() {
+        try {
+            RealPermissionsAPI.getInstance().getHooksAPI().addHook(new ExternalPlugin(
+                    this.getDescription().getName(), "&fReal&6Hoppers", this.getDescription().getDescription(),
+                    Material.HOPPER,
+                    Collections.singletonList(new ExternalPluginPermission("realhoppers.admin",
+                            "Allow access to the main operator commands of RealHoppers.",
+                            Arrays.asList("rh reload", "rh settrait <trait>"))),
+                    this.getDescription().getVersion()));
+        } catch (final Exception e) {
+            getLogger().warning("Error while trying to register RealHoppers permissions onto RealPermissions.");
+            e.printStackTrace();
+        }
     }
 
     private void printASCII() {
@@ -126,11 +153,18 @@ public final class RealHoppersPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        // Plugin shutdown logic
+        if (this.hopperHighlight != null) {
+            this.hopperHighlight.cancel();
+        }
+        if (this.hopperFlush != null) {
+            this.hopperFlush.cancel();
+        }
+
+        //stopHoppers cancels the trait tasks and flushes the last balances itself
         realHoppers.getHopperManager().stopHoppers();
     }
 
-    public Economy getVault() {
+    public Economy getEconomy() {
         return econ;
     }
 }

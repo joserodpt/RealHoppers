@@ -9,7 +9,7 @@ package joserodpt.realhoppers.api.hopper.trait.traits;
  *                                |_|   |_|
  *
  * Licensed under the MIT License
- * @author José Rodrigues
+ * @author José Rodrigues © 2023-2026
  * @link https://github.com/joserodpt/RealHoppers
  */
 
@@ -33,12 +33,12 @@ public class RHSuctionTrait extends RHopperTraitBase {
     @Override
     public void executeAction(Player p) { }
 
-    private int taskID;
+    private int taskID = -1;
 
     private int area = 2;
 
     @Override
-    public void executeLoop() {
+    protected void executeLoop() {
         taskID = Bukkit.getScheduler().scheduleSyncRepeatingTask(RealHoppersAPI.getInstance().getPlugin(), () -> {
             for (Entity ent : super.getHopper().getWorld().getNearbyEntities(super.getHopper().getLocation(), area, area, area)) {
                 if (ent.getType() == EntityType.DROPPED_ITEM) {
@@ -47,11 +47,8 @@ public class RHSuctionTrait extends RHopperTraitBase {
                     if (super.getHopper().hasHopperSpace(m)) {
                         super.getHopper().addItem(m);
                         ent.remove();
-                    } else {
-                        if (super.getHopper().hasTrait(RHopperTrait.AUTO_SELL) && RealHoppersAPI.getInstance().getHopperManager().getMaterialCost().containsKey(m)) {
-                            super.getHopper().sell(m, true);
-                            ent.remove();
-                        }
+                    } else if (super.getHopper().hasTrait(RHopperTrait.AUTO_SELL) && super.getHopper().sell(m)) {
+                        ent.remove();
                     }
                 }
             }
@@ -60,12 +57,15 @@ public class RHSuctionTrait extends RHopperTraitBase {
 
     @Override
     public RHopperTrait getTraitType() {
-        return RHopperTrait.KILL_MOB;
+        return RHopperTrait.SUCTION;
     }
 
     @Override
     public void stopTask() {
-        Bukkit.getScheduler().cancelTask(taskID);
+        if (taskID != -1) {
+            Bukkit.getScheduler().cancelTask(taskID);
+            taskID = -1;
+        }
     }
 
     @Override

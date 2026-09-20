@@ -5,4 +5,5 @@ main: joserodpt.realhoppers.plugin.RealHoppersPlugin
 load: POSTWORLD
 api-version: '1.13'
 authors: [JoseGamer_PT]
+softdepend: [ Vault, PlaceholderAPI, RealPermissions ]
 website: https://www.spigotmc.org/members/40267/
