@@ -18,24 +18,34 @@ import joserodpt.realhoppers.api.config.RHLanguage;
 import org.bukkit.Material;
 
 public enum RHopperTrait {
-    TELEPORT(Material.ENDER_PEARL, false),
-    ITEM_TRANS(Material.ENDER_EYE, false),
-    AUTO_SELL(Material.EMERALD, true),
-    AUTO_SMELT(Material.FURNACE, false),
-    SUCTION(Material.FEATHER, false),
-    BLOCK_BREAKING(Material.TNT, false),
-    KILL_MOB(Material.DIAMOND_SWORD, true);
+    TELEPORT(Material.ENDER_PEARL, false, true),
+    ITEM_TRANS(Material.ENDER_EYE, false, true),
+    AUTO_SELL(Material.EMERALD, true, false),
+    AUTO_SMELT(Material.FURNACE, false, false),
+    SUCTION(Material.FEATHER, false, false),
+    BLOCK_BREAKING(Material.TNT, false, false),
+    KILL_MOB(Material.DIAMOND_SWORD, true, false);
 
     private final Material icon;
     private final boolean hasEconomyCapabilities;
+    private final boolean requiresLink;
 
-    RHopperTrait(Material icon, boolean hasEconomyCapabilities) {
+    RHopperTrait(Material icon, boolean hasEconomyCapabilities, boolean requiresLink) {
         this.icon = icon;
         this.hasEconomyCapabilities = hasEconomyCapabilities;
+        this.requiresLink = requiresLink;
     }
 
     public boolean hasEconomyCapabilities() {
         return this.hasEconomyCapabilities;
+    }
+
+    /**
+     * Whether the trait is useless without a second hopper to point at. Those traits are
+     * never started until their link has been resolved, because their loop dereferences it.
+     */
+    public boolean requiresLink() {
+        return this.requiresLink;
     }
 
     public Material getIcon() {

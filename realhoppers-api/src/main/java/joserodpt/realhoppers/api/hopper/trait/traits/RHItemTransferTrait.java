@@ -39,10 +39,10 @@ public class RHItemTransferTrait extends RHopperTraitBase {
     @Override
     public void executeAction(Player p) { }
 
-    private int taskID;
+    private int taskID = -1;
 
     @Override
-    public void executeLoop() {
+    protected void executeLoop() {
         taskID = Bukkit.getScheduler().scheduleSyncRepeatingTask(RealHoppersAPI.getInstance().getPlugin(), () -> {
 
             ItemStack itemStack = getFirst();
@@ -77,7 +77,10 @@ public class RHItemTransferTrait extends RHopperTraitBase {
 
     @Override
     public void stopTask() {
-        Bukkit.getScheduler().cancelTask(taskID);
+        if (taskID != -1) {
+            Bukkit.getScheduler().cancelTask(taskID);
+            taskID = -1;
+        }
     }
 
     @Override

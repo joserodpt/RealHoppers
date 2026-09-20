@@ -4,9 +4,12 @@ RealHoppers:
     Sounds: true
     Particles: true
   Teleportation-Cooldown: 20
+  # How often hoppers.yml is written, in seconds. Hopper balances and traits are kept in memory
+  # between writes, so a crash can cost at most this much.
+  Save-Interval-Seconds: 60
   Drop-Items-If-Full: true
   Material-Values:
     COBBLESTONE: 5
     SAND: 2
 
-Version: 1
+Version: 2

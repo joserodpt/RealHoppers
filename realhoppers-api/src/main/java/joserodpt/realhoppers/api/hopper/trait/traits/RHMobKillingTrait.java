@@ -33,10 +33,10 @@ public class RHMobKillingTrait extends RHopperTraitBase {
     @Override
     public void executeAction(Player p) { }
 
-    private int taskID;
+    private int taskID = -1;
 
     @Override
-    public void executeLoop() {
+    protected void executeLoop() {
         taskID = Bukkit.getScheduler().scheduleSyncRepeatingTask(RealHoppersAPI.getInstance().getPlugin(), () -> {
             for (Entity nearbyEntity : super.getHopper().getWorld().getNearbyEntities(super.getHopper().getLocation(), 1.5, 1.5, 1.5)) {
                 if (nearbyEntity.getType() != EntityType.PLAYER && nearbyEntity instanceof LivingEntity) {
@@ -55,7 +55,10 @@ public class RHMobKillingTrait extends RHopperTraitBase {
 
     @Override
     public void stopTask() {
-        Bukkit.getScheduler().cancelTask(taskID);
+        if (taskID != -1) {
+            Bukkit.getScheduler().cancelTask(taskID);
+            taskID = -1;
+        }
     }
 
     @Override

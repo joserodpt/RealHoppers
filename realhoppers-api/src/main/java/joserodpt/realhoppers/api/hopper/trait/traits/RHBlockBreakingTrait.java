@@ -34,29 +34,23 @@ public class RHBlockBreakingTrait extends RHopperTraitBase {
     @Override
     public void executeAction(Player p) { }
 
-    private int taskID;
+    private int taskID = -1;
 
     @Override
-    public void executeLoop() {
+    protected void executeLoop() {
         taskID = Bukkit.getScheduler().scheduleSyncRepeatingTask(RealHoppersAPI.getInstance().getPlugin(), () -> {
             Block toBreak = super.getHopper().getBlock().getRelative(BlockFace.UP);
             if (toBreak != null && toBreak.getType().isSolid()) {
-                if (super.getHopper().hasHopperSpace(toBreak.getType()) ||
-                        (super.getHopper().hasTrait(RHopperTrait.AUTO_SELL) &&
-                                RealHoppersAPI.getInstance().getHopperManager().getMaterialCost().containsKey(toBreak.getType()))) {
+                final Material type = toBreak.getType();
 
-                    if (super.getHopper().hasHopperSpace(toBreak.getType())) {
-                        super.getHopper().addItem(toBreak.getType());
-                    } else {
-                        super.getHopper().sell(toBreak.getType(), true);
-                    }
-
+                if (super.getHopper().hasHopperSpace(type)) {
+                    super.getHopper().addItem(type);
                     toBreak.setType(Material.AIR);
-                } else {
-                    if (RHConfig.file().getBoolean("RealHoppers.Drop-Items-If-Full")) {
-                        super.getHopper().getWorld().dropItemNaturally(super.getHopper().getTeleportLocation(), new ItemStack(toBreak.getType()));
-                        toBreak.setType(Material.AIR);
-                    }
+                } else if (super.getHopper().hasTrait(RHopperTrait.AUTO_SELL) && super.getHopper().sell(type)) {
+                    toBreak.setType(Material.AIR);
+                } else if (RHConfig.file().getBoolean("RealHoppers.Drop-Items-If-Full")) {
+                    super.getHopper().getWorld().dropItemNaturally(super.getHopper().getTeleportLocation(), new ItemStack(type));
+                    toBreak.setType(Material.AIR);
                 }
             }
         }, 10, 10);
@@ -69,7 +63,10 @@ public class RHBlockBreakingTrait extends RHopperTraitBase {
 
     @Override
     public void stopTask() {
-        Bukkit.getScheduler().cancelTask(taskID);
+        if (taskID != -1) {
+            Bukkit.getScheduler().cancelTask(taskID);
+            taskID = -1;
+        }
     }
 
     @Override

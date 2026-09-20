@@ -38,20 +38,20 @@ public class RHTeleportationTrait extends RHopperTraitBase {
 
     @Override
     public void executeAction(Player p) {
-        if (!RealHoppersAPI.getInstance().getPlayerManager().getTpFreeze().contains(p)) {
-            RealHoppersAPI.getInstance().getPlayerManager().getTpFreeze().add(p);
+        if (!RealHoppersAPI.getInstance().getPlayerManager().getTpFreeze().contains(p.getUniqueId())) {
+            RealHoppersAPI.getInstance().getPlayerManager().getTpFreeze().add(p.getUniqueId());
 
             LocationUtil.teleportConservingPitchYaw(p, super.getLinkedHopper().getTeleportLocation());
             if (RHConfig.file().getBoolean("RealHoppers.Effects.Particles"))
                 super.getLinkedHopper().getTeleportLocation().getWorld().spawnParticle(Particle.PORTAL, super.getLinkedHopper().getTeleportLocation(), 20);
 
             Text.send(p, "You have been teleported!");
-            Bukkit.getScheduler().scheduleSyncDelayedTask(RealHoppersAPI.getInstance().getPlugin(), () -> RealHoppersAPI.getInstance().getPlayerManager().getTpFreeze().remove(p), RHConfig.file().getInt("RealHoppers.Teleportation-Cooldown"));
+            Bukkit.getScheduler().scheduleSyncDelayedTask(RealHoppersAPI.getInstance().getPlugin(), () -> RealHoppersAPI.getInstance().getPlayerManager().getTpFreeze().remove(p.getUniqueId()), RHConfig.file().getInt("RealHoppers.Teleportation-Cooldown"));
         }
     }
 
     @Override
-    public void executeLoop() { }
+    protected void executeLoop() { }
 
     @Override
     public RHopperTrait getTraitType() {

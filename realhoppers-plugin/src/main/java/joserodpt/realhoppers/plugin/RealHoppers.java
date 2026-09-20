@@ -65,8 +65,9 @@ public class RealHoppers extends RealHoppersAPI {
     @Override
     public void reload() {
         RHConfig.reload();
+        RHLanguage.reload();
         RHHoppers.reload();
-        //reload worlds config
+        //loadHoppers stops whatever is running before it replaces the map
         this.getHopperManager().loadHoppers();
     }
 

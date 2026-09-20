@@ -26,6 +26,13 @@ public class RHHoppers {
 
     private static YamlDocument document;
 
+    /**
+     * Set whenever a hopper writes into the document, cleared by {@link #saveIfDirty()}. Hoppers
+     * change constantly - every item an auto-seller swallows moves its balance - and rewriting the
+     * whole file on each of those was the plugin's heaviest piece of IO.
+     */
+    private static boolean dirty;
+
     public static void setup(final JavaPlugin rm) {
         try {
             document = YamlDocument.create(new File(rm.getDataFolder(), name));
@@ -39,7 +46,26 @@ public class RHHoppers {
         return document;
     }
 
+    public static void markDirty() {
+        dirty = true;
+    }
+
+    /**
+     * Writes the file only if something changed since the last write. Called on a timer and once
+     * more on shutdown.
+     *
+     * @return whether anything was written
+     */
+    public static boolean saveIfDirty() {
+        if (!dirty) {
+            return false;
+        }
+        save();
+        return true;
+    }
+
     public static void save() {
+        dirty = false;
         try {
             document.save();
         } catch (final IOException e) {

@@ -14,6 +14,8 @@ package joserodpt.realhoppers.plugin;
  */
 
 import joserodpt.realhoppers.api.RealHoppersAPI;
+import joserodpt.realhoppers.api.config.RHConfig;
+import joserodpt.realhoppers.api.config.RHHoppers;
 import joserodpt.realhoppers.plugin.gui.HopperGUI;
 import joserodpt.realhoppers.api.hopper.RHopper;
 import joserodpt.realhoppers.api.hopper.trait.RHopperTrait;
@@ -27,6 +29,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitTask;
 
 public final class RealHoppersPlugin extends JavaPlugin {
 
@@ -35,6 +38,8 @@ public final class RealHoppersPlugin extends JavaPlugin {
     private static RealHoppersPlugin instance;
 
     private RealHoppers realHoppers;
+    private BukkitTask hopperHighlight;
+    private BukkitTask hopperFlush;
 
     public static RealHoppersPlugin getPlugin() {
         return instance;
@@ -102,7 +107,14 @@ public final class RealHoppersPlugin extends JavaPlugin {
             }
         }
 
-        Bukkit.getScheduler().scheduleSyncRepeatingTask(this, () -> realHoppers.getHopperManager().getHoppers().forEach(RHopper::loopView), 10, 10);
+        this.hopperHighlight = Bukkit.getScheduler().runTaskTimer(this,
+                () -> realHoppers.getHopperManager().getHoppers().forEach(RHopper::loopView), 10, 10);
+
+        //hoppers write themselves into the document as they go and this is what puts it on disk.
+        //It used to be written in full on every balance change, which for an auto-selling hopper is
+        //once per item swallowed.
+        final long flushTicks = Math.max(1L, RHConfig.file().getInt("RealHoppers.Save-Interval-Seconds", 60)) * 20L;
+        this.hopperFlush = Bukkit.getScheduler().runTaskTimer(this, RHHoppers::saveIfDirty, flushTicks, flushTicks);
 
         getLogger().info("Finished loading in " + ((System.currentTimeMillis() - start) / 1000F) + " seconds.");
         getLogger().info("<------------------ RealHoppers vPT ------------------>".replace("PT", this.getDescription().getVersion()));
@@ -126,7 +138,14 @@ public final class RealHoppersPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        // Plugin shutdown logic
+        if (this.hopperHighlight != null) {
+            this.hopperHighlight.cancel();
+        }
+        if (this.hopperFlush != null) {
+            this.hopperFlush.cancel();
+        }
+
+        //stopHoppers cancels the trait tasks and flushes the last balances itself
         realHoppers.getHopperManager().stopHoppers();
     }
 

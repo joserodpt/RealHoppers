@@ -40,9 +40,19 @@ public class LocationUtil {
             return null;
         }
 
-        double x = Double.parseDouble(parts[0]);
-        double y = Double.parseDouble(parts[1]);
-        double z = Double.parseDouble(parts[2]);
+        final double x;
+        final double y;
+        final double z;
+        try {
+            x = Double.parseDouble(parts[0]);
+            y = Double.parseDouble(parts[1]);
+            z = Double.parseDouble(parts[2]);
+        } catch (final NumberFormatException e) {
+            //hoppers.yml is editable by hand, so a coordinate that is not a number is a config
+            //mistake to report, not an exception to throw out of the middle of a world load
+            RealHoppersAPI.getInstance().getLogger().severe("Invalid coordinates in serialized location '" + serializedLocation + "'");
+            return null;
+        }
         String worldName = parts[3];
 
         World world = Bukkit.getWorld(worldName);

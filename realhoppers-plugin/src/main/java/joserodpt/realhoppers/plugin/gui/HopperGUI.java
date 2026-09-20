@@ -108,6 +108,7 @@ public class HopperGUI {
                         switch (e.getRawSlot()) {
                             case 22:
                                 p.closeInventory();
+                                break;
                             case 11:
                                 p.closeInventory();
                                 current.h.openInventory(p);

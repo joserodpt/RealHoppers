@@ -23,6 +23,8 @@ import joserodpt.realhoppers.api.hopper.trait.RHopperTraitBase;
 import joserodpt.realhoppers.api.hopper.trait.traits.RHBlockBreakingTrait;
 import joserodpt.realhoppers.api.hopper.trait.traits.RHDummyTrait;
 import joserodpt.realhoppers.api.hopper.trait.traits.RHItemTransferTrait;
+import joserodpt.realhoppers.api.hopper.trait.traits.RHMobKillingTrait;
+import joserodpt.realhoppers.api.hopper.trait.traits.RHSuctionTrait;
 import joserodpt.realhoppers.api.hopper.trait.traits.RHTeleportationTrait;
 import joserodpt.realhoppers.api.managers.HopperManagerAPI;
 import joserodpt.realhoppers.api.utils.LocationUtil;
@@ -62,6 +64,9 @@ public class HopperManager extends HopperManagerAPI {
 
     @Override
     public void loadHoppers() {
+        //reload comes through here too, and the hoppers already in the map own scheduled tasks.
+        //Dropping them without stopping first left every task running against an orphaned hopper.
+        this.stopHoppers();
         this.getHoppersMap().clear();
         if (RHHoppers.file().isSection("Hoppers")) {
             for (String hopperSTR : RHHoppers.file().getSection("Hoppers").getRoutesAsStrings(false)) {
@@ -79,7 +84,9 @@ public class HopperManager extends HopperManagerAPI {
 
                 Map<RHopperTrait, RHopperTraitBase> traitMap = new HashMap<>();
                 RHopper loaded = new RHopper(b, false);
-                loaded.setBalance(RHHoppers.file().getDouble("Hoppers." + hopperSTR + ".Balance"));
+                //not setBalance: that fires a state change event and queues a write, for a value
+                //that was just read out of the file
+                loaded.restoreBalance(RHHoppers.file().getDouble("Hoppers." + hopperSTR + ".Balance"));
 
                 if (RHHoppers.file().isList("Hoppers." + hopperSTR + ".Traits")) {
                     List<String> traits = RHHoppers.file().getStringList("Hoppers." + hopperSTR + ".Traits");
@@ -98,7 +105,10 @@ public class HopperManager extends HopperManagerAPI {
                                 traitMap.put(RHopperTrait.BLOCK_BREAKING, new RHBlockBreakingTrait(loaded));
                                 break;
                             case KILL_MOB:
-                                traitMap.put(RHopperTrait.KILL_MOB, new RHBlockBreakingTrait(loaded));
+                                traitMap.put(RHopperTrait.KILL_MOB, new RHMobKillingTrait(loaded));
+                                break;
+                            case SUCTION:
+                                traitMap.put(RHopperTrait.SUCTION, new RHSuctionTrait(loaded));
                                 break;
                             case AUTO_SELL:
                                 traitMap.put(RHopperTrait.AUTO_SELL, new RHDummyTrait(loaded, RHopperTrait.AUTO_SELL));
@@ -115,8 +125,10 @@ public class HopperManager extends HopperManagerAPI {
                 this.getHoppersMap().put(b, loaded);
             }
 
-            //load links
+            //links first: a trait that points at another hopper cannot run until that hopper
+            //exists and has been found, so nothing is started before the whole file is read
             this.getHoppersMap().values().forEach(RHopper::loadLinks);
+            this.getHoppersMap().values().forEach(RHopper::startTraitTasks);
         }
 
         //load material cost
@@ -153,6 +165,8 @@ public class HopperManager extends HopperManagerAPI {
     @Override
     public void stopHoppers() {
         this.getHoppers().forEach(RHopper::stopHopper);
+        //stopHopper only queues the balance write, and on shutdown there is no flush left to run
+        RHHoppers.saveIfDirty();
     }
 
     @Override
