@@ -9,7 +9,7 @@ package joserodpt.realhoppers.plugin.listener;
  *                                |_|   |_|
  *
  * Licensed under the MIT License
- * @author José Rodrigues
+ * @author José Rodrigues © 2019-2026
  * @link https://github.com/joserodpt/RealHoppers
  */
 
@@ -80,10 +80,10 @@ public class EventListener implements Listener {
      * hopper deletes its balance with it, so without this the money is simply gone.
      */
     private void payOut(final RHopper h, final Player p) {
-        if (h.getBalance() <= 0 || rh.getVault() == null) {
+        if (h.getBalance() <= 0 || rh.getEconomy() == null) {
             return;
         }
-        rh.getVault().depositPlayer(p, h.getBalance());
+        rh.getEconomy().depositPlayer(p, h.getBalance());
         TranslatableLine.HOPPER_BALANCE_COLLECTED_ON_BREAK
                 .setV1(TranslatableLine.ReplacableVar.MONEY.eq(Text.formatNumber(h.getBalance()))).send(p);
         h.setBalance(0);

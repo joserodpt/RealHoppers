@@ -9,7 +9,7 @@ package joserodpt.realhoppers.plugin;
  *                                |_|   |_|
  *
  * Licensed under the MIT License
- * @author José Rodrigues
+ * @author José Rodrigues © 2019-2026
  * @link https://github.com/joserodpt/RealHoppers
  */
 
@@ -69,11 +69,6 @@ public class RealHoppers extends RealHoppersAPI {
         return this.playerManagerAPI;
     }
     @Override
-    public boolean hasNewUpdate() {
-        return false; //TODO
-    }
-
-    @Override
     public void reload() {
         RHConfig.reload();
         RHLanguage.reload();
@@ -83,8 +78,8 @@ public class RealHoppers extends RealHoppersAPI {
     }
 
     @Override
-    public Economy getVault() {
-        return plugin.getVault();
+    public Economy getEconomy() {
+        return plugin.getEconomy();
     }
 
     @Override

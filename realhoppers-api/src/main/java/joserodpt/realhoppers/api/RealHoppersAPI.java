@@ -9,7 +9,7 @@ package joserodpt.realhoppers.api;
  *                                |_|   |_|
  *
  * Licensed under the MIT License
- * @author José Rodrigues
+ * @author José Rodrigues © 2019-2026
  * @link https://github.com/joserodpt/RealHoppers
  */
 
@@ -28,14 +28,14 @@ public abstract class RealHoppersAPI {
     /**
      * Gets instance of this API
      *
-     * @return RealMinesAPI API instance
+     * @return RealHoppersAPI API instance
      */
     public static RealHoppersAPI getInstance() {
         return instance;
     }
 
     /**
-     * Sets the RealMinesAPI instance.
+     * Sets the RealHoppersAPI instance.
      * <b>Note! This method may only be called once</b>
      *
      * @param instance the new instance to set
@@ -52,13 +52,12 @@ public abstract class RealHoppersAPI {
 
     public abstract HopperManagerAPI getHopperManager();
 
-    public abstract boolean hasNewUpdate();
-
     public abstract void reload();
 
     public abstract String getVersion();
 
-    public abstract Economy getVault();
+    /** Named to match RealMinesAPI; it was getVault. */
+    public abstract Economy getEconomy();
 
     public abstract Logger getLogger();
 }

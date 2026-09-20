@@ -9,7 +9,7 @@ package joserodpt.realhoppers.plugin.gui;
  *                                |_|   |_|
  *
  * Licensed under the MIT License
- * @author José Rodrigues
+ * @author José Rodrigues © 2019-2026
  * @link https://github.com/joserodpt/RealHoppers
  */
 
@@ -116,14 +116,14 @@ public class GUIManager {
             return;
         }
 
-        if (rh.getVault() == null) {
+        if (rh.getEconomy() == null) {
             TranslatableLine.SYSTEM_VAULT_MISSING.send(target);
             target.closeInventory();
             return;
         }
 
         final double amount = click == ClickType.SHIFT_LEFT ? hopper.getBalance() : hopper.getBalance() / 2;
-        rh.getVault().depositPlayer(target, amount);
+        rh.getEconomy().depositPlayer(target, amount);
         TranslatableLine.HOPPER_BALANCE_COLLECTED
                 .setV1(TranslatableLine.ReplacableVar.MONEY.eq(Text.formatNumber(amount))).send(target);
 

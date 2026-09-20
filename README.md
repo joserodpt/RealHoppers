@@ -31,6 +31,7 @@ restart.
 * [Getting Started](#getting-started)
 * [Commands and Permissions](#commands-and-permissions)
 * [Configuration](#configuration)
+* [Placeholders](#placeholders)
 * [Building](#building)
 
 ## Traits
@@ -55,6 +56,8 @@ left-click takes half, shift-left-click takes all.
 * Spigot, Paper or Purpur, 1.14 or newer
 * Java 16 or newer
 * [Vault](https://www.spigotmc.org/resources/34315/) and an economy plugin — only needed for `AUTO_SELL`
+* Optional: [PlaceholderAPI](https://www.spigotmc.org/resources/6245/) and
+  [RealPermissions](https://github.com/joserodpt/RealPermissions), both picked up automatically when present
 
 ## Installation
 
@@ -106,6 +109,17 @@ RealHoppers:
 ```
 
 `language.yml` holds every message the plugin sends, including the trait names shown in the GUI.
+
+## Placeholders
+
+With PlaceholderAPI installed:
+
+| Placeholder                 | Value                                            |
+|-----------------------------|--------------------------------------------------|
+| `%realhoppers_hoppers%`     | How many hoppers are registered.                 |
+| `%realhoppers_balance%`     | The total banked across every hopper.            |
+| `%realhoppers_trait_<T>%`   | How many hoppers carry trait `<T>`, e.g. `SUCTION`. |
+| `%realhoppers_version%`     | The plugin version.                              |
 
 ## Building
 

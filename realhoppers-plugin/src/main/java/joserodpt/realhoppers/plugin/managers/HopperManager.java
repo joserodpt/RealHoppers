@@ -9,7 +9,7 @@ package joserodpt.realhoppers.plugin.managers;
  *                                |_|   |_|
  *
  * Licensed under the MIT License
- * @author José Rodrigues
+ * @author José Rodrigues © 2019-2026
  * @link https://github.com/joserodpt/RealHoppers
  */
 
