@@ -38,7 +38,7 @@ restart.
 
 | Trait            | What it does                                                                           |
 |------------------|----------------------------------------------------------------------------------------|
-| `TELEPORT`       | Sends a player who steps onto the hopper to the hopper it is linked to.                 |
+| `TELEPORT`       | Sends a player who steps onto the hopper to the hopper it is linked to.                  |
 | `ITEM_TRANS`     | Pushes its contents, one stack at a time, into the hopper it is linked to.              |
 | `SUCTION`        | Pulls in dropped items from the blocks around it.                                       |
 | `BLOCK_BREAKING` | Breaks the block directly above it and takes the drop.                                  |
@@ -46,7 +46,9 @@ restart.
 | `AUTO_SELL`      | Anything the hopper cannot fit is sold instead, into a balance the owner collects later. |
 | `AUTO_SMELT`     | Smelts what the hopper takes in — cobblestone lands as stone, ore as ingots.             |
 
-`TELEPORT` and `ITEM_TRANS` are *linked* traits: they need a second hopper to point at. The rest act on their own.
+`TELEPORT` and `ITEM_TRANS` are *linked* traits: they follow the hopper's link. A hopper has **one** link, and both
+traits use it — so a linked pair can be a teleporter and an item pipe at the same time, and re-pointing the hopper
+moves both at once. Either trait can be switched on before a link exists; it simply sits idle until there is one.
 
 `AUTO_SELL` is what gives a hopper a balance. Open the hopper's GUI and click the hopper icon to collect it —
 left-click takes half, shift-left-click takes all.
@@ -84,9 +86,9 @@ takes it off again. The same thing from the command line, looking at the hopper:
 /rh settrait SUCTION
 ```
 
-To link two hoppers, hold a stick, right-click the source hopper and then the destination. Anything else in between
-calls it off — dropping the stick, clicking another block, clicking a mob, or opening a hopper's panel without the
-stick in hand.
+To link a hopper to another, hold a stick, right-click it and then the hopper it should point at. Anything else in
+between calls it off — dropping the stick, clicking another block, clicking a mob, or opening a hopper's panel without
+the stick in hand. Linking a hopper that already points somewhere just re-points it.
 
 ## Commands and Permissions
 

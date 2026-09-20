@@ -27,14 +27,8 @@ import org.bukkit.entity.Player;
 
 public class RHTeleportationTrait extends RHopperTraitBase {
 
-    public RHTeleportationTrait(RHopper main, String linkLocation) {
+    public RHTeleportationTrait(RHopper main) {
         super(main);
-        super.setLinkedLoc(linkLocation);
-    }
-
-    public RHTeleportationTrait(RHopper main, RHopper link) {
-        super(main);
-        super.setLinked(link);
     }
 
     @Override
@@ -64,6 +58,6 @@ public class RHTeleportationTrait extends RHopperTraitBase {
 
     @Override
     public String getSerializedSave() {
-        return getTraitType() + "|" + getLinkedHopper().getSerializedLocation();
+        return getTraitType().name();
     }
 }

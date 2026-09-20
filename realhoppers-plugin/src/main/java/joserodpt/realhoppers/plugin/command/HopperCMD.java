@@ -83,9 +83,9 @@ public class HopperCMD {
 
         final RHopperTraitBase built = trait.build(hopper);
         if (built == null) {
-            //TELEPORT and ITEM_TRANS need a second hopper, AUTO_SMELT has no implementation.
-            //The old switch covered four constants and did nothing at all for these three.
-            (trait.requiresLink() ? TranslatableLine.TRAIT_NEEDS_LINK : TranslatableLine.TRAIT_UNAVAILABLE)
+            //a constant with no implementation behind it. The old switch covered four of the seven
+            //and did nothing at all for the rest.
+            TranslatableLine.TRAIT_UNAVAILABLE
                     .setV1(TranslatableLine.ReplacableVar.TRAIT.eq(trait.getName())).send(p);
             return;
         }
@@ -93,5 +93,11 @@ public class HopperCMD {
         hopper.setTrait(trait, built);
         TranslatableLine.TRAIT_ADDED
                 .setV1(TranslatableLine.ReplacableVar.TRAIT.eq(trait.getName())).send(p);
+
+        //the trait is on either way, it just sits idle until the hopper has somewhere to point
+        if (trait.requiresLink() && !hopper.hasLink()) {
+            TranslatableLine.TRAIT_NEEDS_LINK
+                    .setV1(TranslatableLine.ReplacableVar.TRAIT.eq(trait.getName())).send(p);
+        }
     }
 }

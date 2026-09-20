@@ -7,14 +7,13 @@ Hoppers:
   Traits:
     Added: "&fGave this hopper the %trait% &ftrait."
     Already-Present: "&cThis hopper already has the %trait% &ctrait."
-    Needs-Link: "&cThe %trait% &ctrait needs two hoppers. Hold a stick and right-click both."
+    Needs-Link: "&eThe %trait% &etrait follows this hopper's link, and it has none yet. Hold a stick, right-click this hopper, then the one it should point at."
     Unavailable: "&cThe %trait% &ctrait is not available yet."
     Removed: "&fRemoved the %trait% &ftrait from this hopper."
   Link:
-    Source-Selected: "&fSource hopper selected. Right-click the destination hopper."
+    Source-Selected: "&fSource hopper selected. Right-click the hopper it should point at."
     Same-Hopper: "&cA hopper cannot be linked to itself."
-    Already-Linked: "&cThe source hopper already has an Item Transfer link."
-    Done: "&aHoppers linked."
+    Done: "&aHoppers linked. Teleport and Item Transfer both follow this link."
     Cancelled: "&cLinking cancelled."
 
 GUI:
@@ -44,16 +43,17 @@ GUI:
         - "&8Not active"
         - ""
         - "&7Click to &aadd&7."
-      Linked-Description:
-        - "&8Not active"
+      Needs-Link-Description:
         - ""
-        - "&7Needs two hoppers - hold a stick"
-        - "&7and right-click both."
+        - "&cThis hopper is not linked."
+        - "&7Hold a stick, right-click this"
+        - "&7hopper, then its destination."
       Unavailable-Description:
         - "&7Not available in this version."
     Hopper:
       Name: "&dHopper"
       Balance: "&fBalance: &e%money%"
+      Link: "&fLinked to: &b%value%"
       Traits-Header: "&f&nHopper traits:"
       No-Traits: " &7None."
       Trait-Entry: "&7- &f%trait%"
@@ -76,4 +76,4 @@ Traits:
   BLOCK_BREAKING: "&7Block Breaking"
   KILL_MOB: "&4Mob Killing"
 
-Version: 3
+Version: 4

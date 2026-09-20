@@ -27,14 +27,8 @@ import java.util.Objects;
 
 public class RHItemTransferTrait extends RHopperTraitBase {
 
-    public RHItemTransferTrait(RHopper main, String linkLocation) {
+    public RHItemTransferTrait(RHopper main) {
         super(main);
-        super.setLinkedLoc(linkLocation);
-    }
-
-    public RHItemTransferTrait(RHopper main, RHopper link) {
-        super(main);
-        super.setLinked(link);
     }
 
     @Override
@@ -97,6 +91,6 @@ public class RHItemTransferTrait extends RHopperTraitBase {
 
     @Override
     public String getSerializedSave() {
-        return getTraitType() + "|" + getLinkedHopper().getSerializedLocation();
+        return getTraitType().name();
     }
 }

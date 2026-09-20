@@ -16,7 +16,7 @@ package joserodpt.realhoppers.plugin.listener;
 import joserodpt.realhoppers.api.config.TranslatableLine;
 import joserodpt.realhoppers.api.hopper.RHopper;
 import joserodpt.realhoppers.api.hopper.trait.RHopperTrait;
-import joserodpt.realhoppers.api.hopper.trait.traits.RHItemTransferTrait;
+import joserodpt.realhoppers.api.hopper.trait.RHopperTraitBase;
 import joserodpt.realhoppers.plugin.RealHoppers;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -106,39 +106,39 @@ public class PlayerListener implements Listener {
      * nothing pending, which is almost every click that reaches it.
      */
     private void cancelLink(final Player player) {
-        if (rh.getPlayerManager().getClickedHoppers().remove(player.getUniqueId()) != null) {
+        if (rh.getPlayerManager().getPendingLinks().remove(player.getUniqueId()) != null) {
             TranslatableLine.LINK_CANCELLED.send(player);
         }
     }
 
     /**
-     * The two-click linking flow: the first click remembers a source hopper, the second points it at
-     * the hopper clicked.
+     * The second half of the linking flow: the player has a source hopper picked and has just
+     * clicked the one it should point at.
+     *
+     * <p>The link belongs to the hopper, not to a trait. Linking is now one gesture that says
+     * "this hopper points at that one", and TELEPORT and ITEM_TRANS both follow it - so a pair of
+     * hoppers can be a teleporter and an item pipe at once, and re-pointing the source moves both.</p>
      */
     private void link(final Player player, final RHopper clicked) {
-        final RHopper source = rh.getPlayerManager().getClickedHoppers().get(player.getUniqueId());
+        final RHopper source = rh.getPlayerManager().getPendingLinks().get(player.getUniqueId());
 
         if (source == null) {
-            rh.getPlayerManager().getClickedHoppers().put(player.getUniqueId(), clicked);
+            rh.getPlayerManager().getPendingLinks().put(player.getUniqueId(), clicked);
             TranslatableLine.LINK_SOURCE_SELECTED.send(player);
             return;
         }
 
         if (source == clicked) {
+            //the selection is kept, so the player can go and click the one they meant
             TranslatableLine.LINK_SAME_HOPPER.send(player);
             return;
         }
 
-        //the trait goes on the source, so the source is what has to be free. This used to test the
-        //hopper being clicked, which refused valid links and silently overwrote invalid ones.
-        if (source.hasTrait(RHopperTrait.ITEM_TRANS)) {
-            TranslatableLine.LINK_ALREADY_LINKED.send(player);
-            rh.getPlayerManager().getClickedHoppers().remove(player.getUniqueId());
-            return;
-        }
+        rh.getPlayerManager().getPendingLinks().remove(player.getUniqueId());
 
-        source.setTrait(RHopperTrait.ITEM_TRANS, new RHItemTransferTrait(source, clicked));
-        rh.getPlayerManager().getClickedHoppers().remove(player.getUniqueId());
+        //replaces whatever it pointed at before, rather than refusing: one link per hopper means
+        //this is the only way to change it
+        source.setLink(clicked);
         TranslatableLine.LINK_DONE.send(player);
     }
 

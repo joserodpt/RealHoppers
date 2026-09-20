@@ -20,6 +20,7 @@ import joserodpt.realhoppers.api.config.TranslatableLine;
 import joserodpt.realhoppers.api.hopper.events.RHopperStateChangeEvent;
 import joserodpt.realhoppers.api.hopper.trait.RHopperTrait;
 import joserodpt.realhoppers.api.hopper.trait.RHopperTraitBase;
+import joserodpt.realhoppers.api.utils.LocationUtil;
 import joserodpt.realhoppers.api.utils.Smelting;
 import joserodpt.realhoppers.api.utils.Text;
 import org.bukkit.Bukkit;
@@ -43,12 +44,22 @@ import java.util.stream.Collectors;
 
 public class RHopper {
 
-    public enum Data {ALL, BALANCE, TRAITS }
+    public enum Data {ALL, BALANCE, TRAITS, LINK }
 
     private Block block;
     private boolean visualizing;
     private double balance;
     private Map<RHopperTrait, RHopperTraitBase> traitMap = new HashMap<>();
+
+    /**
+     * The one other hopper this one points at. Every trait that needs a second hopper - TELEPORT
+     * and ITEM_TRANS - uses this one, rather than each carrying a destination of its own: a hopper
+     * has one link, and whatever is on it follows that link.
+     */
+    private RHopper link;
+
+    /** The link as it was read off disk, until {@link #loadLink()} can turn it into a hopper. */
+    private String linkLocation;
 
     public RHopper(Block b, boolean save) {
         //new hopper
@@ -72,10 +83,6 @@ public class RHopper {
         this.traitMap = traitMap;
         if (save)
             this.saveData(Data.TRAITS);
-    }
-
-    public List<RHopper> getLinkedHoppers() {
-        return this.getTraitMap().values().stream().map(RHopperTraitBase::getLinkedHopper).collect(Collectors.toList());
     }
 
     public Map<RHopperTrait, RHopperTraitBase> getTraitMap() {
@@ -107,6 +114,11 @@ public class RHopper {
             desc.add(TranslatableLine.GUI_HOPPER_BALANCE
                     .setV1(TranslatableLine.ReplacableVar.MONEY.eq(Text.formatNumber(this.getBalance()))).get());
         }
+        if (this.hasLink()) {
+            desc.add(TranslatableLine.GUI_HOPPER_LINK
+                    .setV1(TranslatableLine.ReplacableVar.VALUE.eq(Text.cords(this.link.getLocation()))).get());
+        }
+
         desc.add(TranslatableLine.GUI_HOPPER_TRAITS_HEADER.get());
 
         if (this.getTraitMap().isEmpty()) {
@@ -138,18 +150,6 @@ public class RHopper {
 
     public RHopperTraitBase getTrait(RHopperTrait t) {
         return this.getTraitMap().get(t);
-    }
-
-    public void removeTrait(RHopper h) {
-        for (Map.Entry<RHopperTrait, RHopperTraitBase> entry : this.getTraitMap().entrySet()) {
-            RHopperTrait key = entry.getKey();
-            RHopperTraitBase value = entry.getValue();
-            if (value.getLinkedHopper() == h) {
-                this.getTraitMap().remove(key);
-                this.saveData(Data.TRAITS);
-                return;
-            }
-        }
     }
 
     /**
@@ -317,9 +317,14 @@ public class RHopper {
             case BALANCE:
                 RHHoppers.file().set("Hoppers." + this.getSerializedLocation() + ".Balance", this.getBalance());
                 break;
+            case LINK:
+                RHHoppers.file().set("Hoppers." + this.getSerializedLocation() + ".Link",
+                        this.link == null ? null : this.link.getSerializedLocation());
+                break;
             case ALL:
                 saveData(Data.TRAITS);
                 saveData(Data.BALANCE);
+                saveData(Data.LINK);
                 break;
         }
         RHHoppers.markDirty();
@@ -341,12 +346,68 @@ public class RHopper {
         return String.format("%d:%d:%d:%s", location.getBlockX(), location.getBlockY(), location.getBlockZ(), location.getWorld().getName());
     }
 
-    public void loadLinks() {
-        //loadLink logs loudly when there is no location to read, so the traits that never
-        //have one - suction, block breaking, mob killing - are not put through it
-        this.getTraitMap().entrySet().stream()
-                .filter(entry -> entry.getKey().requiresLink())
-                .forEach(entry -> entry.getValue().loadLink());
+    public RHopper getLink() {
+        return this.link;
+    }
+
+    public boolean hasLink() {
+        return this.link != null;
+    }
+
+    /**
+     * Points this hopper at another, replacing whatever it pointed at before. Traits waiting on a
+     * link start as soon as there is one.
+     */
+    public void setLink(final RHopper link) {
+        this.link = link;
+        this.saveData(Data.LINK);
+        this.startTraitTasks();
+    }
+
+    /** Drops the link. Traits that need one stop until the hopper is linked again. */
+    public void removeLink() {
+        this.link = null;
+        this.saveData(Data.LINK);
+        this.getTraitMap().forEach((trait, base) -> {
+            if (trait.requiresLink()) {
+                base.stop();
+            }
+        });
+    }
+
+    /** Only for loading: the destination's position, before the hopper it names has been read. */
+    public void setLinkLocation(final String linkLocation) {
+        this.linkLocation = linkLocation;
+    }
+
+    /**
+     * Turns the position read off disk into the hopper it names. Runs once the whole file is in, so
+     * that a hopper can be linked to one stored after it.
+     */
+    public void loadLink() {
+        if (this.linkLocation == null || this.linkLocation.isEmpty()) {
+            return;
+        }
+
+        final Location l = LocationUtil.deserializeLocation(this.linkLocation);
+        if (l == null) {
+            RealHoppersAPI.getInstance().getLogger().severe("Could not parse the link of the hopper at "
+                    + this.getSerializedLocation() + " (" + this.linkLocation + ")! Unlinking.");
+            this.linkLocation = null;
+            return;
+        }
+
+        final RHopper linked = RealHoppersAPI.getInstance().getHopperManager().getHopper(l.getBlock());
+        if (linked == null) {
+            RealHoppersAPI.getInstance().getLogger().warning("The hopper at " + this.getSerializedLocation()
+                    + " is linked to " + this.linkLocation + ", where there is no hopper. Unlinking.");
+            this.linkLocation = null;
+            this.saveData(Data.LINK);
+            return;
+        }
+
+        this.link = linked;
+        this.linkLocation = null;
     }
 
     public Location getTeleportLocation() {

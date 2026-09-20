@@ -38,7 +38,6 @@ public enum TranslatableLine {
     // Linking two hoppers with the stick
     LINK_SOURCE_SELECTED("Hoppers.Link.Source-Selected"),
     LINK_SAME_HOPPER("Hoppers.Link.Same-Hopper"),
-    LINK_ALREADY_LINKED("Hoppers.Link.Already-Linked"),
     LINK_DONE("Hoppers.Link.Done"),
     LINK_CANCELLED("Hoppers.Link.Cancelled"),
 
@@ -51,6 +50,7 @@ public enum TranslatableLine {
     GUI_HOPPER_INVENTORY_NAME("GUI.Items.Hopper-Inventory.Name"),
     GUI_HOPPER_NAME("GUI.Items.Hopper.Name"),
     GUI_HOPPER_BALANCE("GUI.Items.Hopper.Balance", ReplacableVar.MONEY),
+    GUI_HOPPER_LINK("GUI.Items.Hopper.Link", ReplacableVar.VALUE),
     GUI_HOPPER_TRAITS_HEADER("GUI.Items.Hopper.Traits-Header"),
     GUI_HOPPER_NO_TRAITS("GUI.Items.Hopper.No-Traits"),
     GUI_HOPPER_TRAIT_ENTRY("GUI.Items.Hopper.Trait-Entry", ReplacableVar.TRAIT),

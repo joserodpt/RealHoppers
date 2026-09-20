@@ -18,8 +18,10 @@ import joserodpt.realhoppers.api.config.RHLanguage;
 import joserodpt.realhoppers.api.hopper.RHopper;
 import joserodpt.realhoppers.api.hopper.trait.traits.RHBlockBreakingTrait;
 import joserodpt.realhoppers.api.hopper.trait.traits.RHDummyTrait;
+import joserodpt.realhoppers.api.hopper.trait.traits.RHItemTransferTrait;
 import joserodpt.realhoppers.api.hopper.trait.traits.RHMobKillingTrait;
 import joserodpt.realhoppers.api.hopper.trait.traits.RHSuctionTrait;
+import joserodpt.realhoppers.api.hopper.trait.traits.RHTeleportationTrait;
 import org.bukkit.Material;
 
 public enum RHopperTrait {
@@ -46,8 +48,8 @@ public enum RHopperTrait {
     }
 
     /**
-     * Whether the trait is useless without a second hopper to point at. Those traits are
-     * never started until their link has been resolved, because their loop dereferences it.
+     * Whether the trait does nothing until its hopper is linked to another one. Such a trait can be
+     * put on an unlinked hopper, it simply sits idle until there is a link to follow.
      */
     public boolean requiresLink() {
         return this.requiresLink;
@@ -64,11 +66,19 @@ public enum RHopperTrait {
      * nothing for the other three. Everything that attaches a trait goes through here instead, so a
      * constant with nothing behind it is one answer - null - rather than silence.</p>
      *
-     * @return the trait, or null when this constant cannot be attached on its own: {@link #TELEPORT}
-     *         and {@link #ITEM_TRANS} need a second hopper and are built by the linking flow
+     * <p>{@link #TELEPORT} and {@link #ITEM_TRANS} build the same as the rest: the hopper they
+     * point at is the hopper's own link, not something the trait is handed. Whether the hopper
+     * actually has one is a separate question, {@link #requiresLink()}, and it decides whether the
+     * trait runs rather than whether it can exist.</p>
+     *
+     * @return the trait, or null for a constant with no implementation behind it
      */
     public RHopperTraitBase build(final RHopper hopper) {
         switch (this) {
+            case TELEPORT:
+                return new RHTeleportationTrait(hopper);
+            case ITEM_TRANS:
+                return new RHItemTransferTrait(hopper);
             case BLOCK_BREAKING:
                 return new RHBlockBreakingTrait(hopper);
             case KILL_MOB:

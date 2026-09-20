@@ -20,8 +20,6 @@ import joserodpt.realhoppers.api.config.RHHoppers;
 import joserodpt.realhoppers.api.hopper.RHopper;
 import joserodpt.realhoppers.api.hopper.trait.RHopperTrait;
 import joserodpt.realhoppers.api.hopper.trait.RHopperTraitBase;
-import joserodpt.realhoppers.api.hopper.trait.traits.RHItemTransferTrait;
-import joserodpt.realhoppers.api.hopper.trait.traits.RHTeleportationTrait;
 import joserodpt.realhoppers.api.managers.HopperManagerAPI;
 import joserodpt.realhoppers.api.utils.LocationUtil;
 import org.bukkit.Location;
@@ -83,13 +81,22 @@ public class HopperManager extends HopperManagerAPI {
                 //not setBalance: that fires a state change event and queues a write, for a value
                 //that was just read out of the file
                 loaded.restoreBalance(RHHoppers.file().getDouble("Hoppers." + hopperSTR + ".Balance"));
+                loaded.setLinkLocation(RHHoppers.file().getString("Hoppers." + hopperSTR + ".Link"));
 
                 if (RHHoppers.file().isList("Hoppers." + hopperSTR + ".Traits")) {
                     List<String> traits = RHHoppers.file().getStringList("Hoppers." + hopperSTR + ".Traits");
 
                     for (final String trait : traits) {
+                        //traits used to be saved as TRAIT|<destination>, one link per trait. The
+                        //link belongs to the hopper now, so an old entry hands its destination over
+                        //to the hopper on the way past and is read as a plain trait name.
                         final String[] split = trait.split("\\|");
                         final String traitType = split[0];
+                        if (split.length > 1 && !RHHoppers.file().isString("Hoppers." + hopperSTR + ".Link")) {
+                            RHHoppers.file().set("Hoppers." + hopperSTR + ".Link", split[1]);
+                            loaded.setLinkLocation(split[1]);
+                            RHHoppers.markDirty();
+                        }
 
                         final RHopperTrait type;
                         try {
@@ -101,21 +108,9 @@ public class HopperManager extends HopperManagerAPI {
                             continue;
                         }
 
-                        //the two linked traits carry the other hopper's location after a pipe;
-                        //everything else is built by the enum itself, so a trait added there is
-                        //loaded here without this switch having to be remembered. Forgetting it is
-                        //exactly how SUCTION came back from disk as a block breaker.
-                        if (type.requiresLink()) {
-                            if (split.length < 2) {
-                                rh.getLogger().severe(traitType + " on hopper " + hopperSTR + " has no linked hopper! Skipping.");
-                                continue;
-                            }
-                            traitMap.put(type, type == RHopperTrait.TELEPORT
-                                    ? new RHTeleportationTrait(loaded, split[1])
-                                    : new RHItemTransferTrait(loaded, split[1]));
-                            continue;
-                        }
-
+                        //the enum builds every trait, so one added there is loaded here without
+                        //this loop having to be remembered. Forgetting it is exactly how SUCTION
+                        //came back from disk as a block breaker.
                         final RHopperTraitBase built = type.build(loaded);
                         if (built == null) {
                             rh.getLogger().severe(traitType + " trait is not supported in this version of RealHoppers! Skipping.");
@@ -130,9 +125,9 @@ public class HopperManager extends HopperManagerAPI {
                 this.getHoppersMap().put(b, loaded);
             }
 
-            //links first: a trait that points at another hopper cannot run until that hopper
-            //exists and has been found, so nothing is started before the whole file is read
-            this.getHoppersMap().values().forEach(RHopper::loadLinks);
+            //links first: a hopper can be linked to one stored after it, and a trait that follows
+            //the link cannot run until the link has been resolved
+            this.getHoppersMap().values().forEach(RHopper::loadLink);
             this.getHoppersMap().values().forEach(RHopper::startTraitTasks);
         }
 
@@ -157,10 +152,11 @@ public class HopperManager extends HopperManagerAPI {
         RHHoppers.file().remove("Hoppers." + h.getSerializedLocation());
         RHHoppers.save();
         h.stopHopper();
-        //loop through all hoppers and check if any trait constains this hopper and if so remove it
+        //anything pointing at the hopper that is going away is left pointing at nothing, so the
+        //link is dropped and whatever followed it stops
         for (RHopper hopper : this.getHoppers()) {
-            if (hopper.getLinkedHoppers().contains(h)) {
-                hopper.removeTrait(h);
+            if (hopper.getLink() == h) {
+                hopper.removeLink();
             }
         }
 

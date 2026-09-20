@@ -172,20 +172,25 @@ public class GUIManager {
     private ItemStack traitIcon(final RHopper hopper, final RHopperTrait trait) {
         final List<String> lore = new ArrayList<>();
 
-        if (hopper.hasTrait(trait)) {
-            lore.addAll(RHLanguage.file().getStringList("GUI.Items.Trait.Active-Description"));
-            return Items.createItemLoreEnchanted(trait.getIcon(), 1, trait.getName(), lore);
+        if (trait.build(hopper) == null) {
+            lore.addAll(RHLanguage.file().getStringList("GUI.Items.Trait.Unavailable-Description"));
+            return Items.createItem(trait.getIcon(), 1, trait.getName(), lore);
         }
 
-        //what the icon says depends on why it cannot simply be clicked on
-        if (trait.requiresLink()) {
-            lore.addAll(RHLanguage.file().getStringList("GUI.Items.Trait.Linked-Description"));
-        } else if (trait.build(hopper) == null) {
-            lore.addAll(RHLanguage.file().getStringList("GUI.Items.Trait.Unavailable-Description"));
-        } else {
-            lore.addAll(RHLanguage.file().getStringList("GUI.Items.Trait.Inactive-Description"));
+        final boolean active = hopper.hasTrait(trait);
+        lore.addAll(RHLanguage.file().getStringList(active
+                ? "GUI.Items.Trait.Active-Description"
+                : "GUI.Items.Trait.Inactive-Description"));
+
+        //a trait that follows the hopper's link can be switched on with no link there; it just has
+        //nowhere to go until one is made, and the icon says so
+        if (trait.requiresLink() && !hopper.hasLink()) {
+            lore.addAll(RHLanguage.file().getStringList("GUI.Items.Trait.Needs-Link-Description"));
         }
-        return Items.createItem(trait.getIcon(), 1, trait.getName(), lore);
+
+        return active
+                ? Items.createItemLoreEnchanted(trait.getIcon(), 1, trait.getName(), lore)
+                : Items.createItem(trait.getIcon(), 1, trait.getName(), lore);
     }
 
     private void toggle(final Player target, final RHopper hopper, final RHopperTrait trait) {
@@ -198,7 +203,7 @@ public class GUIManager {
 
         final RHopperTraitBase built = trait.build(hopper);
         if (built == null) {
-            (trait.requiresLink() ? TranslatableLine.TRAIT_NEEDS_LINK : TranslatableLine.TRAIT_UNAVAILABLE)
+            TranslatableLine.TRAIT_UNAVAILABLE
                     .setV1(TranslatableLine.ReplacableVar.TRAIT.eq(trait.getName())).send(target);
             return;
         }
@@ -206,6 +211,11 @@ public class GUIManager {
         hopper.setTrait(trait, built);
         TranslatableLine.TRAIT_ADDED
                 .setV1(TranslatableLine.ReplacableVar.TRAIT.eq(trait.getName())).send(target);
+
+        if (trait.requiresLink() && !hopper.hasLink()) {
+            TranslatableLine.TRAIT_NEEDS_LINK
+                    .setV1(TranslatableLine.ReplacableVar.TRAIT.eq(trait.getName())).send(target);
+        }
         openTraits(target, hopper);
     }
 }

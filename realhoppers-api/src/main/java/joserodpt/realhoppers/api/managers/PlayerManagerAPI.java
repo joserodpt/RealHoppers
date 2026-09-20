@@ -15,8 +15,8 @@ import java.util.UUID;
  */
 public abstract class PlayerManagerAPI {
 
-    /** The first hopper of a pair, remembered between the two clicks that link them. */
-    public abstract Map<UUID, RHopper> getClickedHoppers();
+    /** The source hopper a player picked with the stick, waiting on the destination click. */
+    public abstract Map<UUID, RHopper> getPendingLinks();
 
     /** Players inside the cooldown after a hopper teleport, so a hopper cannot bounce them. */
     public abstract Set<UUID> getTpFreeze();

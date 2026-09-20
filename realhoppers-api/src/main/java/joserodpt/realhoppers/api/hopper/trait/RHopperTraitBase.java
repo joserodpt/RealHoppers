@@ -15,17 +15,11 @@ package joserodpt.realhoppers.api.hopper.trait;
 
 import joserodpt.realhoppers.api.RealHoppersAPI;
 import joserodpt.realhoppers.api.hopper.RHopper;
-import joserodpt.realhoppers.api.utils.LocationUtil;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 
 public abstract class RHopperTraitBase {
 
     private RHopper main;
-    private RHopper linked;
-    private String linkedLoc;
 
     private boolean started;
 
@@ -34,12 +28,13 @@ public abstract class RHopperTraitBase {
     }
 
     /**
-     * Starts the trait's repeating task, if it has one. Kept out of the constructor: a trait is
-     * constructed before {@link #setLinkedLoc(String)} or {@link #setLinked(RHopper)} has run, so a
-     * loop started there would spin on a link that is not resolved yet.
+     * Starts the trait's repeating task, if it has one. Kept out of the constructor: at load time a
+     * hopper's link is resolved after every hopper has been read, so a loop started on construction
+     * would spin on a link that is not there yet.
      *
-     * <p>Traits that need a link and have not got one are left stopped rather than started against
-     * null - {@link RHopperTrait#requiresLink()} decides which those are.</p>
+     * <p>Traits that need a link and whose hopper has none are left stopped rather than started
+     * against null - {@link RHopperTrait#requiresLink()} decides which those are - and
+     * {@link RHopper#setLink(RHopper)} starts them once there is one.</p>
      */
     public void startTask() {
         if (this.started || (this.getTraitType().requiresLink() && !this.isLinked())) {
@@ -49,44 +44,30 @@ public abstract class RHopperTraitBase {
         this.executeLoop();
     }
 
+    /**
+     * Stops the trait and lets it start again later. Unlinking a hopper stops the traits that
+     * needed the link; re-linking it has to be able to bring them back.
+     */
+    public void stop() {
+        this.stopTask();
+        this.started = false;
+    }
+
     public RHopper getHopper() {
         return main;
     }
 
+    /** Whether the hopper this trait is on points at another one. */
     public boolean isLinked() {
-        return linked != null;
+        return this.main.hasLink();
     }
 
-    public void setLinked(RHopper linked) {
-        this.linked = linked;
-    }
-
-    public void setLinkedLoc(String linkedLoc) {
-        this.linkedLoc = linkedLoc;
-    }
-
+    /**
+     * The hopper this one points at. The link belongs to the hopper, not to the trait, so every
+     * trait that needs one reads the same link - and re-pointing a hopper re-points all of them.
+     */
     public RHopper getLinkedHopper() {
-        return linked;
-    }
-
-    public void loadLink() {
-        if (linkedLoc != null && !linkedLoc.isEmpty()) {
-            Location l = LocationUtil.deserializeLocation(linkedLoc);
-            if (l == null) {
-                RealHoppersAPI.getInstance().getLogger().severe("Could not parse location for hopper " + linkedLoc + "! Skipping.");
-                return;
-            }
-
-            Block b = l.getBlock();
-            if (b == null || b.getType() != Material.HOPPER) {
-                RealHoppersAPI.getInstance().getLogger().severe("Block at location " + linkedLoc + " isn't a Hopper! Skipping.");
-                return;
-            }
-
-            this.setLinked(RealHoppersAPI.getInstance().getHopperManager().getHopper(b));
-        } else {
-            RealHoppersAPI.getInstance().getLogger().severe("Linked Hopper Location of the Trait " + this.getTraitType().name() + " for the Hopper at " + this.getHopper().getSerializedLocation() + "is invalid (" + this.linkedLoc + ")");
-        }
+        return this.main.getLink();
     }
 
     /**

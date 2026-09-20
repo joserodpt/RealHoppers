@@ -25,11 +25,11 @@ import java.util.UUID;
 public class PlayerManager extends PlayerManagerAPI {
 
     private final Set<UUID> tpFreeze = new HashSet<>();
-    private final Map<UUID, RHopper> clickedHoppers = new HashMap<>();
+    private final Map<UUID, RHopper> pendingLinks = new HashMap<>();
 
     @Override
-    public Map<UUID, RHopper> getClickedHoppers() {
-        return clickedHoppers;
+    public Map<UUID, RHopper> getPendingLinks() {
+        return pendingLinks;
     }
 
     @Override
@@ -40,6 +40,6 @@ public class PlayerManager extends PlayerManagerAPI {
     @Override
     public void clear(final UUID uuid) {
         this.tpFreeze.remove(uuid);
-        this.clickedHoppers.remove(uuid);
+        this.pendingLinks.remove(uuid);
     }
 }
