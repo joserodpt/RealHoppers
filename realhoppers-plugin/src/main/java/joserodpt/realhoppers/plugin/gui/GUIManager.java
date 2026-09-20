@@ -95,7 +95,7 @@ public class GUIManager {
         inventory.addItem(e -> collect(target, hopper, e.getClick()),
                 Items.createItem(Material.HOPPER, 1, TranslatableLine.GUI_HOPPER_NAME.get(), hopper.getHopperDescription()), 13);
 
-        inventory.addItem(e -> openTraits(target, hopper),
+        inventory.addItem(e -> openLater(target, () -> openTraits(target, hopper)),
                 Items.createItem(Material.BOOK, 1, TranslatableLine.GUI_TRAITS_NAME.get(),
                         RHLanguage.file().getStringList("GUI.Items.Traits.Description")), 15);
 
@@ -145,7 +145,7 @@ public class GUIManager {
             inventory.addItem(e -> toggle(target, hopper, trait), traitIcon(hopper, trait), TRAIT_SLOTS[i]);
         }
 
-        inventory.addItem(e -> openHopper(target, hopper),
+        inventory.addItem(e -> openLater(target, () -> openHopper(target, hopper)),
                 Items.createItem(Material.RED_BED, 1, TranslatableLine.GUI_BACK_NAME.get()), 18);
 
         inventory.addItem(e -> target.closeInventory(),
@@ -155,6 +155,18 @@ public class GUIManager {
         inventory.openInventory(target);
         //the trait screen is not the hopper screen, so nothing here should be redrawn by refresh
         this.openHoppers.remove(target.getUniqueId());
+    }
+
+    /**
+     * Closes what is open and builds the next screen a couple of ticks later.
+     *
+     * <p>Both screens are 27-slot chests, and GUIBuilder pours a new inventory of the same type
+     * into the one already open rather than opening a second - which keeps the old title on screen.
+     * Closing first is how RealMines moves between its own screens.</p>
+     */
+    private void openLater(final Player target, final Runnable open) {
+        target.closeInventory();
+        Bukkit.getScheduler().scheduleSyncDelayedTask(rh.getPlugin(), open, 2);
     }
 
     private ItemStack traitIcon(final RHopper hopper, final RHopperTrait trait) {
