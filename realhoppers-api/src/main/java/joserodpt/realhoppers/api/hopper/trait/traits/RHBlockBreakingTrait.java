@@ -39,6 +39,10 @@ public class RHBlockBreakingTrait extends RHopperTraitBase {
     @Override
     protected void executeLoop() {
         taskID = Bukkit.getScheduler().scheduleSyncRepeatingTask(RealHoppersAPI.getInstance().getPlugin(), () -> {
+            if (!super.hopperReady()) {
+                return;
+            }
+
             Block toBreak = super.getHopper().getBlock().getRelative(BlockFace.UP);
             if (toBreak != null && toBreak.getType().isSolid()) {
                 final Material type = toBreak.getType();

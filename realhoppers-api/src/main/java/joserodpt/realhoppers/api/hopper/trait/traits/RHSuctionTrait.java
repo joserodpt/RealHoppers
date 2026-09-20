@@ -40,6 +40,10 @@ public class RHSuctionTrait extends RHopperTraitBase {
     @Override
     protected void executeLoop() {
         taskID = Bukkit.getScheduler().scheduleSyncRepeatingTask(RealHoppersAPI.getInstance().getPlugin(), () -> {
+            if (!super.hopperReady()) {
+                return;
+            }
+
             for (Entity ent : super.getHopper().getWorld().getNearbyEntities(super.getHopper().getLocation(), area, area, area)) {
                 if (ent.getType() == EntityType.DROPPED_ITEM) {
                     Item droppedItem = (Item) ent;

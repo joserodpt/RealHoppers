@@ -20,5 +20,10 @@ public abstract class HopperManagerAPI {
 
     public abstract void stopHoppers();
 
+    /**
+     * Run every few ticks: retires hoppers whose block has gone and draws the outline on the rest.
+     */
+    public abstract void tick();
+
     public abstract Map<Material, Double> getMaterialCost();
 }

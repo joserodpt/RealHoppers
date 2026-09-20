@@ -28,6 +28,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.World;
+import org.bukkit.block.BlockState;
 import org.bukkit.block.Block;
 import org.bukkit.block.Hopper;
 import org.bukkit.entity.Player;
@@ -205,15 +206,42 @@ public class RHopper {
         return block;
     }
 
+    /**
+     * Whether the block this hopper was registered on is still a hopper.
+     *
+     * <p>A hopper can stop being one without the plugin hearing about it: a piston pushes it, a
+     * plugin or a command replaces the block, a world edit paints over it. Only ever asked with the
+     * chunk loaded, since {@link #isChunkLoaded()} decides that first.</p>
+     */
+    public boolean isValid() {
+        return this.getBlock().getType() == Material.HOPPER;
+    }
+
+    /**
+     * Whether the hopper's chunk is in memory. Nothing may touch the block otherwise: reading it
+     * pulls the chunk back in, and a trait on a timer would do that every few ticks for a hopper
+     * nobody is anywhere near.
+     */
+    public boolean isChunkLoaded() {
+        final World world = this.getBlock().getWorld();
+        return world.isChunkLoaded(this.getBlock().getX() >> 4, this.getBlock().getZ() >> 4);
+    }
+
+    /**
+     * This hopper's inventory, or null when the block is no longer a hopper.
+     *
+     * <p>Used to cast the block state to Hopper and hand the result straight back, so a hopper
+     * blown up by TNT - which the plugin was not listening for - threw a ClassCastException out of
+     * its own trait loop every ten ticks.</p>
+     */
     public Inventory getInventory() {
-        return ((Hopper) this.getBlock().getState()).getInventory();
+        final BlockState state = this.getBlock().getState();
+        return state instanceof Hopper ? ((Hopper) state).getInventory() : null;
     }
 
     public void openInventory(Player p) {
-        Hopper hopper = (Hopper) this.getBlock().getState();
-        if (hopper != null) {
-            Inventory hopperInventory = hopper.getInventory();
-
+        final Inventory hopperInventory = this.getInventory();
+        if (hopperInventory != null) {
             p.openInventory(hopperInventory);
         }
     }
@@ -245,6 +273,9 @@ public class RHopper {
     public boolean hasHopperSpace(ItemStack itemToCheck) {
         itemToCheck = this.transform(itemToCheck);
         Inventory hopperInventory = this.getInventory();
+        if (hopperInventory == null) {
+            return false;
+        }
 
         for (int i = 0; i < hopperInventory.getSize(); i++) {
             ItemStack slotItem = hopperInventory.getItem(i);
@@ -263,7 +294,10 @@ public class RHopper {
     }
 
     public void addItem(ItemStack i) {
-        this.getInventory().addItem(this.transform(i));
+        final Inventory hopperInventory = this.getInventory();
+        if (hopperInventory != null) {
+            hopperInventory.addItem(this.transform(i));
+        }
     }
 
     public void addItem(Material type) {

@@ -19,7 +19,6 @@ import joserodpt.realhoppers.api.event.RealHoppersPluginLoadedEvent;
 import joserodpt.realhoppers.api.config.RHHoppers;
 import joserodpt.realhoppers.api.utils.GUIBuilder;
 import joserodpt.realhoppers.api.utils.Smelting;
-import joserodpt.realhoppers.api.hopper.RHopper;
 import joserodpt.realhoppers.api.utils.Text;
 import joserodpt.realhoppers.plugin.command.RHCommandManager;
 import joserodpt.realhoppers.plugin.listener.EventListener;
@@ -93,7 +92,7 @@ public final class RealHoppersPlugin extends JavaPlugin {
         }
 
         this.hopperHighlight = Bukkit.getScheduler().runTaskTimer(this,
-                () -> realHoppers.getHopperManager().getHoppers().forEach(RHopper::loopView), 10, 10);
+                () -> realHoppers.getHopperManager().tick(), 10, 10);
 
         //hoppers write themselves into the document as they go and this is what puts it on disk.
         //It used to be written in full on every balance change, which for an auto-selling hopper is

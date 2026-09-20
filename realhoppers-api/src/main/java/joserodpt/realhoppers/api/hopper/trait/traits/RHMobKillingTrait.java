@@ -38,6 +38,10 @@ public class RHMobKillingTrait extends RHopperTraitBase {
     @Override
     protected void executeLoop() {
         taskID = Bukkit.getScheduler().scheduleSyncRepeatingTask(RealHoppersAPI.getInstance().getPlugin(), () -> {
+            if (!super.hopperReady()) {
+                return;
+            }
+
             for (Entity nearbyEntity : super.getHopper().getWorld().getNearbyEntities(super.getHopper().getLocation(), 1.5, 1.5, 1.5)) {
                 if (nearbyEntity.getType() != EntityType.PLAYER && nearbyEntity instanceof LivingEntity) {
                     ((LivingEntity) nearbyEntity).damage(2);

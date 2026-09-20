@@ -19,6 +19,7 @@ import joserodpt.realhoppers.api.hopper.trait.RHopperTrait;
 import joserodpt.realhoppers.api.hopper.trait.RHopperTraitBase;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.Arrays;
@@ -45,26 +46,37 @@ public class RHItemTransferTrait extends RHopperTraitBase {
     protected void executeLoop() {
         taskID = Bukkit.getScheduler().scheduleSyncRepeatingTask(RealHoppersAPI.getInstance().getPlugin(), () -> {
 
+            if (!super.linkReady()) {
+                return;
+            }
+
             ItemStack itemStack = getFirst();
             if (itemStack != null) {
                 if (super.getLinkedHopper().hasHopperSpace(itemStack.getType())) {
                     if (itemStack.getAmount() > 1) {
                         itemStack.setAmount(itemStack.getAmount() - 1);
                     } else {
-                        super.getHopper().getInventory().removeItem(itemStack);
+                        final Inventory source = super.getHopper().getInventory();
+                        if (source != null) {
+                            source.removeItem(itemStack);
+                        }
                     }
 
                     final ItemStack clone = itemStack.clone();
                     clone.setAmount(1);
 
-                    super.getLinkedHopper().getInventory().addItem(clone);
+                    super.getLinkedHopper().addItem(clone);
                 }
             }
         }, 10, 10);
     }
 
     private ItemStack getFirst() {
-        return Arrays.stream(super.getHopper().getInventory().getContents())
+        final Inventory inventory = super.getHopper().getInventory();
+        if (inventory == null) {
+            return null;
+        }
+        return Arrays.stream(inventory.getContents())
                 .filter(Objects::nonNull)
                 .findFirst()
                 .orElse(null);

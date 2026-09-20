@@ -168,6 +168,27 @@ public class HopperManager extends HopperManagerAPI {
     }
 
     @Override
+    public void tick() {
+        for (final RHopper hopper : this.getHoppers()) {
+            //a hopper in an unloaded chunk is left entirely alone. Reading its block would pull the
+            //chunk back in, and the outline it used to draw was doing exactly that.
+            if (!hopper.isChunkLoaded()) {
+                continue;
+            }
+
+            //a trait on a timer notices this for itself, but a hopper carrying only AUTO_SELL or
+            //AUTO_SMELT has no timer, and one carrying nothing at all has nothing to notice with
+            if (!hopper.isValid()) {
+                rh.getLogger().info("Hopper at " + hopper.getSerializedLocation() + " is no longer a hopper. Unregistering.");
+                this.delete(hopper);
+                continue;
+            }
+
+            hopper.loopView();
+        }
+    }
+
+    @Override
     public void stopHoppers() {
         this.getHoppers().forEach(RHopper::stopHopper);
         //stopHopper only queues the balance write, and on shutdown there is no flush left to run

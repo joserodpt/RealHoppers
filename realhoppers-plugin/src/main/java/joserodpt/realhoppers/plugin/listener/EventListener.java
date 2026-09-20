@@ -30,7 +30,10 @@ import org.bukkit.event.block.BlockExplodeEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.inventory.ItemStack;
+
+import java.util.List;
 
 public class EventListener implements Listener {
     private final RealHoppers rh;
@@ -64,7 +67,21 @@ public class EventListener implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBlockExplode(BlockExplodeEvent e) {
-        for (Block block : e.blockList()) {
+        deleteBlownUp(e.blockList());
+    }
+
+    /**
+     * TNT, a creeper, a bed in the nether. Only block-caused explosions were handled, so anything
+     * blown up by an entity left its hopper registered with its trait loops still running against a
+     * block that was no longer there.
+     */
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onEntityExplode(EntityExplodeEvent e) {
+        deleteBlownUp(e.blockList());
+    }
+
+    private void deleteBlownUp(final List<Block> blocks) {
+        for (Block block : blocks) {
             if (block.getType() == Material.HOPPER) {
                 RHopper h = rh.getHopperManager().getHopper(block);
                 if (h != null) {

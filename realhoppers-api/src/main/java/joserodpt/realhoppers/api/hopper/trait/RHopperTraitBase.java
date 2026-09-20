@@ -89,6 +89,47 @@ public abstract class RHopperTraitBase {
         }
     }
 
+    /**
+     * Whether this trait's loop should do anything this tick.
+     *
+     * <p>False while the chunk is out, so a timer never drags a chunk back in. False too once the
+     * block has stopped being a hopper, and in that case the hopper retires itself: the plugin
+     * cannot hear every way a block can go away, so rather than throw out of the loop forever it
+     * notices on the next tick and unregisters.</p>
+     */
+    protected boolean hopperReady() {
+        if (!this.getHopper().isChunkLoaded()) {
+            return false;
+        }
+        if (!this.getHopper().isValid()) {
+            RealHoppersAPI.getInstance().getHopperManager().delete(this.getHopper());
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * The same question for a trait that points at a second hopper, which has to be there too.
+     * A link whose hopper has gone takes this trait off with it.
+     */
+    protected boolean linkReady() {
+        if (!this.hopperReady()) {
+            return false;
+        }
+        final RHopper linked = this.getLinkedHopper();
+        if (linked == null) {
+            return false;
+        }
+        if (!linked.isChunkLoaded()) {
+            return false;
+        }
+        if (!linked.isValid()) {
+            RealHoppersAPI.getInstance().getHopperManager().delete(linked);
+            return false;
+        }
+        return true;
+    }
+
     public abstract void executeAction(Player p);
 
     /**
