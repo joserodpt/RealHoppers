@@ -9,7 +9,7 @@ package joserodpt.realhoppers.api.hopper.trait;
  *                                |_|   |_|
  *
  * Licensed under the MIT License
- * @author José Rodrigues © 2019-2026
+ * @author José Rodrigues © 2023-2026
  * @link https://github.com/joserodpt/RealHoppers
  */
 
@@ -64,9 +64,8 @@ public enum RHopperTrait {
      * nothing for the other three. Everything that attaches a trait goes through here instead, so a
      * constant with nothing behind it is one answer - null - rather than silence.</p>
      *
-     * @return the trait, or null when this constant cannot be attached on its own:
-     *         {@link #TELEPORT} and {@link #ITEM_TRANS} need a second hopper and are built by the
-     *         linking flow, and {@link #AUTO_SMELT} has no implementation yet
+     * @return the trait, or null when this constant cannot be attached on its own: {@link #TELEPORT}
+     *         and {@link #ITEM_TRANS} need a second hopper and are built by the linking flow
      */
     public RHopperTraitBase build(final RHopper hopper) {
         switch (this) {
@@ -78,6 +77,8 @@ public enum RHopperTrait {
                 return new RHSuctionTrait(hopper);
             case AUTO_SELL:
                 return new RHDummyTrait(hopper, AUTO_SELL);
+            case AUTO_SMELT:
+                return new RHDummyTrait(hopper, AUTO_SMELT);
             default:
                 return null;
         }

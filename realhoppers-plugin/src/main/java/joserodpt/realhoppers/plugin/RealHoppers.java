@@ -9,7 +9,7 @@ package joserodpt.realhoppers.plugin;
  *                                |_|   |_|
  *
  * Licensed under the MIT License
- * @author José Rodrigues © 2019-2026
+ * @author José Rodrigues © 2023-2026
  * @link https://github.com/joserodpt/RealHoppers
  */
 
@@ -18,6 +18,7 @@ import joserodpt.realhoppers.api.config.RHConfig;
 import joserodpt.realhoppers.api.config.RHHoppers;
 import joserodpt.realhoppers.api.config.RHLanguage;
 import joserodpt.realhoppers.api.managers.HopperManagerAPI;
+import joserodpt.realhoppers.api.utils.Smelting;
 import joserodpt.realhoppers.api.managers.PlayerManagerAPI;
 import joserodpt.realhoppers.plugin.gui.GUIManager;
 import joserodpt.realhoppers.plugin.managers.HopperManager;
@@ -73,6 +74,8 @@ public class RealHoppers extends RealHoppersAPI {
         RHConfig.reload();
         RHLanguage.reload();
         RHHoppers.reload();
+        //a datapack or plugin may have added furnace recipes since the last load
+        Smelting.load();
         //loadHoppers stops whatever is running before it replaces the map
         this.getHopperManager().loadHoppers();
     }

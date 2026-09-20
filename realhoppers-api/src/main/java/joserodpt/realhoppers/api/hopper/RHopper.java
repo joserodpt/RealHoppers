@@ -9,7 +9,7 @@ package joserodpt.realhoppers.api.hopper;
  *                                |_|   |_|
  *
  * Licensed under the MIT License
- * @author José Rodrigues © 2019-2026
+ * @author José Rodrigues © 2023-2026
  * @link https://github.com/joserodpt/RealHoppers
  */
 
@@ -20,6 +20,7 @@ import joserodpt.realhoppers.api.config.TranslatableLine;
 import joserodpt.realhoppers.api.hopper.events.RHopperStateChangeEvent;
 import joserodpt.realhoppers.api.hopper.trait.RHopperTrait;
 import joserodpt.realhoppers.api.hopper.trait.RHopperTraitBase;
+import joserodpt.realhoppers.api.utils.Smelting;
 import joserodpt.realhoppers.api.utils.Text;
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
@@ -191,7 +192,8 @@ public class RHopper {
      * @return whether the material had a price and the balance went up
      */
     public boolean sell(Material type) {
-        final Double price = RealHoppersAPI.getInstance().getHopperManager().getMaterialCost().get(type);
+        //a smelting hopper sells what it would have stored, not what went in
+        final Double price = RealHoppersAPI.getInstance().getHopperManager().getMaterialCost().get(this.transform(type));
         if (price == null) {
             return false;
         }
@@ -216,11 +218,32 @@ public class RHopper {
         }
     }
 
+    /**
+     * What this hopper would actually end up holding for an incoming item: the item itself, or its
+     * smelted form on a hopper with {@link RHopperTrait#AUTO_SMELT}.
+     *
+     * <p>Every path in has to agree on this. Checking for room for cobblestone and then storing
+     * stone would be asking the wrong question, and selling a full hopper's overflow would price
+     * the material the hopper never had.</p>
+     */
+    public ItemStack transform(ItemStack incoming) {
+        if (!this.hasTrait(RHopperTrait.AUTO_SMELT)) {
+            return incoming;
+        }
+        final ItemStack smelted = Smelting.smelt(incoming);
+        return smelted == null ? incoming : smelted;
+    }
+
+    public Material transform(Material incoming) {
+        return this.transform(new ItemStack(incoming)).getType();
+    }
+
     public boolean hasHopperSpace(Material m) {
         return hasHopperSpace(new ItemStack(m));
     }
 
     public boolean hasHopperSpace(ItemStack itemToCheck) {
+        itemToCheck = this.transform(itemToCheck);
         Inventory hopperInventory = this.getInventory();
 
         for (int i = 0; i < hopperInventory.getSize(); i++) {
@@ -240,7 +263,7 @@ public class RHopper {
     }
 
     public void addItem(ItemStack i) {
-        this.getInventory().addItem(i);
+        this.getInventory().addItem(this.transform(i));
     }
 
     public void addItem(Material type) {

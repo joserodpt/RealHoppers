@@ -9,7 +9,7 @@ package joserodpt.realhoppers.plugin;
  *                                |_|   |_|
  *
  * Licensed under the MIT License
- * @author José Rodrigues © 2019-2026
+ * @author José Rodrigues © 2023-2026
  * @link https://github.com/joserodpt/RealHoppers
  */
 
@@ -18,6 +18,7 @@ import joserodpt.realhoppers.api.config.RHConfig;
 import joserodpt.realhoppers.api.event.RealHoppersPluginLoadedEvent;
 import joserodpt.realhoppers.api.config.RHHoppers;
 import joserodpt.realhoppers.api.utils.GUIBuilder;
+import joserodpt.realhoppers.api.utils.Smelting;
 import joserodpt.realhoppers.api.hopper.RHopper;
 import joserodpt.realhoppers.api.utils.Text;
 import joserodpt.realhoppers.plugin.command.RHCommandManager;
@@ -65,6 +66,11 @@ public final class RealHoppersPlugin extends JavaPlugin {
         pm.registerEvents(new EventListener(realHoppers), this);
         pm.registerEvents(GUIBuilder.getListener(), this);
         pm.registerEvents(realHoppers.getGUIManager().getListener(), this);
+
+        //the server's furnace recipes, which is what AUTO_SMELT smelts by. Read here rather than
+        //per item: the recipe list does not change while the server is up.
+        Smelting.load();
+        getLogger().info("Loaded " + Smelting.size() + " smelting recipes.");
 
         realHoppers.getHopperManager().loadHoppers();
         getLogger().info("Loaded " + realHoppers.getHopperManager().getHoppersMap().size() + " hoppers.");

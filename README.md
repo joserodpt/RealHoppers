@@ -44,12 +44,17 @@ restart.
 | `BLOCK_BREAKING` | Breaks the block directly above it and takes the drop.                                  |
 | `KILL_MOB`       | Damages living entities standing on it and claims their drops.                          |
 | `AUTO_SELL`      | Anything the hopper cannot fit is sold instead, into a balance the owner collects later. |
-| `AUTO_SMELT`     | Reserved — not implemented yet.                                                          |
+| `AUTO_SMELT`     | Smelts what the hopper takes in — cobblestone lands as stone, ore as ingots.             |
 
 `TELEPORT` and `ITEM_TRANS` are *linked* traits: they need a second hopper to point at. The rest act on their own.
 
 `AUTO_SELL` is what gives a hopper a balance. Open the hopper's GUI and click the hopper icon to collect it —
 left-click takes half, shift-left-click takes all.
+
+`AUTO_SMELT` uses the server's own furnace recipes, so anything a player could smelt by hand — including recipes added
+by a datapack — smelts in the hopper. It applies to what RealHoppers' own traits feed the hopper: what suction pulls
+in, what block breaking mines, what a mob drops. Items pushed in by vanilla hopper behaviour are untouched, the same
+as with `AUTO_SELL`. On a hopper that also has `AUTO_SELL`, the smelted material is the one that gets priced.
 
 ## Requirements
 

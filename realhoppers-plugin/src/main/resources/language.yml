@@ -49,7 +49,7 @@ GUI:
         - "&7Needs two hoppers - hold a stick"
         - "&7and right-click both."
       Unavailable-Description:
-        - "&7Not implemented yet."
+        - "&7Not available in this version."
     Hopper:
       Name: "&dHopper"
       Balance: "&fBalance: &e%money%"
@@ -70,7 +70,7 @@ Traits:
   TELEPORT: "&5Teleport"
   ITEM_TRANS: "&fItem Transfer"
   AUTO_SELL: "&eAuto Sell"
-  AUTO_SMELT: "&cAuto Smelt"
+  AUTO_SMELT: "&6Auto Smelt"
   SUCTION: "&bSuction"
   BLOCK_BREAKING: "&7Block Breaking"
   KILL_MOB: "&4Mob Killing"

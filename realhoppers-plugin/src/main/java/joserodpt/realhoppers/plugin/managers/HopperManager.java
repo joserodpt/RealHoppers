@@ -9,7 +9,7 @@ package joserodpt.realhoppers.plugin.managers;
  *                                |_|   |_|
  *
  * Licensed under the MIT License
- * @author José Rodrigues © 2019-2026
+ * @author José Rodrigues © 2023-2026
  * @link https://github.com/joserodpt/RealHoppers
  */
 
@@ -20,11 +20,7 @@ import joserodpt.realhoppers.api.config.RHHoppers;
 import joserodpt.realhoppers.api.hopper.RHopper;
 import joserodpt.realhoppers.api.hopper.trait.RHopperTrait;
 import joserodpt.realhoppers.api.hopper.trait.RHopperTraitBase;
-import joserodpt.realhoppers.api.hopper.trait.traits.RHBlockBreakingTrait;
-import joserodpt.realhoppers.api.hopper.trait.traits.RHDummyTrait;
 import joserodpt.realhoppers.api.hopper.trait.traits.RHItemTransferTrait;
-import joserodpt.realhoppers.api.hopper.trait.traits.RHMobKillingTrait;
-import joserodpt.realhoppers.api.hopper.trait.traits.RHSuctionTrait;
 import joserodpt.realhoppers.api.hopper.trait.traits.RHTeleportationTrait;
 import joserodpt.realhoppers.api.managers.HopperManagerAPI;
 import joserodpt.realhoppers.api.utils.LocationUtil;
@@ -94,29 +90,38 @@ public class HopperManager extends HopperManagerAPI {
                     for (final String trait : traits) {
                         final String[] split = trait.split("\\|");
                         final String traitType = split[0];
-                        switch (RHopperTrait.valueOf(traitType)) {
-                            case TELEPORT:
-                                traitMap.put(RHopperTrait.TELEPORT, new RHTeleportationTrait(loaded, split[1]));
-                                break;
-                            case ITEM_TRANS:
-                                traitMap.put(RHopperTrait.ITEM_TRANS, new RHItemTransferTrait(loaded, split[1]));
-                                break;
-                            case BLOCK_BREAKING:
-                                traitMap.put(RHopperTrait.BLOCK_BREAKING, new RHBlockBreakingTrait(loaded));
-                                break;
-                            case KILL_MOB:
-                                traitMap.put(RHopperTrait.KILL_MOB, new RHMobKillingTrait(loaded));
-                                break;
-                            case SUCTION:
-                                traitMap.put(RHopperTrait.SUCTION, new RHSuctionTrait(loaded));
-                                break;
-                            case AUTO_SELL:
-                                traitMap.put(RHopperTrait.AUTO_SELL, new RHDummyTrait(loaded, RHopperTrait.AUTO_SELL));
-                                break;
-                            default:
-                                rh.getLogger().severe(traitType + " trait is not supported in this version of RealHoppers! Skipping.");
-                                break;
+
+                        final RHopperTrait type;
+                        try {
+                            type = RHopperTrait.valueOf(traitType);
+                        } catch (final IllegalArgumentException e) {
+                            //valueOf used to throw straight out of the loop, so one unreadable
+                            //entry cost every hopper after it
+                            rh.getLogger().severe(traitType + " is not a trait RealHoppers knows! Skipping.");
+                            continue;
                         }
+
+                        //the two linked traits carry the other hopper's location after a pipe;
+                        //everything else is built by the enum itself, so a trait added there is
+                        //loaded here without this switch having to be remembered. Forgetting it is
+                        //exactly how SUCTION came back from disk as a block breaker.
+                        if (type.requiresLink()) {
+                            if (split.length < 2) {
+                                rh.getLogger().severe(traitType + " on hopper " + hopperSTR + " has no linked hopper! Skipping.");
+                                continue;
+                            }
+                            traitMap.put(type, type == RHopperTrait.TELEPORT
+                                    ? new RHTeleportationTrait(loaded, split[1])
+                                    : new RHItemTransferTrait(loaded, split[1]));
+                            continue;
+                        }
+
+                        final RHopperTraitBase built = type.build(loaded);
+                        if (built == null) {
+                            rh.getLogger().severe(traitType + " trait is not supported in this version of RealHoppers! Skipping.");
+                            continue;
+                        }
+                        traitMap.put(type, built);
                     }
                 }
 
