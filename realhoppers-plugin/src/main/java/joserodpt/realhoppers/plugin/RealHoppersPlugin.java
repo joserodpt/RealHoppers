@@ -18,12 +18,10 @@ import joserodpt.realhoppers.api.config.RHConfig;
 import joserodpt.realhoppers.api.config.RHHoppers;
 import joserodpt.realhoppers.plugin.gui.HopperGUI;
 import joserodpt.realhoppers.api.hopper.RHopper;
-import joserodpt.realhoppers.api.hopper.trait.RHopperTrait;
 import joserodpt.realhoppers.api.utils.Text;
+import joserodpt.realhoppers.plugin.command.RHCommandManager;
 import joserodpt.realhoppers.plugin.listener.EventListener;
 import joserodpt.realhoppers.plugin.listener.PlayerListener;
-import me.mattstudios.mf.base.CommandManager;
-import me.mattstudios.mf.base.components.TypeResult;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.PluginManager;
@@ -75,25 +73,10 @@ public final class RealHoppersPlugin extends JavaPlugin {
         });
          */
 
-        CommandManager cm = new CommandManager(this);
-
-        cm.getMessageHandler().register("cmd.no.permission", (sender) -> Text.send(sender, "&cYou don't have permission to execute this command!"));
-        cm.getMessageHandler().register("cmd.no.exists", (sender) -> Text.send(sender, "&cThe command you're trying to use doesn't exist"));
-        cm.getMessageHandler().register("cmd.wrong.usage", (sender) -> Text.send(sender, "&cWrong usage for the command!"));
-        cm.getMessageHandler().register("cmd.no.console", sender -> Text.send(sender,  "&cCommand can't be used in the console!"));
-
-        cm.hideTabComplete(true);
-
-        cm.getParameterHandler().register(RHopperTrait.class, argument -> {
-            try {
-                RHopperTrait tt = RHopperTrait.valueOf(argument.toString().toUpperCase());
-                return new TypeResult(tt, argument);
-            } catch (Exception e) {
-                return new TypeResult(null, argument);
-            }
-        });
-
-        cm.register(new RealHoppersCMD(realHoppers));
+        //Lamp owns the command tree: the suggestions, the permissions and the error messages.
+        //The RHopperTrait resolver that used to live here is gone - Lamp parses enums
+        //case-insensitively and tab-completes their constants without being told about them.
+        new RHCommandManager(realHoppers);
 
         //vault hook
         if (getServer().getPluginManager().getPlugin("Vault") != null) {

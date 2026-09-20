@@ -15,6 +15,11 @@ package joserodpt.realhoppers.api.hopper.trait;
 
 
 import joserodpt.realhoppers.api.config.RHLanguage;
+import joserodpt.realhoppers.api.hopper.RHopper;
+import joserodpt.realhoppers.api.hopper.trait.traits.RHBlockBreakingTrait;
+import joserodpt.realhoppers.api.hopper.trait.traits.RHDummyTrait;
+import joserodpt.realhoppers.api.hopper.trait.traits.RHMobKillingTrait;
+import joserodpt.realhoppers.api.hopper.trait.traits.RHSuctionTrait;
 import org.bukkit.Material;
 
 public enum RHopperTrait {
@@ -50,6 +55,32 @@ public enum RHopperTrait {
 
     public Material getIcon() {
         return icon;
+    }
+
+    /**
+     * Builds the trait implementation this constant stands for.
+     *
+     * <p>The command used to carry a switch over four of the seven constants, silently doing
+     * nothing for the other three. Everything that attaches a trait goes through here instead, so a
+     * constant with nothing behind it is one answer - null - rather than silence.</p>
+     *
+     * @return the trait, or null when this constant cannot be attached on its own:
+     *         {@link #TELEPORT} and {@link #ITEM_TRANS} need a second hopper and are built by the
+     *         linking flow, and {@link #AUTO_SMELT} has no implementation yet
+     */
+    public RHopperTraitBase build(final RHopper hopper) {
+        switch (this) {
+            case BLOCK_BREAKING:
+                return new RHBlockBreakingTrait(hopper);
+            case KILL_MOB:
+                return new RHMobKillingTrait(hopper);
+            case SUCTION:
+                return new RHSuctionTrait(hopper);
+            case AUTO_SELL:
+                return new RHDummyTrait(hopper, AUTO_SELL);
+            default:
+                return null;
+        }
     }
 
     public String getName() {
