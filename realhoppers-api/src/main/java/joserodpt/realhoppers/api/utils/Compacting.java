@@ -17,10 +17,13 @@ import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
+import org.bukkit.inventory.RecipeChoice;
 import org.bukkit.inventory.ShapedRecipe;
+import org.bukkit.inventory.ShapelessRecipe;
 
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -49,29 +52,40 @@ public class Compacting {
                 continue;
             }
 
-            if (!(recipe instanceof ShapedRecipe)) {
+            final Material ingredient;
+            final ItemStack result;
+
+            if (recipe instanceof ShapedRecipe) {
+                ingredient = soleIngredientOf((ShapedRecipe) recipe);
+                result = ((ShapedRecipe) recipe).getResult();
+            } else if (recipe instanceof ShapelessRecipe) {
+                //a pack is free to write nine of a thing as shapeless, and it means the same
+                ingredient = soleIngredientOf((ShapelessRecipe) recipe);
+                result = ((ShapelessRecipe) recipe).getResult();
+            } else {
                 continue;
             }
 
-            final ShapedRecipe shaped = (ShapedRecipe) recipe;
-            final Material ingredient = soleIngredientOf(shaped);
-            if (ingredient == null) {
+            if (ingredient == null || result == null || result.getType() == Material.AIR) {
                 continue;
             }
 
-            final ItemStack result = shaped.getResult();
-            if (result != null && result.getType() != Material.AIR) {
-                RESULTS.putIfAbsent(ingredient, result);
-            }
+            RESULTS.putIfAbsent(ingredient, result);
+        }
+
+        if (RESULTS.isEmpty()) {
+            //said out loud rather than left as a quiet zero on the startup line
+            Bukkit.getLogger().warning("[RealHoppers] Found no compacting recipes. AUTO_SMELT hoppers will work, "
+                    + "AUTO_COMPACT hoppers will have nothing to do.");
         }
     }
 
     /**
-     * The one material a recipe is nine of, or null when it is anything else.
+     * The one material a 3x3 recipe is nine of, or null when it is anything else.
      *
-     * <p>Nine of a single ingredient filling the whole grid is what "compacting" means here -
-     * ingots to a block, nuggets to an ingot. A recipe with a gap in it, or with two different
-     * things in it, is somebody's crafting recipe and not ours.</p>
+     * <p>Compares the materials behind the grid rather than the letters in the shape. The server
+     * hands out a different letter for every slot - a full grid comes back as "abc", "def", "ghi" -
+     * so looking for nine of the same letter finds nothing at all, which is what this did.</p>
      */
     private static Material soleIngredientOf(final ShapedRecipe shaped) {
         final String[] shape = shaped.getShape();
@@ -79,29 +93,83 @@ public class Compacting {
             return null;
         }
 
-        Character symbol = null;
+        Material sole = null;
+        int slots = 0;
+
         for (final String row : shape) {
             if (row.length() != 3) {
                 return null;
             }
             for (final char slot : row.toCharArray()) {
+                //a gap means it is not nine of anything
                 if (slot == ' ') {
                     return null;
                 }
-                if (symbol == null) {
-                    symbol = slot;
-                } else if (symbol != slot) {
+
+                final Material material = materialAt(shaped, slot);
+                if (material == null) {
                     return null;
                 }
+                if (sole == null) {
+                    sole = material;
+                } else if (sole != material) {
+                    return null;
+                }
+                slots++;
             }
         }
 
-        if (symbol == null) {
+        return slots == GRID ? sole : null;
+    }
+
+    /** The same question of a shapeless recipe: nine entries, all of one material. */
+    private static Material soleIngredientOf(final ShapelessRecipe shapeless) {
+        final List<RecipeChoice> choices = shapeless.getChoiceList();
+        if (choices.size() != GRID) {
             return null;
         }
 
-        final ItemStack ingredient = shaped.getIngredientMap().get(symbol);
-        return ingredient == null ? null : ingredient.getType();
+        Material sole = null;
+        for (final RecipeChoice choice : choices) {
+            final Material material = materialOf(choice);
+            if (material == null) {
+                return null;
+            }
+            if (sole == null) {
+                sole = material;
+            } else if (sole != material) {
+                return null;
+            }
+        }
+        return sole;
+    }
+
+    private static Material materialAt(final ShapedRecipe shaped, final char slot) {
+        final Material fromChoice = materialOf(shaped.getChoiceMap().get(slot));
+        if (fromChoice != null) {
+            return fromChoice;
+        }
+        //older servers, where the choice map may not be populated
+        final ItemStack legacy = shaped.getIngredientMap().get(slot);
+        return legacy == null ? null : legacy.getType();
+    }
+
+    /**
+     * The single material a recipe slot accepts.
+     *
+     * <p>Null when it accepts more than one - an ingredient written as a tag is ambiguous here in
+     * a way it is not for smelting, since "nine of any of these" has no one answer.</p>
+     */
+    private static Material materialOf(final RecipeChoice choice) {
+        if (choice instanceof RecipeChoice.MaterialChoice) {
+            final List<Material> choices = ((RecipeChoice.MaterialChoice) choice).getChoices();
+            return choices.size() == 1 ? choices.get(0) : null;
+        }
+        if (choice instanceof RecipeChoice.ExactChoice) {
+            final List<ItemStack> choices = ((RecipeChoice.ExactChoice) choice).getChoices();
+            return choices.size() == 1 ? choices.get(0).getType() : null;
+        }
+        return null;
     }
 
     /** How many of a material one compaction takes. */
