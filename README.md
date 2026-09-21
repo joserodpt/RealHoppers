@@ -40,14 +40,14 @@ restart.
 | Trait            | What it does                                                                           |
 |------------------|----------------------------------------------------------------------------------------|
 | `TELEPORT`       | Sends a player who steps onto the hopper to the hopper it is linked to.                  |
-| `ITEM_TRANS`     | Pushes its contents, one stack at a time, into the hopper it is linked to.              |
+| `ITEM_TRANSF`     | Pushes its contents, one stack at a time, into the hopper it is linked to.              |
 | `SUCTION`        | Pulls in dropped items from the blocks around it.                                       |
 | `BLOCK_BREAKING` | Breaks the block directly above it and takes the drop.                                  |
 | `KILL_MOB`       | Damages living entities standing on it and claims their drops.                          |
 | `AUTO_SELL`      | Anything the hopper cannot fit is sold instead, into a balance the owner collects later. |
 | `AUTO_SMELT`     | Smelts what the hopper takes in — cobblestone lands as stone, ore as ingots.             |
 
-`TELEPORT` and `ITEM_TRANS` are *linked* traits: they follow the hopper's link. A hopper has **one** link, and both
+`TELEPORT` and `ITEM_TRANSF` are *linked* traits: they follow the hopper's link. A hopper has **one** link, and both
 traits use it — so a linked pair can be a teleporter and an item pipe at the same time, and re-pointing the hopper
 moves both at once. Either trait can be switched on before a link exists; it simply sits idle until there is one.
 
@@ -83,7 +83,7 @@ moves a full stack a cycle.
 | `SUCTION`        | How many blocks around it it pulls items from.    | `SUCTION.Radius`             |
 | `BLOCK_BREAKING` | How far up the column it breaks, stopping at air. | `BLOCK_BREAKING.Blocks`      |
 | `KILL_MOB`       | Damage per cycle.                                 | `KILL_MOB.Damage`            |
-| `ITEM_TRANS`     | Items handed over per cycle.                      | `ITEM_TRANS.Items`           |
+| `ITEM_TRANSF`     | Items handed over per cycle.                      | `ITEM_TRANSF.Items`           |
 | `AUTO_SELL`      | What each sale pays, on top of the item's price.  | `AUTO_SELL.Price-Multiplier` |
 
 `TELEPORT` and `AUTO_SMELT` have no tiers — there is one destination to send a player to, and an item either has a

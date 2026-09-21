@@ -116,7 +116,7 @@ public class PlayerListener implements Listener {
      * clicked the one it should point at.
      *
      * <p>The link belongs to the hopper, not to a trait. Linking is now one gesture that says
-     * "this hopper points at that one", and TELEPORT and ITEM_TRANS both follow it - so a pair of
+     * "this hopper points at that one", and TELEPORT and ITEM_TRANSF both follow it - so a pair of
      * hoppers can be a teleporter and an item pipe at once, and re-pointing the source moves both.</p>
      */
     private void link(final Player player, final RHopper clicked) {

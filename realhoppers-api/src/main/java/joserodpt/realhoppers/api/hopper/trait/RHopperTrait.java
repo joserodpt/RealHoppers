@@ -32,7 +32,7 @@ import java.util.Map;
 
 public enum RHopperTrait {
     TELEPORT(Material.ENDER_PEARL, false, true, false),
-    ITEM_TRANS(Material.ENDER_EYE, false, true, true),
+    ITEM_TRANSF(Material.ENDER_EYE, false, true, true),
     AUTO_SELL(Material.EMERALD, true, false, true),
     AUTO_SMELT(Material.FURNACE, false, false, false),
     SUCTION(Material.FEATHER, false, false, true),
@@ -177,7 +177,7 @@ public enum RHopperTrait {
      * nothing for the other three. Everything that attaches a trait goes through here instead, so a
      * constant with nothing behind it is one answer - null - rather than silence.</p>
      *
-     * <p>{@link #TELEPORT} and {@link #ITEM_TRANS} build the same as the rest: the hopper they
+     * <p>{@link #TELEPORT} and {@link #ITEM_TRANSF} build the same as the rest: the hopper they
      * point at is the hopper's own link, not something the trait is handed. Whether the hopper
      * actually has one is a separate question, {@link #requiresLink()}, and it decides whether the
      * trait runs rather than whether it can exist.</p>
@@ -188,7 +188,7 @@ public enum RHopperTrait {
         switch (this) {
             case TELEPORT:
                 return new RHTeleportationTrait(hopper);
-            case ITEM_TRANS:
+            case ITEM_TRANSF:
                 return new RHItemTransferTrait(hopper);
             case BLOCK_BREAKING:
                 return new RHBlockBreakingTrait(hopper);

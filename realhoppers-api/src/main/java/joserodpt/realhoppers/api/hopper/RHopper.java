@@ -54,7 +54,7 @@ public class RHopper {
 
     /**
      * The one other hopper this one points at. Every trait that needs a second hopper - TELEPORT
-     * and ITEM_TRANS - uses this one, rather than each carrying a destination of its own: a hopper
+     * and ITEM_TRANSF - uses this one, rather than each carrying a destination of its own: a hopper
      * has one link, and whatever is on it follows that link.
      */
     private RHopper link;

@@ -41,7 +41,7 @@ RealHoppers:
         '1': { Power: 1.0, Price: 0 }
         '2': { Power: 2.0, Price: 1000 }
         '3': { Power: 4.0, Price: 5000 }
-    ITEM_TRANS:
+    ITEM_TRANSF:
       # Items handed to the linked hopper each cycle, at power 1.
       Items: 1
       Tiers:
@@ -61,4 +61,4 @@ RealHoppers:
     COBBLESTONE: 5
     SAND: 2
 
-Version: 4
+Version: 5

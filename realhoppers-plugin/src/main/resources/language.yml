@@ -82,11 +82,11 @@ System:
 
 Traits:
   TELEPORT: "&5Teleport"
-  ITEM_TRANS: "&fItem Transfer"
+  ITEM_TRANSF: "&fItem Transfer"
   AUTO_SELL: "&eAuto Sell"
   AUTO_SMELT: "&6Auto Smelt"
   SUCTION: "&bSuction"
   BLOCK_BREAKING: "&7Block Breaking"
   KILL_MOB: "&4Mob Killing"
 
-Version: 6
+Version: 7
