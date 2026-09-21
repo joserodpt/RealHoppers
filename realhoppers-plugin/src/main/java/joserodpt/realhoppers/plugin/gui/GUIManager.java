@@ -31,13 +31,17 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * Every screen RealHoppers opens, built on {@link GUIBuilder} - a click runnable per slot, rather
@@ -55,8 +59,11 @@ public class GUIManager {
             19, 20, 21, 22, 23, 24, 25,
             28, 29, 30, 31, 32, 33, 34};
 
-    /** The trait screen, big enough that adding a trait does not mean rearranging it. */
+    /** The screen, big enough that adding a trait does not mean rearranging it. */
     private static final int TRAIT_GUI_SIZE = 45;
+
+    /** Where the hopper's own five slots sit, centred along the top row. */
+    private static final int[] HOPPER_SLOTS = {2, 3, 4, 5, 6};
 
     private final RealHoppers rh;
 
@@ -65,6 +72,15 @@ public class GUIManager {
      * screen showing it. The old GUI exposed a public static map of itself for this.
      */
     private final Map<UUID, RHopper> openHoppers = new HashMap<>();
+
+    /**
+     * What the hopper's five slots held when the screen was last drawn for a player.
+     *
+     * <p>The screen is a copy, and the hopper carries on working behind it - so writing all five
+     * back would erase whatever it took in while the player was looking. Comparing against this
+     * says which slots the player themselves changed, and only those are written.</p>
+     */
+    private final Map<UUID, ItemStack[]> rendered = new HashMap<>();
 
     public GUIManager(final RealHoppers rh) {
         this.rh = rh;
@@ -79,6 +95,7 @@ public class GUIManager {
             @EventHandler
             public void onClose(final InventoryCloseEvent e) {
                 openHoppers.remove(e.getPlayer().getUniqueId());
+                rendered.remove(e.getPlayer().getUniqueId());
             }
         };
     }
@@ -93,18 +110,39 @@ public class GUIManager {
     }
 
     public void openHopper(final Player target, final RHopper hopper) {
-        final GUIBuilder inventory = new GUIBuilder(TranslatableLine.GUI_TITLE.get(), 27, target.getUniqueId());
+        final GUIBuilder inventory = new GUIBuilder(TranslatableLine.GUI_TITLE.get(), TRAIT_GUI_SIZE, target.getUniqueId());
 
-        inventory.addItem(e -> {
-            //the vanilla hopper inventory, which is a different inventory: closing first keeps the
-            //two from fighting over which one is open
-            target.closeInventory();
-            hopper.openInventory(target);
-        }, Items.createItem(Material.CHEST, 1, TranslatableLine.GUI_HOPPER_INVENTORY_NAME.get(),
-                RHLanguage.file().getStringList("GUI.Items.Hopper-Inventory.Description")), 11);
+        //the hopper's own five slots, along the top, with its contents in them. They used to be a
+        //button that closed this screen and opened the vanilla hopper one; there is one screen now
+        final Inventory contents = hopper.getInventory();
+        final ItemStack[] shown = new ItemStack[HOPPER_SLOTS.length];
+        for (int i = 0; i < HOPPER_SLOTS.length; i++) {
+            shown[i] = contents == null ? null : contents.getItem(i);
+            inventory.setItem(shown[i], HOPPER_SLOTS[i]);
+        }
+        this.rendered.put(target.getUniqueId(), shown);
+        inventory.setEditableSlots(Arrays.stream(HOPPER_SLOTS).boxed().collect(Collectors.toList()),
+                top -> writeBack(hopper, top, target.getUniqueId()));
+
+        //and the traits, which were a second screen of their own
+        final RHopperTrait[] traits = RHopperTrait.values();
+        for (int i = 0; i < traits.length && i < TRAIT_SLOTS.length; i++) {
+            final RHopperTrait trait = traits[i];
+            inventory.addItem(e -> {
+                //shift click edits a trait that has something to edit, right click walks its tier
+                //up, plain click switches it on or off
+                if (e.getClick().isShiftClick() && trait == RHopperTrait.FILTER && hopper.hasTrait(trait)) {
+                    openLater(target, () -> openFilter(target, hopper));
+                } else if (e.getClick().isRightClick() && hopper.hasTrait(trait)) {
+                    raiseTier(target, hopper, trait);
+                } else {
+                    toggle(target, hopper, trait);
+                }
+            }, traitIcon(hopper, trait), TRAIT_SLOTS[i]);
+        }
 
         inventory.addItem(e -> collect(target, hopper, e.getClick()),
-                Items.createItem(Material.HOPPER, 1, TranslatableLine.GUI_HOPPER_NAME.get(), hopper.getHopperDescription()), 13);
+                Items.createItem(Material.HOPPER, 1, TranslatableLine.GUI_HOPPER_NAME.get(), hopper.getHopperDescription()), 38);
 
         //only on a hopper that gathers any, so the panel of one that does not is unchanged
         if (hopper.hasXpCapabilities()) {
@@ -112,19 +150,46 @@ public class GUIManager {
                     Items.createItem(Material.EXPERIENCE_BOTTLE, 1,
                             TranslatableLine.GUI_XP_NAME
                                     .setV1(TranslatableLine.ReplacableVar.VALUE.eq(String.valueOf(hopper.getXp()))).get(),
-                            RHLanguage.file().getStringList("GUI.Items.Xp.Description")), 17);
+                            RHLanguage.file().getStringList("GUI.Items.Xp.Description")), 40);
         }
-
-        inventory.addItem(e -> openLater(target, () -> openTraits(target, hopper)),
-                Items.createItem(Material.BOOK, 1, TranslatableLine.GUI_TRAITS_NAME.get(),
-                        RHLanguage.file().getStringList("GUI.Items.Traits.Description")), 15);
 
         inventory.addItem(e -> target.closeInventory(),
                 Items.createItem(Material.OAK_DOOR, 1, TranslatableLine.GUI_CLOSE_NAME.get(),
-                        RHLanguage.file().getStringList("GUI.Items.Close.Description")), 22);
+                        RHLanguage.file().getStringList("GUI.Items.Close.Description")), 44);
 
         inventory.openInventory(target);
         this.openHoppers.put(target.getUniqueId(), hopper);
+    }
+
+    /**
+     * Copies the five slots of the screen back into the hopper itself.
+     *
+     * <p>Runs a tick after anything is moved, because until the click has been applied the screen
+     * still shows what was there before it.</p>
+     */
+    private void writeBack(final RHopper hopper, final Inventory top, final UUID viewer) {
+        final Inventory contents = hopper.getInventory();
+        if (contents == null) {
+            //the block went while the screen was open
+            return;
+        }
+
+        final ItemStack[] shown = this.rendered.get(viewer);
+
+        for (int i = 0; i < HOPPER_SLOTS.length; i++) {
+            final ItemStack now = top.getItem(HOPPER_SLOTS[i]);
+
+            //untouched by the player: leave whatever the hopper has done with that slot since.
+            //Writing all five back blindly would erase what it took in while they were looking.
+            if (shown != null && Objects.equals(shown[i], now)) {
+                continue;
+            }
+
+            contents.setItem(i, now);
+            if (shown != null) {
+                shown[i] = now;
+            }
+        }
     }
 
     /**
@@ -172,53 +237,6 @@ public class GUIManager {
     }
 
     /**
-     * The trait screen: one icon per constant, click to add or remove. Traits were command-only
-     * before this, and there was no way at all to take one off.
-     */
-    public void openTraits(final Player target, final RHopper hopper) {
-        final GUIBuilder inventory = new GUIBuilder(TranslatableLine.GUI_TRAITS_TITLE.get(), TRAIT_GUI_SIZE, target.getUniqueId());
-
-        final RHopperTrait[] traits = RHopperTrait.values();
-        for (int i = 0; i < traits.length && i < TRAIT_SLOTS.length; i++) {
-            final RHopperTrait trait = traits[i];
-            inventory.addItem(e -> {
-                //shift click edits a trait that has something to edit, right click walks its tier
-                //up, plain click switches it on or off
-                if (e.getClick().isShiftClick() && trait == RHopperTrait.FILTER && hopper.hasTrait(trait)) {
-                    openLater(target, () -> openFilter(target, hopper));
-                } else if (e.getClick().isRightClick() && hopper.hasTrait(trait)) {
-                    raiseTier(target, hopper, trait);
-                } else {
-                    toggle(target, hopper, trait);
-                }
-            }, traitIcon(hopper, trait), TRAIT_SLOTS[i]);
-        }
-
-        inventory.addItem(e -> openLater(target, () -> openHopper(target, hopper)),
-                Items.createItem(Material.RED_BED, 1, TranslatableLine.GUI_BACK_NAME.get()), 36);
-
-        inventory.addItem(e -> target.closeInventory(),
-                Items.createItem(Material.OAK_DOOR, 1, TranslatableLine.GUI_CLOSE_NAME.get(),
-                        RHLanguage.file().getStringList("GUI.Items.Close.Description")), 44);
-
-        inventory.openInventory(target);
-        //the trait screen is not the hopper screen, so nothing here should be redrawn by refresh
-        this.openHoppers.remove(target.getUniqueId());
-    }
-
-    /**
-     * Closes what is open and builds the next screen a couple of ticks later.
-     *
-     * <p>Both screens are 27-slot chests, and GUIBuilder pours a new inventory of the same type
-     * into the one already open rather than opening a second - which keeps the old title on screen.
-     * Closing first is how RealMines moves between its own screens.</p>
-     */
-    private void openLater(final Player target, final Runnable open) {
-        target.closeInventory();
-        Bukkit.getScheduler().scheduleSyncDelayedTask(rh.getPlugin(), open, 2);
-    }
-
-    /**
      * The list a FILTER hopper keeps: what it is allowed to store, one icon each.
      *
      * <p>Materials are added by holding the item and clicking, rather than through a picker of
@@ -228,7 +246,7 @@ public class GUIManager {
     public void openFilter(final Player target, final RHopper hopper) {
         final RHFilterTrait filter = hopper.getTrait(RHopperTrait.FILTER, RHFilterTrait.class);
         if (filter == null) {
-            openTraits(target, hopper);
+            openHopper(target, hopper);
             return;
         }
 
@@ -253,11 +271,26 @@ public class GUIManager {
                     RHLanguage.file().getStringList("GUI.Items.Filter.Empty-Description")), 22);
         }
 
+        inventory.addItem(e -> openLater(target, () -> {
+            //the picker from RealMines: every material, paged, with a chat search
+            final MaterialPickerGUI picker = new MaterialPickerGUI(target, TranslatableLine.GUI_PICKER_TITLE.get(),
+                    MaterialPickerGUI.MaterialLists.ONLY_ITEMS, material -> {
+                if (material != null && filter.add(material)) {
+                    TranslatableLine.FILTER_ADDED
+                            .setV1(TranslatableLine.ReplacableVar.MATERIAL.eq(Text.beautifyMaterialName(material))).send(target);
+                }
+                openFilter(target, hopper);
+            });
+            picker.openInventory(target);
+        }), Items.createItem(Material.COMPASS, 1, TranslatableLine.GUI_FILTER_PICK_NAME.get(),
+                RHLanguage.file().getStringList("GUI.Items.Filter.Pick-Description")), 38);
+
+        //still the quicker way when the thing is already in hand
         inventory.addItem(e -> addHeldToFilter(target, hopper, filter),
                 Items.createItem(Material.NAME_TAG, 1, TranslatableLine.GUI_FILTER_ADD_NAME.get(),
                         RHLanguage.file().getStringList("GUI.Items.Filter.Add-Description")), 40);
 
-        inventory.addItem(e -> openLater(target, () -> openTraits(target, hopper)),
+        inventory.addItem(e -> openLater(target, () -> openHopper(target, hopper)),
                 Items.createItem(Material.RED_BED, 1, TranslatableLine.GUI_BACK_NAME.get()), 36);
 
         inventory.addItem(e -> target.closeInventory(),
@@ -285,6 +318,18 @@ public class GUIManager {
         TranslatableLine.FILTER_ADDED
                 .setV1(TranslatableLine.ReplacableVar.MATERIAL.eq(Text.beautifyMaterialName(held.getType()))).send(target);
         openFilter(target, hopper);
+    }
+
+    /**
+     * Closes what is open and builds the next screen a couple of ticks later.
+     *
+     * <p>GUIBuilder pours a new screen into the one already open when the two are alike, which is
+     * what keeps this one from flickering as a balance changes - but it also keeps the old title.
+     * Closing first is how RealMines moves between its own screens.</p>
+     */
+    private void openLater(final Player target, final Runnable open) {
+        target.closeInventory();
+        Bukkit.getScheduler().scheduleSyncDelayedTask(rh.getPlugin(), open, 2);
     }
 
     private ItemStack traitIcon(final RHopper hopper, final RHopperTrait trait) {
@@ -374,14 +419,14 @@ public class GUIManager {
         TranslatableLine.TRAIT_TIER_UPGRADED
                 .setV1(TranslatableLine.ReplacableVar.TRAIT.eq(trait.getName()))
                 .setV2(TranslatableLine.ReplacableVar.VALUE.eq(String.valueOf(set))).send(target);
-        openTraits(target, hopper);
+        openHopper(target, hopper);
     }
 
     private void toggle(final Player target, final RHopper hopper, final RHopperTrait trait) {
         if (hopper.removeTrait(trait)) {
             TranslatableLine.TRAIT_REMOVED
                     .setV1(TranslatableLine.ReplacableVar.TRAIT.eq(trait.getName())).send(target);
-            openTraits(target, hopper);
+            openHopper(target, hopper);
             return;
         }
 
@@ -400,6 +445,6 @@ public class GUIManager {
             TranslatableLine.TRAIT_NEEDS_LINK
                     .setV1(TranslatableLine.ReplacableVar.TRAIT.eq(trait.getName())).send(target);
         }
-        openTraits(target, hopper);
+        openHopper(target, hopper);
     }
 }

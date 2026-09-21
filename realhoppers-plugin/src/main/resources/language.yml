@@ -29,20 +29,35 @@ Hoppers:
 
 GUI:
   Title: "&8Real&dHoppers"
-  Traits-Title: "&8Hopper Traits"
   Filter-Title: "&8Hopper Filter"
+  Picker-Title: "&8Pick a material"
   Items:
     Close:
       Name: "&cClose"
       Description:
         - "&fClick here to close this hopper."
-    Hopper-Inventory:
-      Name: "&eHopper Inventory"
-      Description:
-        - "&fClick here to open this hopper's inventory."
+    Picker:
+      Next:
+        Name: "&aNext page"
+      Back:
+        Name: "&ePrevious page"
+      Search:
+        Name: "&bSearch"
+      Pick:
+        Name: "&f%material%"
+      Next-Description:
+        - "&7Go forward one page."
+      Back-Description:
+        - "&7Go back one page."
+      Pick-Description:
+        - "&7Click to choose this."
     Filter:
       Add:
         Name: "&aAdd the item you are holding"
+      Pick:
+        Name: "&bPick a material"
+      Pick-Description:
+        - "&fBrowse every material and choose one."
       Empty:
         Name: "&eThis filter is empty"
       Add-Description:
@@ -57,10 +72,6 @@ GUI:
       Name: "&aCollect &a%value% experience"
       Description:
         - "&fClick here to take this hopper's experience."
-    Traits:
-      Name: "&bTraits"
-      Description:
-        - "&fClick here to manage this hopper's traits."
     Back:
       Name: "&eGo Back"
     Trait:
@@ -100,6 +111,13 @@ GUI:
       Collect: "&fClick here to collect hopper's balance."
 
 System:
+  # The two title lines shown while the plugin is waiting for something to be typed in chat.
+  Type-Input:
+    - "&6Type in the chat"
+    - "&fwhat you want to search for. &7Type 'cancel' to cancel."
+  Input-Cancelled: "&cInput cancelled."
+  Error-Occurred: "&cAn error occurred."
+  Nothing-Found: "&cNothing found for that search."
   Reloaded: "&aReloaded!"
   Player-Only: "&cCommand can't be used in the console!"
   Vault-Missing: "&cVault is not installed on this server."
@@ -168,4 +186,4 @@ Traits:
   XP_COLLECT: "&aExperience"
   FILTER: "&3Filter"
 
-Version: 11
+Version: 13

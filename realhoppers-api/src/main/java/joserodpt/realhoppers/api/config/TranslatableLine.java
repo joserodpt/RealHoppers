@@ -53,14 +53,17 @@ public enum TranslatableLine {
 
     // GUI related messages
     GUI_TITLE("GUI.Title"),
-    GUI_TRAITS_TITLE("GUI.Traits-Title"),
     GUI_FILTER_TITLE("GUI.Filter-Title"),
     GUI_FILTER_ADD_NAME("GUI.Items.Filter.Add.Name"),
+    GUI_FILTER_PICK_NAME("GUI.Items.Filter.Pick.Name"),
     GUI_FILTER_EMPTY_NAME("GUI.Items.Filter.Empty.Name"),
-    GUI_TRAITS_NAME("GUI.Items.Traits.Name"),
+    GUI_PICKER_TITLE("GUI.Picker-Title"),
+    GUI_NEXT_PAGE_NAME("GUI.Items.Picker.Next.Name"),
+    GUI_PREVIOUS_PAGE_NAME("GUI.Items.Picker.Back.Name"),
+    GUI_SEARCH_ITEM_NAME("GUI.Items.Picker.Search.Name"),
+    GUI_PICK_NAME("GUI.Items.Picker.Pick.Name", ReplacableVar.MATERIAL),
     GUI_BACK_NAME("GUI.Items.Back.Name"),
     GUI_CLOSE_NAME("GUI.Items.Close.Name"),
-    GUI_HOPPER_INVENTORY_NAME("GUI.Items.Hopper-Inventory.Name"),
     GUI_HOPPER_NAME("GUI.Items.Hopper.Name"),
     GUI_HOPPER_BALANCE("GUI.Items.Hopper.Balance", ReplacableVar.MONEY),
     GUI_HOPPER_LINK("GUI.Items.Hopper.Link", ReplacableVar.VALUE),
@@ -73,6 +76,9 @@ public enum TranslatableLine {
 
     // System related messages
     SYSTEM_RELOADED("System.Reloaded"),
+    SYSTEM_INPUT_CANCELLED("System.Input-Cancelled"),
+    SYSTEM_ERROR_OCCURRED("System.Error-Occurred"),
+    SYSTEM_NOTHING_FOUND("System.Nothing-Found"),
     SYSTEM_PLAYER_ONLY("System.Player-Only"),
     SYSTEM_VAULT_MISSING("System.Vault-Missing"),
     SYSTEM_ERROR_PERMISSION("System.Error-Permission"),

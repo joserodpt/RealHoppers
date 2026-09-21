@@ -20,6 +20,8 @@ import joserodpt.realhoppers.api.config.RHHoppers;
 import joserodpt.realhoppers.api.hopper.trait.RHopperTrait;
 import joserodpt.realhoppers.api.utils.Compacting;
 import joserodpt.realhoppers.api.utils.GUIBuilder;
+import joserodpt.realhoppers.api.utils.PlayerInput;
+import joserodpt.realhoppers.plugin.gui.MaterialPickerGUI;
 import joserodpt.realhoppers.api.utils.Smelting;
 import joserodpt.realhoppers.api.utils.Text;
 import joserodpt.realhoppers.plugin.command.RHCommandManager;
@@ -66,6 +68,8 @@ public final class RealHoppersPlugin extends JavaPlugin {
         pm.registerEvents(new PlayerListener(realHoppers), this);
         pm.registerEvents(new EventListener(realHoppers), this);
         pm.registerEvents(GUIBuilder.getListener(), this);
+        pm.registerEvents(MaterialPickerGUI.getListener(), this);
+        pm.registerEvents(PlayerInput.getListener(), this);
         pm.registerEvents(realHoppers.getGUIManager().getListener(), this);
 
         //the server's furnace recipes, which is what AUTO_SMELT smelts by. Read here rather than

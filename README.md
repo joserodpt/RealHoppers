@@ -74,7 +74,7 @@ sells prices the block rather than the ingots.
 `FILTER` governs what the hopper may *keep*, and nothing else — so what it turns away still meets the rest of the
 hopper. Beside `AUTO_SELL` that means keep what is listed and sell the rest; beside `VOID`, keep what is listed and
 destroy the rest. An empty list keeps everything. Edit it by shift-clicking the trait in the Traits screen, then
-holding an item and clicking to add it.
+holding an item and clicking to add it, or by browsing every material in the picker.
 
 `AUTO_SMELT` uses the server's own furnace recipes, so anything a player could smelt by hand — including recipes added
 by a datapack — smelts in the hopper. On a hopper that also has `AUTO_SELL`, the smelted material is the one that gets
@@ -146,11 +146,13 @@ sets a tier outright without charging, for admins.
 
 Place a hopper. Every hopper you place is registered with RealHoppers, with no traits on it yet.
 
-Right-click it to open its panel: the traits it carries, its balance if it has one, and a shortcut into the hopper's
-own inventory.
+Right-click it to open its panel. One screen holds everything: the hopper's own five slots along the top, which you
+can move items in and out of exactly as you would the normal hopper screen, every trait below them, and its balance
+and experience on the bottom row.
 
-To give it a trait, click **Traits** in the panel and pick one — clicking a trait it already has
-takes it off again. The same thing from the command line, looking at the hopper:
+To give it a trait, click it — clicking one it already has takes it off again. Right-click a trait to buy its next
+tier, and shift-click `FILTER` to choose what the hopper keeps. The same thing from the command line, looking at the
+hopper:
 
 ```
 /rh settrait SUCTION
