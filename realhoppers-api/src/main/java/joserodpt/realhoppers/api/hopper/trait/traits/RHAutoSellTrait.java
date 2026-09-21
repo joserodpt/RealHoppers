@@ -43,7 +43,9 @@ public class RHAutoSellTrait extends RHopperTraitBase {
         if (price == null) {
             return false;
         }
-        super.getHopper().setBalance(super.getHopper().getBalance() + price);
+        final double payout = price
+                * RHopperTrait.AUTO_SELL.configValue("Price-Multiplier", 1) * super.getTier();
+        super.getHopper().setBalance(super.getHopper().getBalance() + payout);
         return true;
     }
 
@@ -62,10 +64,5 @@ public class RHAutoSellTrait extends RHopperTraitBase {
     public void stopTask() {
         //nothing scheduled to cancel. The balance is written by RHopper#stopHopper, which runs
         //right after this for every trait on the hopper.
-    }
-
-    @Override
-    public String getSerializedSave() {
-        return getTraitType().name();
     }
 }

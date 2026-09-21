@@ -10,6 +10,8 @@ Hoppers:
     Needs-Link: "&eThe %trait% &etrait follows this hopper's link, and it has none yet. Hold a stick, right-click this hopper, then the one it should point at."
     Unavailable: "&cThe %trait% &ctrait is not available yet."
     Removed: "&fRemoved the %trait% &ftrait from this hopper."
+    Tier-Set: "&f%trait% &fis now tier &b%value%&f."
+    Not-Scalable: "&cThe %trait% &ctrait has no tiers."
   Link:
     Source-Selected: "&fSource hopper selected. Right-click the hopper it should point at."
     Same-Hopper: "&cA hopper cannot be linked to itself."
@@ -48,6 +50,10 @@ GUI:
         - "&cThis hopper is not linked."
         - "&7Hold a stick, right-click this"
         - "&7hopper, then its destination."
+      Tier-Description:
+        - ""
+        - "&7Tier: &b%value%"
+        - "&7Right-click to raise it."
       Unavailable-Description:
         - "&7Not available in this version."
     Hopper:
@@ -56,7 +62,7 @@ GUI:
       Link: "&fLinked to: &b%value%"
       Traits-Header: "&f&nHopper traits:"
       No-Traits: " &7None."
-      Trait-Entry: "&7- &f%trait%"
+      Trait-Entry: "&7- &f%trait% &8(tier %value%)"
       Collect: "&fClick here to collect hopper's balance."
 
 System:
@@ -76,4 +82,4 @@ Traits:
   BLOCK_BREAKING: "&7Block Breaking"
   KILL_MOB: "&4Mob Killing"
 
-Version: 4
+Version: 5

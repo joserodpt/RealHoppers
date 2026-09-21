@@ -58,9 +58,4 @@ public class RHAutoSmeltTrait extends RHopperTraitBase {
     public void stopTask() {
         //nothing scheduled to cancel
     }
-
-    @Override
-    public String getSerializedSave() {
-        return getTraitType().name();
-    }
 }

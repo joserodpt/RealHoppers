@@ -24,6 +24,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import revxrsal.commands.annotation.Command;
 import revxrsal.commands.annotation.CommandPlaceholder;
+import revxrsal.commands.annotation.Optional;
 import revxrsal.commands.annotation.Subcommand;
 import revxrsal.commands.annotation.Usage;
 import revxrsal.commands.bukkit.annotation.CommandPermission;
@@ -64,9 +65,9 @@ public class HopperCMD {
      */
     @Subcommand("settrait")
     @CommandPermission("realhoppers.admin")
-    @Usage("&c/rh settrait <trait>")
+    @Usage("&c/rh settrait <trait> [tier]")
     @SuppressWarnings("unused")
-    public void setTrait(final Player p, final RHopperTrait trait) {
+    public void setTrait(final Player p, final RHopperTrait trait, @Optional final Integer tier) {
         final Block b = p.getTargetBlock(null, REACH);
         final RHopper hopper = rh.getHopperManager().getHopper(b);
 
@@ -93,6 +94,19 @@ public class HopperCMD {
         hopper.setTrait(trait, built);
         TranslatableLine.TRAIT_ADDED
                 .setV1(TranslatableLine.ReplacableVar.TRAIT.eq(trait.getName())).send(p);
+
+        if (tier != null) {
+            if (!trait.isScalable()) {
+                TranslatableLine.TRAIT_NOT_SCALABLE
+                        .setV1(TranslatableLine.ReplacableVar.TRAIT.eq(trait.getName())).send(p);
+            } else {
+                //clamped rather than refused, so /rh settrait SUCTION 99 gives the top tier
+                final int set = hopper.setTraitTier(trait, tier);
+                TranslatableLine.TRAIT_TIER_SET
+                        .setV1(TranslatableLine.ReplacableVar.TRAIT.eq(trait.getName()))
+                        .setV2(TranslatableLine.ReplacableVar.VALUE.eq(String.valueOf(set))).send(p);
+            }
+        }
 
         //the trait is on either way, it just sits idle until the hopper has somewhere to point
         if (trait.requiresLink() && !hopper.hasLink()) {

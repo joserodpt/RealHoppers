@@ -21,7 +21,6 @@ import joserodpt.realhoppers.api.hopper.trait.RHopperTraitBase;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
@@ -43,19 +42,30 @@ public class RHBlockBreakingTrait extends RHopperTraitBase {
                 return;
             }
 
-            Block toBreak = super.getHopper().getBlock().getRelative(BlockFace.UP);
-            if (toBreak != null && toBreak.getType().isSolid()) {
+            final int blocks = (int) Math.max(1,
+                    RHopperTrait.BLOCK_BREAKING.configValue("Blocks", 1) * super.getTier());
+
+            for (int height = 1; height <= blocks; height++) {
+                final Block toBreak = super.getHopper().getBlock().getRelative(0, height, 0);
+                //a gap ends the run: the tier reaches further up a column, it does not mine
+                //through air to whatever happens to be above it
+                if (toBreak == null || !toBreak.getType().isSolid()) {
+                    break;
+                }
+
                 final Material type = toBreak.getType();
 
                 if (super.getHopper().hasHopperSpace(type)) {
                     super.getHopper().addItem(type);
-                    toBreak.setType(Material.AIR);
-                } else if (super.getHopper().sell(type)) {
-                    toBreak.setType(Material.AIR);
-                } else if (RHConfig.file().getBoolean("RealHoppers.Drop-Items-If-Full")) {
+                } else if (!super.getHopper().sell(type)) {
+                    if (!RHConfig.file().getBoolean("RealHoppers.Drop-Items-If-Full")) {
+                        //nowhere for it to go, so it stays in the ground
+                        break;
+                    }
                     super.getHopper().getWorld().dropItemNaturally(super.getHopper().getTeleportLocation(), new ItemStack(type));
-                    toBreak.setType(Material.AIR);
                 }
+
+                toBreak.setType(Material.AIR);
             }
         }, 10, 10);
     }
@@ -71,10 +81,5 @@ public class RHBlockBreakingTrait extends RHopperTraitBase {
             Bukkit.getScheduler().cancelTask(taskID);
             taskID = -1;
         }
-    }
-
-    @Override
-    public String getSerializedSave() {
-        return getTraitType().name();
     }
 }

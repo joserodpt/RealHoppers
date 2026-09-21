@@ -125,8 +125,9 @@ public class RHopper {
         if (this.getTraitMap().isEmpty()) {
             desc.add(TranslatableLine.GUI_HOPPER_NO_TRAITS.get());
         } else {
-            this.getTraitMap().keySet().forEach(trait -> desc.add(TranslatableLine.GUI_HOPPER_TRAIT_ENTRY
-                    .setV1(TranslatableLine.ReplacableVar.TRAIT.eq(trait.getName())).get()));
+            this.getTraitMap().forEach((trait, base) -> desc.add(TranslatableLine.GUI_HOPPER_TRAIT_ENTRY
+                    .setV1(TranslatableLine.ReplacableVar.TRAIT.eq(trait.getName()))
+                    .setV2(TranslatableLine.ReplacableVar.VALUE.eq(String.valueOf(base.getTier()))).get()));
         }
 
         if (this.hasEconomyCapabilities()) {
@@ -182,6 +183,27 @@ public class RHopper {
         this.getTraitMap().put(trait, t);
         t.startTask();
         this.saveData(Data.TRAITS);
+    }
+
+    /**
+     * Raises or lowers a trait's tier, clamped to what that trait allows.
+     *
+     * @return the tier actually set, or -1 when the hopper has not got the trait
+     */
+    public int setTraitTier(final RHopperTrait trait, final int tier) {
+        final RHopperTraitBase base = this.getTrait(trait);
+        if (base == null) {
+            return -1;
+        }
+        final int set = base.setTier(tier);
+        this.saveData(Data.TRAITS);
+        return set;
+    }
+
+    /** A trait's tier, or 0 when the hopper has not got it. */
+    public int getTraitTier(final RHopperTrait trait) {
+        final RHopperTraitBase base = this.getTrait(trait);
+        return base == null ? 0 : base.getTier();
     }
 
     /**
@@ -317,7 +339,12 @@ public class RHopper {
     public void saveData(Data d) {
         switch (d) {
             case TRAITS:
-                RHHoppers.file().set("Hoppers." + this.getSerializedLocation() + ".Traits", this.getTraitMap().values().stream().map(RHopperTraitBase::getSerializedSave).collect(Collectors.toList()));
+                //a section of TRAIT: tier rather than a list of names, so a trait's tier has
+                //somewhere to live and the file says what it means without being decoded
+                final String traitsRoute = "Hoppers." + this.getSerializedLocation() + ".Traits";
+                RHHoppers.file().remove(traitsRoute);
+                this.getTraitMap().forEach((trait, base) ->
+                        RHHoppers.file().set(traitsRoute + "." + trait.name(), base.getTier()));
                 break;
             case BALANCE:
                 RHHoppers.file().set("Hoppers." + this.getSerializedLocation() + ".Balance", this.getBalance());

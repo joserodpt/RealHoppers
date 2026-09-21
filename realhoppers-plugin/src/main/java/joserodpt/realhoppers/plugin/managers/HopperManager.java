@@ -83,44 +83,33 @@ public class HopperManager extends HopperManagerAPI {
                 loaded.restoreBalance(RHHoppers.file().getDouble("Hoppers." + hopperSTR + ".Balance"));
                 loaded.setLinkLocation(RHHoppers.file().getString("Hoppers." + hopperSTR + ".Link"));
 
-                if (RHHoppers.file().isList("Hoppers." + hopperSTR + ".Traits")) {
-                    List<String> traits = RHHoppers.file().getStringList("Hoppers." + hopperSTR + ".Traits");
+                final String traitsRoute = "Hoppers." + hopperSTR + ".Traits";
+                boolean migrated = false;
 
-                    for (final String trait : traits) {
-                        //traits used to be saved as TRAIT|<destination>, one link per trait. The
-                        //link belongs to the hopper now, so an old entry hands its destination over
-                        //to the hopper on the way past and is read as a plain trait name.
-                        final String[] split = trait.split("\\|");
-                        final String traitType = split[0];
+                if (RHHoppers.file().isList(traitsRoute)) {
+                    //the old shape: a list of names, where a linked trait carried its destination
+                    //after a pipe. Both move - the destination to the hopper's own Link, the trait
+                    //to a section entry with a tier - and the file is rewritten below.
+                    migrated = true;
+                    for (final String entry : RHHoppers.file().getStringList(traitsRoute)) {
+                        final String[] split = entry.split("\\|");
                         if (split.length > 1 && !RHHoppers.file().isString("Hoppers." + hopperSTR + ".Link")) {
                             RHHoppers.file().set("Hoppers." + hopperSTR + ".Link", split[1]);
                             loaded.setLinkLocation(split[1]);
-                            RHHoppers.markDirty();
                         }
-
-                        final RHopperTrait type;
-                        try {
-                            type = RHopperTrait.valueOf(traitType);
-                        } catch (final IllegalArgumentException e) {
-                            //valueOf used to throw straight out of the loop, so one unreadable
-                            //entry cost every hopper after it
-                            rh.getLogger().severe(traitType + " is not a trait RealHoppers knows! Skipping.");
-                            continue;
-                        }
-
-                        //the enum builds every trait, so one added there is loaded here without
-                        //this loop having to be remembered. Forgetting it is exactly how SUCTION
-                        //came back from disk as a block breaker.
-                        final RHopperTraitBase built = type.build(loaded);
-                        if (built == null) {
-                            rh.getLogger().severe(traitType + " trait is not supported in this version of RealHoppers! Skipping.");
-                            continue;
-                        }
-                        traitMap.put(type, built);
+                        putTrait(traitMap, loaded, split[0], 1);
+                    }
+                } else if (RHHoppers.file().isSection(traitsRoute)) {
+                    for (final String name : RHHoppers.file().getSection(traitsRoute).getRoutesAsStrings(false)) {
+                        putTrait(traitMap, loaded, name, RHHoppers.file().getInt(traitsRoute + "." + name, 1));
                     }
                 }
 
                 loaded.setTraits(traitMap, false);
+
+                if (migrated) {
+                    loaded.saveData(RHopper.Data.TRAITS);
+                }
 
                 this.getHoppersMap().put(b, loaded);
             }
@@ -145,6 +134,33 @@ public class HopperManager extends HopperManagerAPI {
                 }
             }
         }
+    }
+
+    /**
+     * Builds one trait onto a hopper being read from disk, at the tier the file gives it.
+     */
+    private void putTrait(final Map<RHopperTrait, RHopperTraitBase> traitMap, final RHopper hopper,
+                          final String name, final int tier) {
+        final RHopperTrait type;
+        try {
+            type = RHopperTrait.valueOf(name);
+        } catch (final IllegalArgumentException e) {
+            //valueOf used to throw straight out of the loop, so one unreadable entry cost every
+            //hopper after it
+            rh.getLogger().severe(name + " is not a trait RealHoppers knows! Skipping.");
+            return;
+        }
+
+        //the enum builds every trait, so one added there is loaded here without this having to be
+        //remembered. Forgetting it is exactly how SUCTION came back from disk as a block breaker.
+        final RHopperTraitBase built = type.build(hopper);
+        if (built == null) {
+            rh.getLogger().severe(name + " trait is not supported in this version of RealHoppers! Skipping.");
+            return;
+        }
+
+        built.setTier(tier);
+        traitMap.put(type, built);
     }
 
     @Override

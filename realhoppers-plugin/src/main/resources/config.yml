@@ -8,8 +8,30 @@ RealHoppers:
   # between writes, so a crash can cost at most this much.
   Save-Interval-Seconds: 60
   Drop-Items-If-Full: true
+
+  # A trait sits at a tier, and the tier multiplies the value below it. Tier 1 is the value as
+  # written; a tier 3 suction hopper reaches three times as far.
+  Traits:
+    Max-Tier: 5
+    SUCTION:
+      # Blocks in each direction the hopper pulls dropped items in from.
+      Radius: 2
+    BLOCK_BREAKING:
+      # How far up the column it breaks each cycle. It stops at the first gap.
+      Blocks: 1
+    KILL_MOB:
+      # Damage dealt to each living thing on top of the hopper, per cycle.
+      Damage: 2.0
+      # How far it reaches. Not multiplied by the tier - raise the tier for damage, not range.
+      Radius: 1.5
+    ITEM_TRANS:
+      # Items handed to the linked hopper each cycle.
+      Items: 1
+    AUTO_SELL:
+      # Paid on top of the material's price in Material-Values, so 2.0 at tier 3 pays six times.
+      Price-Multiplier: 1.0
   Material-Values:
     COBBLESTONE: 5
     SAND: 2
 
-Version: 2
+Version: 3

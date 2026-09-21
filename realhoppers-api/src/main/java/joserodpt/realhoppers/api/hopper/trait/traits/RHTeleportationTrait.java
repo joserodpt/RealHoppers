@@ -55,9 +55,4 @@ public class RHTeleportationTrait extends RHopperTraitBase {
 
     @Override
     public void stopTask() {}
-
-    @Override
-    public String getSerializedSave() {
-        return getTraitType().name();
-    }
 }

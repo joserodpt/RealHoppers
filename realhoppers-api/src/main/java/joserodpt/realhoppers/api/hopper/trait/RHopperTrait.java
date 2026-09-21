@@ -14,6 +14,7 @@ package joserodpt.realhoppers.api.hopper.trait;
  */
 
 
+import joserodpt.realhoppers.api.config.RHConfig;
 import joserodpt.realhoppers.api.config.RHLanguage;
 import joserodpt.realhoppers.api.hopper.RHopper;
 import joserodpt.realhoppers.api.hopper.trait.traits.RHBlockBreakingTrait;
@@ -26,22 +27,54 @@ import joserodpt.realhoppers.api.hopper.trait.traits.RHTeleportationTrait;
 import org.bukkit.Material;
 
 public enum RHopperTrait {
-    TELEPORT(Material.ENDER_PEARL, false, true),
-    ITEM_TRANS(Material.ENDER_EYE, false, true),
-    AUTO_SELL(Material.EMERALD, true, false),
-    AUTO_SMELT(Material.FURNACE, false, false),
-    SUCTION(Material.FEATHER, false, false),
-    BLOCK_BREAKING(Material.TNT, false, false),
-    KILL_MOB(Material.DIAMOND_SWORD, true, false);
+    TELEPORT(Material.ENDER_PEARL, false, true, false),
+    ITEM_TRANS(Material.ENDER_EYE, false, true, true),
+    AUTO_SELL(Material.EMERALD, true, false, true),
+    AUTO_SMELT(Material.FURNACE, false, false, false),
+    SUCTION(Material.FEATHER, false, false, true),
+    BLOCK_BREAKING(Material.TNT, false, false, true),
+    KILL_MOB(Material.DIAMOND_SWORD, true, false, true);
 
     private final Material icon;
     private final boolean hasEconomyCapabilities;
     private final boolean requiresLink;
+    private final boolean scalable;
 
-    RHopperTrait(Material icon, boolean hasEconomyCapabilities, boolean requiresLink) {
+    RHopperTrait(Material icon, boolean hasEconomyCapabilities, boolean requiresLink, boolean scalable) {
         this.icon = icon;
         this.hasEconomyCapabilities = hasEconomyCapabilities;
         this.requiresLink = requiresLink;
+        this.scalable = scalable;
+    }
+
+    /**
+     * Whether raising this trait's tier does anything.
+     *
+     * <p>False for {@link #TELEPORT} and {@link #AUTO_SMELT}, which have nothing to multiply: there
+     * is one destination to send a player to, and an item either has a furnace recipe or it does
+     * not. Both are pinned at tier 1 rather than offering a number that would change nothing.</p>
+     */
+    public boolean isScalable() {
+        return this.scalable;
+    }
+
+    /** The highest tier this trait can be raised to. */
+    public int getMaxTier() {
+        if (!this.scalable) {
+            return 1;
+        }
+        return Math.max(1, RHConfig.file().getInt("RealHoppers.Traits.Max-Tier", 5));
+    }
+
+    /**
+     * A number this trait is configured with, read fresh so that {@code /rh reload} takes effect
+     * without every hopper having to be rebuilt.
+     *
+     * @param key      the key under {@code RealHoppers.Traits.<TRAIT>}
+     * @param fallback used when the key is missing, which is what an older config.yml looks like
+     */
+    public double configValue(final String key, final double fallback) {
+        return RHConfig.file().getDouble("RealHoppers.Traits." + this.name() + "." + key, fallback);
     }
 
     public boolean hasEconomyCapabilities() {

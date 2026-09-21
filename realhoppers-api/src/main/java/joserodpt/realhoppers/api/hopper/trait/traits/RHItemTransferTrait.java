@@ -44,24 +44,34 @@ public class RHItemTransferTrait extends RHopperTraitBase {
                 return;
             }
 
-            ItemStack itemStack = getFirst();
-            if (itemStack != null) {
-                if (super.getLinkedHopper().hasHopperSpace(itemStack.getType())) {
-                    if (itemStack.getAmount() > 1) {
-                        itemStack.setAmount(itemStack.getAmount() - 1);
-                    } else {
-                        final Inventory source = super.getHopper().getInventory();
-                        if (source != null) {
-                            source.removeItem(itemStack);
-                        }
-                    }
+            final ItemStack itemStack = getFirst();
+            if (itemStack == null) {
+                return;
+            }
 
-                    final ItemStack clone = itemStack.clone();
-                    clone.setAmount(1);
+            final int perCycle = (int) Math.max(1,
+                    RHopperTrait.ITEM_TRANS.configValue("Items", 1) * super.getTier());
+            final int moving = Math.min(perCycle, itemStack.getAmount());
 
-                    super.getLinkedHopper().addItem(clone);
+            final ItemStack clone = itemStack.clone();
+            clone.setAmount(moving);
+
+            //asked about the whole amount being moved, not about one of them: a tier that moves
+            //eight at a time must not start on a hopper with room for three
+            if (!super.getLinkedHopper().hasHopperSpace(clone)) {
+                return;
+            }
+
+            if (itemStack.getAmount() > moving) {
+                itemStack.setAmount(itemStack.getAmount() - moving);
+            } else {
+                final Inventory source = super.getHopper().getInventory();
+                if (source != null) {
+                    source.removeItem(itemStack);
                 }
             }
+
+            super.getLinkedHopper().addItem(clone);
         }, 10, 10);
     }
 
@@ -87,10 +97,5 @@ public class RHItemTransferTrait extends RHopperTraitBase {
             Bukkit.getScheduler().cancelTask(taskID);
             taskID = -1;
         }
-    }
-
-    @Override
-    public String getSerializedSave() {
-        return getTraitType().name();
     }
 }

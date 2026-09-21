@@ -35,14 +35,15 @@ public class RHSuctionTrait extends RHopperTraitBase {
 
     private int taskID = -1;
 
-    private int area = 2;
-
     @Override
     protected void executeLoop() {
         taskID = Bukkit.getScheduler().scheduleSyncRepeatingTask(RealHoppersAPI.getInstance().getPlugin(), () -> {
             if (!super.hopperReady()) {
                 return;
             }
+
+            //read each cycle, so /rh reload and a tier change both land without rebuilding the trait
+            final double area = RHopperTrait.SUCTION.configValue("Radius", 2) * super.getTier();
 
             for (Entity ent : super.getHopper().getWorld().getNearbyEntities(super.getHopper().getLocation(), area, area, area)) {
                 if (ent.getType() == EntityType.DROPPED_ITEM) {
@@ -70,10 +71,5 @@ public class RHSuctionTrait extends RHopperTraitBase {
             Bukkit.getScheduler().cancelTask(taskID);
             taskID = -1;
         }
-    }
-
-    @Override
-    public String getSerializedSave() {
-        return getTraitType().name();
     }
 }

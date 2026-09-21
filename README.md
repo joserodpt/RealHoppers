@@ -26,6 +26,7 @@ restart.
 ## Table of Contents
 
 * [Traits](#traits)
+* [Tiers](#tiers)
 * [Requirements](#requirements)
 * [Installation](#installation)
 * [Getting Started](#getting-started)
@@ -57,6 +58,25 @@ left-click takes half, shift-left-click takes all.
 by a datapack — smelts in the hopper. It applies to what RealHoppers' own traits feed the hopper: what suction pulls
 in, what block breaking mines, what a mob drops. Items pushed in by vanilla hopper behaviour are untouched, the same
 as with `AUTO_SELL`. On a hopper that also has `AUTO_SELL`, the smelted material is the one that gets priced.
+
+## Tiers
+
+Most traits sit at a **tier**, and the tier multiplies what that trait is configured to do. Tier 1 is the config as
+written, so a tier 3 suction hopper reaches three times as far.
+
+| Trait            | What the tier multiplies                          | Config key                         |
+|------------------|---------------------------------------------------|------------------------------------|
+| `SUCTION`        | How many blocks around it it pulls items from.    | `SUCTION.Radius`                   |
+| `BLOCK_BREAKING` | How far up the column it breaks, stopping at air. | `BLOCK_BREAKING.Blocks`            |
+| `KILL_MOB`       | Damage per cycle.                                 | `KILL_MOB.Damage`                  |
+| `ITEM_TRANS`     | Items handed over per cycle.                      | `ITEM_TRANS.Items`                 |
+| `AUTO_SELL`      | What each sale pays, on top of the item's price.  | `AUTO_SELL.Price-Multiplier`       |
+
+`TELEPORT` and `AUTO_SMELT` have no tiers — there is one destination to send a player to, and an item either has a
+furnace recipe or it does not. Both stay at tier 1.
+
+Raise a tier by right-clicking the trait in the Traits screen, which cycles back to 1 at the top, or with
+`/rh settrait <trait> <tier>`. `RealHoppers.Traits.Max-Tier` in `config.yml` caps it.
 
 ## Requirements
 
@@ -96,12 +116,13 @@ the stick in hand. Linking a hopper that already points somewhere just re-points
 |------------------------|---------------------|-----------------------------------------------|
 | `/realhoppers`, `/rh`  | —                   | Plugin info.                                  |
 | `/rh reload`, `/rh rl` | `realhoppers.admin` | Reloads the config and language files.        |
-| `/rh settrait <trait>` | `realhoppers.admin` | Gives the hopper you are looking at a trait.  |
+| `/rh settrait <trait> [tier]` | `realhoppers.admin` | Gives the hopper you are looking at a trait, at an optional tier. |
 
 ## Configuration
 
 `config.yml` holds the prefix, the sound and particle toggles, the teleport cooldown, how often hoppers.yml is
-written, whether a full hopper drops what it cannot take, and the sell price of each material:
+written, whether a full hopper drops what it cannot take, what each trait does at tier 1, and the sell price of each
+material:
 
 ```yaml
 RealHoppers:
@@ -112,6 +133,11 @@ RealHoppers:
   Teleportation-Cooldown: 20
   Save-Interval-Seconds: 60
   Drop-Items-If-Full: true
+  Traits:
+    Max-Tier: 5
+    SUCTION:
+      Radius: 2
+    # ... one block per trait, see Tiers above
   Material-Values:
     COBBLESTONE: 5
     SAND: 2

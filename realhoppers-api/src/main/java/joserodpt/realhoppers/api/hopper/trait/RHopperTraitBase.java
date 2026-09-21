@@ -23,6 +23,12 @@ public abstract class RHopperTraitBase {
 
     private boolean started;
 
+    /**
+     * How far this trait is upgraded. It multiplies whatever the trait's configured value is - the
+     * radius suction reaches, the damage a mob killer deals - so tier 1 is the config as written.
+     */
+    private int tier = 1;
+
     public RHopperTraitBase(RHopper main) {
         this.main = main;
     }
@@ -51,6 +57,21 @@ public abstract class RHopperTraitBase {
     public void stop() {
         this.stopTask();
         this.started = false;
+    }
+
+    public int getTier() {
+        return this.tier;
+    }
+
+    /**
+     * Sets the tier, clamped to what the trait allows. A trait that does not scale stays at 1
+     * whatever it is handed.
+     *
+     * @return the tier actually set
+     */
+    public int setTier(final int tier) {
+        this.tier = Math.min(Math.max(1, tier), this.getTraitType().getMaxTier());
+        return this.tier;
     }
 
     public RHopper getHopper() {
@@ -130,5 +151,4 @@ public abstract class RHopperTraitBase {
         return this.started;
     }
 
-    public abstract String getSerializedSave();
 }

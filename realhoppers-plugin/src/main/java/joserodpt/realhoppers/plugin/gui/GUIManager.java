@@ -142,7 +142,14 @@ public class GUIManager {
         final RHopperTrait[] traits = RHopperTrait.values();
         for (int i = 0; i < traits.length && i < TRAIT_SLOTS.length; i++) {
             final RHopperTrait trait = traits[i];
-            inventory.addItem(e -> toggle(target, hopper, trait), traitIcon(hopper, trait), TRAIT_SLOTS[i]);
+            inventory.addItem(e -> {
+                //left click switches the trait on or off, right click walks its tier up
+                if (e.getClick().isRightClick() && hopper.hasTrait(trait)) {
+                    raiseTier(target, hopper, trait);
+                } else {
+                    toggle(target, hopper, trait);
+                }
+            }, traitIcon(hopper, trait), TRAIT_SLOTS[i]);
         }
 
         inventory.addItem(e -> openLater(target, () -> openHopper(target, hopper)),
@@ -182,6 +189,13 @@ public class GUIManager {
                 ? "GUI.Items.Trait.Active-Description"
                 : "GUI.Items.Trait.Inactive-Description"));
 
+        //only worth showing on a trait that is on and has something to multiply
+        if (active && trait.isScalable()) {
+            final String tier = hopper.getTraitTier(trait) + "&7/&b" + trait.getMaxTier();
+            RHLanguage.file().getStringList("GUI.Items.Trait.Tier-Description")
+                    .forEach(line -> lore.add(line.replace("%value%", tier)));
+        }
+
         //a trait that follows the hopper's link can be switched on with no link there; it just has
         //nowhere to go until one is made, and the icon says so
         if (trait.requiresLink() && !hopper.hasLink()) {
@@ -191,6 +205,26 @@ public class GUIManager {
         return active
                 ? Items.createItemLoreEnchanted(trait.getIcon(), 1, trait.getName(), lore)
                 : Items.createItem(trait.getIcon(), 1, trait.getName(), lore);
+    }
+
+    /**
+     * Walks a trait's tier up by one, back round to 1 once it is at the top - there is one click to
+     * spend on it, so it has to go both ways.
+     */
+    private void raiseTier(final Player target, final RHopper hopper, final RHopperTrait trait) {
+        if (!trait.isScalable()) {
+            TranslatableLine.TRAIT_NOT_SCALABLE
+                    .setV1(TranslatableLine.ReplacableVar.TRAIT.eq(trait.getName())).send(target);
+            return;
+        }
+
+        final int next = hopper.getTraitTier(trait) >= trait.getMaxTier() ? 1 : hopper.getTraitTier(trait) + 1;
+        final int set = hopper.setTraitTier(trait, next);
+
+        TranslatableLine.TRAIT_TIER_SET
+                .setV1(TranslatableLine.ReplacableVar.TRAIT.eq(trait.getName()))
+                .setV2(TranslatableLine.ReplacableVar.VALUE.eq(String.valueOf(set))).send(target);
+        openTraits(target, hopper);
     }
 
     private void toggle(final Player target, final RHopper hopper, final RHopperTrait trait) {

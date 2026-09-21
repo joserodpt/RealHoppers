@@ -42,9 +42,12 @@ public class RHMobKillingTrait extends RHopperTraitBase {
                 return;
             }
 
-            for (Entity nearbyEntity : super.getHopper().getWorld().getNearbyEntities(super.getHopper().getLocation(), 1.5, 1.5, 1.5)) {
+            final double radius = RHopperTrait.KILL_MOB.configValue("Radius", 1.5);
+            final double damage = RHopperTrait.KILL_MOB.configValue("Damage", 2) * super.getTier();
+
+            for (Entity nearbyEntity : super.getHopper().getWorld().getNearbyEntities(super.getHopper().getLocation(), radius, radius, radius)) {
                 if (nearbyEntity.getType() != EntityType.PLAYER && nearbyEntity instanceof LivingEntity) {
-                    ((LivingEntity) nearbyEntity).damage(2);
+                    ((LivingEntity) nearbyEntity).damage(damage);
                     if (!nearbyEntity.hasMetadata("rh"))
                         nearbyEntity.setMetadata("rh", new FixedMetadataValue(RealHoppersAPI.getInstance().getPlugin(), super.getHopper()));
                 }
@@ -63,10 +66,5 @@ public class RHMobKillingTrait extends RHopperTraitBase {
             Bukkit.getScheduler().cancelTask(taskID);
             taskID = -1;
         }
-    }
-
-    @Override
-    public String getSerializedSave() {
-        return getTraitType().name();
     }
 }
