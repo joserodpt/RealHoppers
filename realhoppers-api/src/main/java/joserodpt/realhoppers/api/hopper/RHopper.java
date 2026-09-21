@@ -360,7 +360,10 @@ public class RHopper {
         }
         //selling only changes anything once there is no room, and that is the expensive question,
         //so it is asked last and only of a hopper that can sell at all
-        return this.hasTrait(RHopperTrait.AUTO_SELL) && !this.hasHopperSpace(incoming);
+        if (this.hasTrait(RHopperTrait.VOID) || this.hasTrait(RHopperTrait.AUTO_SELL)) {
+            return !this.hasHopperSpace(incoming);
+        }
+        return false;
     }
 
     public ItemStack offer(final ItemStack incoming) {
@@ -385,6 +388,11 @@ public class RHopper {
         //which would smelt it a second time
         final RHAutoSellTrait autoSell = this.getTrait(RHopperTrait.AUTO_SELL, RHAutoSellTrait.class);
         if (autoSell != null && autoSell.sell(remaining.getType(), remaining.getAmount())) {
+            return null;
+        }
+
+        //last word: sell what has a price, destroy the rest
+        if (this.hasTrait(RHopperTrait.VOID)) {
             return null;
         }
 

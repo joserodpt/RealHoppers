@@ -16,7 +16,11 @@ package joserodpt.realhoppers.api.hopper.trait;
 import joserodpt.realhoppers.api.RealHoppersAPI;
 import joserodpt.realhoppers.api.config.RHHoppers;
 import joserodpt.realhoppers.api.hopper.RHopper;
+import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+
+import java.util.function.Consumer;
 
 public abstract class RHopperTraitBase {
 
@@ -162,6 +166,35 @@ public abstract class RHopperTraitBase {
             return false;
         }
         return true;
+    }
+
+    /**
+     * Runs over the blocks around the hopper - the column it stands in, one above and one below -
+     * skipping anything whose chunk is not in memory.
+     *
+     * <p>The cost grows with the square of the radius, and the radius is what a tier raises, so the
+     * traits using this run on a slow cycle and their configured radius starts small.</p>
+     */
+    protected void forEachBlockAround(final int radius, final Consumer<Block> action) {
+        final Block origin = this.getHopper().getBlock();
+        final World world = origin.getWorld();
+
+        for (int x = -radius; x <= radius; x++) {
+            for (int z = -radius; z <= radius; z++) {
+                final int blockX = origin.getX() + x;
+                final int blockZ = origin.getZ() + z;
+
+                //asked once per column rather than per block, and before getBlockAt, which would
+                //pull the chunk in
+                if (!world.isChunkLoaded(blockX >> 4, blockZ >> 4)) {
+                    continue;
+                }
+
+                for (int y = -1; y <= 1; y++) {
+                    action.accept(world.getBlockAt(blockX, origin.getY() + y, blockZ));
+                }
+            }
+        }
     }
 
     public abstract void executeAction(Player p);

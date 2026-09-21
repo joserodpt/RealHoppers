@@ -46,6 +46,10 @@ restart.
 | `KILL_MOB`       | Damages living entities standing on it and claims their drops.                          |
 | `AUTO_SELL`      | Anything the hopper cannot fit is sold instead, into a balance the owner collects later. |
 | `AUTO_SMELT`     | Smelts what the hopper takes in — cobblestone lands as stone, ore as ingots.             |
+| `VOID`           | Destroys whatever will not fit, instead of dropping it on the floor.                     |
+| `MOB_PULL`       | Drags living things nearby onto the hopper it is linked to.                              |
+| `HARVEST`        | Cuts fully grown crops around it and replants them.                                      |
+| `GROW`           | Nudges crops around it along, the way bonemeal would.                                    |
 
 `TELEPORT` and `ITEM_TRANSF` are *linked* traits: they follow the hopper's link. A hopper has **one** link, and both
 traits use it — so a linked pair can be a teleporter and an item pipe at the same time, and re-pointing the hopper
@@ -55,9 +59,16 @@ moves both at once. Either trait can be switched on before a link exists; it sim
 left-click takes half, shift-left-click takes all.
 
 `AUTO_SMELT` uses the server's own furnace recipes, so anything a player could smelt by hand — including recipes added
-by a datapack — smelts in the hopper. It applies to what RealHoppers' own traits feed the hopper: what suction pulls
-in, what block breaking mines, what a mob drops. Items pushed in by vanilla hopper behaviour are untouched, the same
-as with `AUTO_SELL`. On a hopper that also has `AUTO_SELL`, the smelted material is the one that gets priced.
+by a datapack — smelts in the hopper. On a hopper that also has `AUTO_SELL`, the smelted material is the one that gets
+priced.
+
+Everything entering a hopper meets its traits, whether RealHoppers put it there — suction, block breaking, harvesting,
+a mob drop — or vanilla did, from a chest above or a hopper feeding in. The order is always the same: smelt it, store
+it if it fits, sell it if it does not, void it if it still has nowhere to go, and otherwise drop it on the floor when
+`Drop-Items-If-Full` is on.
+
+`HARVEST` and `GROW` read a square around the hopper, so their cost grows with the square of the radius. Both run on a
+slow cycle for that reason, and a high tier over a large field is the expensive combination to watch.
 
 ## Tiers
 
@@ -85,9 +96,12 @@ moves a full stack a cycle.
 | `KILL_MOB`       | Damage per cycle.                                 | `KILL_MOB.Damage`            |
 | `ITEM_TRANSF`     | Items handed over per cycle.                      | `ITEM_TRANSF.Items`           |
 | `AUTO_SELL`      | What each sale pays, on top of the item's price.  | `AUTO_SELL.Price-Multiplier` |
+| `MOB_PULL`       | How far it drags living things in from.           | `MOB_PULL.Radius`            |
+| `HARVEST`        | How far it reaps.                                 | `HARVEST.Radius`             |
+| `GROW`           | How far it grows.                                 | `GROW.Radius`                |
 
-`TELEPORT` and `AUTO_SMELT` have no tiers — there is one destination to send a player to, and an item either has a
-furnace recipe or it does not. Both stay at tier 1.
+`TELEPORT`, `AUTO_SMELT` and `VOID` have no tiers — there is one destination to send a player to, and an item either
+has a furnace recipe or it does not, and is either destroyed or it is not. All three stay at tier 1.
 
 A trait starts at tier 1, so tier 1's price is never charged. Players upgrade by right-clicking the trait in the
 Traits screen, which charges the next tier's price through Vault and only ever goes up. `/rh settrait <trait> <tier>`

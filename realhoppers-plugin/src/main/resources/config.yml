@@ -56,9 +56,34 @@ RealHoppers:
         '1': { Power: 1.0, Price: 0 }
         '2': { Power: 1.5, Price: 5000 }
         '3': { Power: 2.0, Price: 20000 }
+    MOB_PULL:
+      # Blocks in each direction it drags living things in from, at power 1.
+      Radius: 3
+      Tiers:
+        '1': { Power: 1.0, Price: 0 }
+        '2': { Power: 2.0, Price: 2000 }
+        '3': { Power: 3.0, Price: 8000 }
+    HARVEST:
+      # Blocks in each direction it reaps, at power 1. The work grows with the square of this, so
+      # a high tier over a big field is the expensive combination.
+      Radius: 2
+      Tiers:
+        '1': { Power: 1.0, Price: 0 }
+        '2': { Power: 2.0, Price: 3000 }
+        '3': { Power: 3.0, Price: 12000 }
+    GROW:
+      # Blocks in each direction it grows, at power 1.
+      Radius: 2
+      # Chance per crop per cycle, as a percentage. Not multiplied by the tier - raise the tier for
+      # reach, not speed.
+      Chance: 10.0
+      Tiers:
+        '1': { Power: 1.0, Price: 0 }
+        '2': { Power: 2.0, Price: 3000 }
+        '3': { Power: 3.0, Price: 12000 }
 
   Material-Values:
     COBBLESTONE: 5
     SAND: 2
 
-Version: 5
+Version: 6

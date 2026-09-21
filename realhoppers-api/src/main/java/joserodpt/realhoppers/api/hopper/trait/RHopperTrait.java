@@ -19,12 +19,16 @@ import joserodpt.realhoppers.api.config.RHConfig;
 import joserodpt.realhoppers.api.config.RHLanguage;
 import joserodpt.realhoppers.api.hopper.RHopper;
 import joserodpt.realhoppers.api.hopper.trait.traits.RHBlockBreakingTrait;
+import joserodpt.realhoppers.api.hopper.trait.traits.RHGrowTrait;
+import joserodpt.realhoppers.api.hopper.trait.traits.RHHarvestTrait;
+import joserodpt.realhoppers.api.hopper.trait.traits.RHMobPullTrait;
 import joserodpt.realhoppers.api.hopper.trait.traits.RHAutoSellTrait;
 import joserodpt.realhoppers.api.hopper.trait.traits.RHAutoSmeltTrait;
 import joserodpt.realhoppers.api.hopper.trait.traits.RHItemTransferTrait;
 import joserodpt.realhoppers.api.hopper.trait.traits.RHMobKillingTrait;
 import joserodpt.realhoppers.api.hopper.trait.traits.RHSuctionTrait;
 import joserodpt.realhoppers.api.hopper.trait.traits.RHTeleportationTrait;
+import joserodpt.realhoppers.api.hopper.trait.traits.RHVoidTrait;
 import org.bukkit.Material;
 
 import java.util.HashMap;
@@ -37,7 +41,11 @@ public enum RHopperTrait {
     AUTO_SMELT(Material.FURNACE, false, false, false),
     SUCTION(Material.FEATHER, false, false, true),
     BLOCK_BREAKING(Material.TNT, false, false, true),
-    KILL_MOB(Material.DIAMOND_SWORD, true, false, true);
+    KILL_MOB(Material.DIAMOND_SWORD, true, false, true),
+    VOID(Material.LAVA_BUCKET, false, false, false),
+    MOB_PULL(Material.LEAD, false, true, true),
+    HARVEST(Material.DIAMOND_HOE, false, false, true),
+    GROW(Material.BONE_MEAL, false, false, true);
 
     private final Material icon;
     private final boolean hasEconomyCapabilities;
@@ -200,6 +208,14 @@ public enum RHopperTrait {
                 return new RHAutoSellTrait(hopper);
             case AUTO_SMELT:
                 return new RHAutoSmeltTrait(hopper);
+            case VOID:
+                return new RHVoidTrait(hopper);
+            case MOB_PULL:
+                return new RHMobPullTrait(hopper);
+            case HARVEST:
+                return new RHHarvestTrait(hopper);
+            case GROW:
+                return new RHGrowTrait(hopper);
             default:
                 return null;
         }

@@ -88,5 +88,9 @@ Traits:
   SUCTION: "&bSuction"
   BLOCK_BREAKING: "&7Block Breaking"
   KILL_MOB: "&4Mob Killing"
+  VOID: "&8Void"
+  MOB_PULL: "&5Mob Pulling"
+  HARVEST: "&aHarvest"
+  GROW: "&2Growth"
 
-Version: 7
+Version: 8
