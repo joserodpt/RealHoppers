@@ -32,18 +32,23 @@ public class RHAutoSellTrait extends RHopperTraitBase {
         super(main);
     }
 
-    /**
-     * Sells one of {@code type} into the hopper's balance.
-     *
-     * @return whether the material had a price. False leaves the item the caller's problem, which is
-     *         what stops an unpriced drop quietly disappearing into a full hopper.
-     */
+    /** Sells one of {@code type}. */
     public boolean sell(final Material type) {
+        return this.sell(type, 1);
+    }
+
+    /**
+     * Sells {@code amount} of {@code type} into the hopper's balance.
+     *
+     * @return whether the material had a price. False leaves the items the caller's problem, which
+     *         is what stops an unpriced drop quietly disappearing into a full hopper.
+     */
+    public boolean sell(final Material type, final int amount) {
         final Double price = RealHoppersAPI.getInstance().getHopperManager().getMaterialCost().get(type);
-        if (price == null) {
+        if (price == null || amount <= 0) {
             return false;
         }
-        final double payout = price
+        final double payout = price * amount
                 * RHopperTrait.AUTO_SELL.configValue("Price-Multiplier", 1) * super.power();
         super.getHopper().setBalance(super.getHopper().getBalance() + payout);
         return true;

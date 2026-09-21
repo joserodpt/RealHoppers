@@ -332,6 +332,47 @@ public class RHopper {
     }
 
     /**
+     * Hands the hopper an item and lets its traits decide what becomes of it: smelted on the way in,
+     * stored if there is room, sold if there is not, and handed back if none of that applied.
+     *
+     * <p>The one place that decision lives. Suction, block breaking and mob drops each used to
+     * carry their own copy of it, and every one of them worked a single item at a time - so a
+     * dropped stack of sixty-four was one item stored and sixty-three destroyed. Amounts are
+     * respected here.</p>
+     *
+     * @param incoming the item offered, which is not modified
+     * @return what the hopper could not take, for the caller to drop or leave where it was, or
+     *         null when all of it was dealt with
+     */
+    public ItemStack offer(final ItemStack incoming) {
+        if (incoming == null || incoming.getType() == Material.AIR || incoming.getAmount() <= 0) {
+            return null;
+        }
+
+        ItemStack remaining = this.transform(incoming.clone());
+
+        final Inventory hopperInventory = this.getInventory();
+        if (hopperInventory != null) {
+            final Map<Integer, ItemStack> leftover = hopperInventory.addItem(remaining);
+            if (leftover.isEmpty()) {
+                return null;
+            }
+            //addItem takes what it can and reports the rest, so a stack can be split between
+            //being stored and being sold
+            remaining = leftover.values().iterator().next();
+        }
+
+        //already transformed, so the trait is asked directly rather than through sell(Material),
+        //which would smelt it a second time
+        final RHAutoSellTrait autoSell = this.getTrait(RHopperTrait.AUTO_SELL, RHAutoSellTrait.class);
+        if (autoSell != null && autoSell.sell(remaining.getType(), remaining.getAmount())) {
+            return null;
+        }
+
+        return remaining;
+    }
+
+    /**
      * Writes this hopper into the in-memory hoppers document and marks it dirty. The file itself is
      * written by the flush task, not here: an auto-selling hopper changes its balance every time it
      * swallows an item, and this used to serialise and rewrite the whole of hoppers.yml each time.

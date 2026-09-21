@@ -112,13 +112,10 @@ public class EventListener implements Listener {
             RHopper source = (RHopper) event.getEntity().getMetadata("rh").get(0).value();
             if (source != null) {
                 for (ItemStack drop : event.getDrops()) {
-                    if (source.hasHopperSpace(drop)) {
-                        source.addItem(drop);
-                    } else if (!source.sell(drop.getType())) {
-                        //no room and nothing was sold - an unpriced drop used to vanish here
-                        if (RHConfig.file().getBoolean("RealHoppers.Drop-Items-If-Full")) {
-                            source.getWorld().dropItemNaturally(source.getTeleportLocation(), drop);
-                        }
+                    //sold a single unit of the stack and threw the rest away before this
+                    final ItemStack left = source.offer(drop);
+                    if (left != null && RHConfig.file().getBoolean("RealHoppers.Drop-Items-If-Full")) {
+                        source.getWorld().dropItemNaturally(source.getTeleportLocation(), left);
                     }
                 }
                 event.getDrops().clear();

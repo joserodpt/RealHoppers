@@ -23,6 +23,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
 public class RHSuctionTrait extends RHopperTraitBase {
 
@@ -47,13 +48,15 @@ public class RHSuctionTrait extends RHopperTraitBase {
 
             for (Entity ent : super.getHopper().getWorld().getNearbyEntities(super.getHopper().getLocation(), area, area, area)) {
                 if (ent.getType() == EntityType.DROPPED_ITEM) {
-                    Item droppedItem = (Item) ent;
-                    Material m = droppedItem.getItemStack().getType();
-                    if (super.getHopper().hasHopperSpace(m)) {
-                        super.getHopper().addItem(m);
+                    final Item droppedItem = (Item) ent;
+
+                    //the whole stack, not one of it. This took a single item and then removed the
+                    //entity, so a dropped stack of sixty-four left sixty-three destroyed.
+                    final ItemStack left = super.getHopper().offer(droppedItem.getItemStack());
+                    if (left == null) {
                         ent.remove();
-                    } else if (super.getHopper().sell(m)) {
-                        ent.remove();
+                    } else {
+                        droppedItem.setItemStack(left);
                     }
                 }
             }
