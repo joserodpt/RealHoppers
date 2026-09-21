@@ -208,7 +208,6 @@ public class HopperManager extends HopperManagerAPI {
                 continue;
             }
 
-            hopper.loopView();
         }
     }
 

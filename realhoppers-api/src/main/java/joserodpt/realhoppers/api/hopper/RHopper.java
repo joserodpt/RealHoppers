@@ -13,7 +13,6 @@ package joserodpt.realhoppers.api.hopper;
  * @link https://github.com/joserodpt/RealHoppers
  */
 
-
 import joserodpt.realhoppers.api.RealHoppersAPI;
 import joserodpt.realhoppers.api.config.RHHoppers;
 import joserodpt.realhoppers.api.config.TranslatableLine;
@@ -26,10 +25,8 @@ import joserodpt.realhoppers.api.hopper.trait.traits.RHFilterTrait;
 import joserodpt.realhoppers.api.utils.LocationUtil;
 import joserodpt.realhoppers.api.utils.Text;
 import org.bukkit.Bukkit;
-import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.Particle;
 import org.bukkit.World;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Block;
@@ -49,7 +46,6 @@ public class RHopper {
     public enum Data {ALL, BALANCE, TRAITS, LINK, XP }
 
     private Block block;
-    private boolean visualizing;
     private double balance;
 
     /**
@@ -74,8 +70,6 @@ public class RHopper {
     public RHopper(Block b, boolean save) {
         //new hopper
         this.block = b;
-
-        this.setVisualizing(true);
 
         if (save)
             this.saveData(Data.ALL);
@@ -563,44 +557,14 @@ public class RHopper {
         this.linkLocation = null;
     }
 
-    public Location getTeleportLocation() {
-        return this.getBlock().getLocation().add(0.5, 1, 0.5);
-    }
-
-    public void setVisualizing(boolean visualizing) {
-        this.visualizing = visualizing;
-    }
-
+    /** Cancels everything this hopper has running and puts its balance beyond the next flush. */
     public void stopHopper() {
         this.getTraitMap().values().forEach(RHopperTraitBase::stopTask);
         this.saveData(Data.BALANCE);
     }
 
-    public void loopView() {
-        if (visualizing) {
-            double minX = this.getLocation().getBlockX();
-            double minY = this.getLocation().getBlockY();
-            double minZ = this.getLocation().getBlockZ();
-
-            double maxX = this.getLocation().getBlockX() + 1;
-            double maxY = this.getLocation().getBlockY() + 1;
-            double maxZ = this.getLocation().getBlockZ() + 1;
-
-            double dist = 0.5;
-            for (double x = minX; x <= maxX; x += dist) {
-                for (double y = minY; y <= maxY; y += dist) {
-                    for (double z = minZ; z <= maxZ; z += dist) {
-                        int components = 0;
-                        if (x == minX || x == maxX) components++;
-                        if (y == minY || y == maxY) components++;
-                        if (z == minZ || z == maxZ) components++;
-                        if (components >= 2) {
-                            final Location l = new Location(this.getBlock().getWorld(), x, y, z);
-                            l.getWorld().spawnParticle(Particle.REDSTONE, l.getX(), l.getY(), l.getZ(), 0, 0.001, 1, 0, 1, new Particle.DustOptions(Color.WHITE, 1));
-                        }
-                    }
-                }
-            }
-        }
+    public Location getTeleportLocation() {
+        return this.getBlock().getLocation().add(0.5, 1, 0.5);
     }
+
 }

@@ -77,6 +77,12 @@ public class PlayerListener implements Listener {
             return;
         }
 
+        //sneaking is how vanilla places a block against a container rather than opening it, and
+        //a hopper feeding a hopper is the whole point of them - so the plugin gets out of the way
+        if (player.isSneaking()) {
+            return;
+        }
+
         event.setCancelled(true);
 
         if (player.getInventory().getItemInMainHand().getType() == LINK_TOOL) {

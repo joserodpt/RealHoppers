@@ -48,7 +48,7 @@ public final class RealHoppersPlugin extends JavaPlugin {
     private static RealHoppersPlugin instance;
 
     private RealHoppers realHoppers;
-    private BukkitTask hopperHighlight;
+    private BukkitTask hopperSweep;
     private BukkitTask hopperFlush;
 
     public static RealHoppersPlugin getPlugin() {
@@ -101,7 +101,7 @@ public final class RealHoppersPlugin extends JavaPlugin {
             }
         }
 
-        this.hopperHighlight = Bukkit.getScheduler().runTaskTimer(this,
+        this.hopperSweep = Bukkit.getScheduler().runTaskTimer(this,
                 () -> realHoppers.getHopperManager().tick(), 10, 10);
 
         //hoppers write themselves into the document as they go and this is what puts it on disk.
@@ -162,8 +162,8 @@ public final class RealHoppersPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        if (this.hopperHighlight != null) {
-            this.hopperHighlight.cancel();
+        if (this.hopperSweep != null) {
+            this.hopperSweep.cancel();
         }
         if (this.hopperFlush != null) {
             this.hopperFlush.cancel();
