@@ -53,13 +53,15 @@ public class GUIManager {
     private static final int GUI_SIZE = 54;
 
     /**
-     * The whole of rows three and four, eighteen places for fourteen traits. It was a seven element
-     * array against exactly seven traits, and the render loop stops at its length - so an eighth
-     * trait would simply not have appeared.
+     * Rows four and five, a column of padding either side: fourteen places for fourteen traits.
+     *
+     * <p>Exactly full, so a fifteenth trait has nowhere to go. The render loop stops at this
+     * array's length and used to do so silently - that is how an eighth trait went missing when
+     * this held seven - so {@link #openHopper} says so in the log now instead.</p>
      */
     private static final int[] TRAIT_SLOTS = {
-            18, 19, 20, 21, 22, 23, 24, 25, 26,
-            27, 28, 29, 30, 31, 32, 33, 34, 35};
+            28, 29, 30, 31, 32, 33, 34,
+            37, 38, 39, 40, 41, 42, 43};
 
     /** The hopper's own five slots, centred on row two. */
     private static final int[] HOPPER_SLOTS = {11, 12, 13, 14, 15};
@@ -74,6 +76,7 @@ public class GUIManager {
     private static final int FILTER_PICK_SLOT = 48;
     private static final int FILTER_ADD_SLOT = 50;
     private static final int FILTER_CLOSE_SLOT = 53;
+    /** In among where the entries would be, since it only shows when there are none. */
     private static final int FILTER_EMPTY_SLOT = 31;
 
     private final RealHoppers rh;
@@ -137,6 +140,14 @@ public class GUIManager {
 
         //and the traits, which were a second screen of their own
         final RHopperTrait[] traits = RHopperTrait.values();
+        if (traits.length > TRAIT_SLOTS.length) {
+            //the screen is full. Said out loud, because the alternative is a trait that exists,
+            //loads, works and cannot be switched on by anybody looking for it
+            rh.getLogger().warning("There are " + traits.length + " traits and only " + TRAIT_SLOTS.length
+                    + " places for them, so " + (traits.length - TRAIT_SLOTS.length)
+                    + " will not appear in the hopper screen.");
+        }
+
         for (int i = 0; i < traits.length && i < TRAIT_SLOTS.length; i++) {
             final RHopperTrait trait = traits[i];
             inventory.addItem(e -> {
