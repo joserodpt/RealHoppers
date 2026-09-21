@@ -344,6 +344,25 @@ public class RHopper {
      * @return what the hopper could not take, for the caller to drop or leave where it was, or
      *         null when all of it was dealt with
      */
+    /**
+     * Whether any trait on this hopper would change what becomes of an incoming item.
+     *
+     * <p>Asked before the plugin takes a vanilla hopper transfer over. False means vanilla should
+     * be left to do exactly what it was going to, which keeps transfer cooldowns and the rest of
+     * the hopper's own behaviour intact - and these events fire constantly, so the common answer
+     * has to be cheap. It is: a hopper with neither trait costs two map lookups.</p>
+     */
+    public boolean intercepts(final ItemStack incoming) {
+        //transform hands back the very same instance when nothing would smelt it, so this is an
+        //identity check rather than a comparison
+        if (this.transform(incoming) != incoming) {
+            return true;
+        }
+        //selling only changes anything once there is no room, and that is the expensive question,
+        //so it is asked last and only of a hopper that can sell at all
+        return this.hasTrait(RHopperTrait.AUTO_SELL) && !this.hasHopperSpace(incoming);
+    }
+
     public ItemStack offer(final ItemStack incoming) {
         if (incoming == null || incoming.getType() == Material.AIR || incoming.getAmount() <= 0) {
             return null;

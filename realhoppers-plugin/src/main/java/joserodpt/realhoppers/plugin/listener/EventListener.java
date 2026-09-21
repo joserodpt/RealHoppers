@@ -21,6 +21,7 @@ import joserodpt.realhoppers.api.hopper.events.RHopperStateChangeEvent;
 import joserodpt.realhoppers.api.utils.Text;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.block.Hopper;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -30,6 +31,10 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
+import org.bukkit.event.inventory.InventoryMoveItemEvent;
+import org.bukkit.event.inventory.InventoryPickupItemEvent;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.List;
@@ -121,6 +126,76 @@ public class EventListener implements Listener {
                 event.getDrops().clear();
             }
         }
+    }
+
+    /**
+     * A hopper sucking up a dropped item off the ground.
+     */
+    @EventHandler(ignoreCancelled = true)
+    public void onHopperPickup(InventoryPickupItemEvent e) {
+        final RHopper hopper = hopperOf(e.getInventory());
+        if (hopper == null) {
+            return;
+        }
+
+        final ItemStack incoming = e.getItem().getItemStack();
+        if (!hopper.intercepts(incoming)) {
+            return;
+        }
+
+        e.setCancelled(true);
+        final ItemStack left = hopper.offer(incoming);
+        if (left == null) {
+            e.getItem().remove();
+        } else {
+            e.getItem().setItemStack(left);
+        }
+    }
+
+    /**
+     * A container pushing into a hopper, or a hopper pulling out of one above it.
+     *
+     * <p>Until this existed, AUTO_SMELT and AUTO_SELL only applied to what RealHoppers' own traits
+     * fed a hopper - so a chest feeding one from above went straight past both, which is not what
+     * anybody looking at the hopper would expect.</p>
+     */
+    @EventHandler(ignoreCancelled = true)
+    public void onHopperMove(InventoryMoveItemEvent e) {
+        final RHopper hopper = hopperOf(e.getDestination());
+        if (hopper == null) {
+            return;
+        }
+
+        final ItemStack incoming = e.getItem();
+        if (!hopper.intercepts(incoming)) {
+            return;
+        }
+
+        //cancelling leaves the item where it was, so whatever the hopper took has to be taken out
+        //of the source by hand
+        e.setCancelled(true);
+        final ItemStack left = hopper.offer(incoming);
+        final int taken = incoming.getAmount() - (left == null ? 0 : left.getAmount());
+        if (taken > 0) {
+            final ItemStack removed = incoming.clone();
+            removed.setAmount(taken);
+            e.getSource().removeItem(removed);
+        }
+    }
+
+    /**
+     * The RealHoppers hopper an inventory belongs to, or null for anything else.
+     *
+     * <p>Both callers are hot paths, so this answers on an empty map before it touches the holder -
+     * reading one builds a block state snapshot.</p>
+     */
+    private RHopper hopperOf(final Inventory inventory) {
+        if (rh.getHopperManager().getHoppersMap().isEmpty()) {
+            return null;
+        }
+        //a hopper minecart holds a HopperMinecart rather than a Hopper, and is not ours
+        final InventoryHolder holder = inventory.getHolder();
+        return holder instanceof Hopper ? rh.getHopperManager().getHopper(((Hopper) holder).getBlock()) : null;
     }
 
     @EventHandler
