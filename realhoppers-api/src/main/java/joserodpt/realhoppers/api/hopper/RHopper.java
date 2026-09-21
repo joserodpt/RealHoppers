@@ -22,6 +22,7 @@ import joserodpt.realhoppers.api.hopper.trait.RHopperTrait;
 import joserodpt.realhoppers.api.hopper.trait.RHopperTraitBase;
 import joserodpt.realhoppers.api.hopper.trait.traits.RHAutoSellTrait;
 import joserodpt.realhoppers.api.hopper.trait.traits.RHAutoSmeltTrait;
+import joserodpt.realhoppers.api.hopper.trait.traits.RHFilterTrait;
 import joserodpt.realhoppers.api.utils.LocationUtil;
 import joserodpt.realhoppers.api.utils.Text;
 import org.bukkit.Bukkit;
@@ -391,11 +392,19 @@ public class RHopper {
     public boolean intercepts(final ItemStack incoming) {
         //transform hands back the very same instance when nothing would smelt it, so this is an
         //identity check rather than a comparison
-        if (this.transform(incoming) != incoming) {
+        final ItemStack stored = this.transform(incoming);
+        if (stored != incoming) {
             return true;
         }
-        //selling only changes anything once there is no room, and that is the expensive question,
-        //so it is asked last and only of a hopper that can sell at all
+
+        //a filter that turns this away changes the outcome whether or not there is room
+        final RHFilterTrait filter = this.getTrait(RHopperTrait.FILTER, RHFilterTrait.class);
+        if (filter != null && !filter.accepts(stored.getType())) {
+            return true;
+        }
+
+        //selling and voiding only change anything once there is no room, and that is the expensive
+        //question, so it is asked last and only of a hopper that can do one of them
         if (this.hasTrait(RHopperTrait.VOID) || this.hasTrait(RHopperTrait.AUTO_SELL)) {
             return !this.hasHopperSpace(incoming);
         }
@@ -409,8 +418,13 @@ public class RHopper {
 
         ItemStack remaining = this.transform(incoming.clone());
 
+        //a filter governs what may be kept, and nothing else. What it turns away still goes on to
+        //be sold or voided, so a filter beside either keeps what is listed and disposes of the rest
+        final RHFilterTrait filter = this.getTrait(RHopperTrait.FILTER, RHFilterTrait.class);
+        final boolean mayKeep = filter == null || filter.accepts(remaining.getType());
+
         final Inventory hopperInventory = this.getInventory();
-        if (hopperInventory != null) {
+        if (mayKeep && hopperInventory != null) {
             final Map<Integer, ItemStack> leftover = hopperInventory.addItem(remaining);
             if (leftover.isEmpty()) {
                 return null;

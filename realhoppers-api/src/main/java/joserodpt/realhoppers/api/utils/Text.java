@@ -52,6 +52,25 @@ public class Text {
 		p.sendMessage(Text.color(RHConfig.file().getString("RealHoppers.Prefix") +" &r" + string));
 	}
 
+	/**
+	 * DIAMOND_ORE as "Diamond Ore". Same helper RealMines carries, for the same reason: a raw
+	 * material name in a GUI reads like a config key.
+	 */
+	public static String beautifyMaterialName(final org.bukkit.Material material) {
+		final String[] words = material.name().toLowerCase().split("_");
+		final StringBuilder out = new StringBuilder();
+		for (final String word : words) {
+			if (word.isEmpty()) {
+				continue;
+			}
+			if (out.length() > 0) {
+				out.append(' ');
+			}
+			out.append(Character.toUpperCase(word.charAt(0))).append(word.substring(1));
+		}
+		return out.toString();
+	}
+
 	public static String formatNumber(double number) {
 		String[] suffixes = {"", "k", "M", "T"};
 		int index = 0;

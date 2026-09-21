@@ -52,6 +52,7 @@ restart.
 | `GROW`           | Nudges crops around it along, the way bonemeal would.                                    |
 | `AUTO_COMPACT`   | Squashes its contents — nine ingots become a block, nine nuggets an ingot.               |
 | `XP_COLLECT`     | Soaks up experience orbs nearby and keeps them until somebody takes them.                |
+| `FILTER`         | Decides what the hopper is allowed to keep.                                              |
 
 `TELEPORT` and `ITEM_TRANSF` are *linked* traits: they follow the hopper's link. A hopper has **one** link, and both
 traits use it — so a linked pair can be a teleporter and an item pipe at the same time, and re-pointing the hopper
@@ -66,6 +67,11 @@ money and is handed straight back as levels rather than paid through Vault.
 `AUTO_COMPACT` reads the server's crafting recipes for anything that is nine of one thing filling the grid, so
 datapack recipes work as well. Its result goes back through the hopper, which means a compacting hopper that also
 sells prices the block rather than the ingots.
+
+`FILTER` governs what the hopper may *keep*, and nothing else — so what it turns away still meets the rest of the
+hopper. Beside `AUTO_SELL` that means keep what is listed and sell the rest; beside `VOID`, keep what is listed and
+destroy the rest. An empty list keeps everything. Edit it by shift-clicking the trait in the Traits screen, then
+holding an item and clicking to add it.
 
 `AUTO_SMELT` uses the server's own furnace recipes, so anything a player could smelt by hand — including recipes added
 by a datapack — smelts in the hopper. On a hopper that also has `AUTO_SELL`, the smelted material is the one that gets
@@ -111,8 +117,9 @@ moves a full stack a cycle.
 | `AUTO_COMPACT`   | Sweeps over the contents per cycle.               | `AUTO_COMPACT.Passes`        |
 | `XP_COLLECT`     | How far it soaks orbs up from.                    | `XP_COLLECT.Radius`          |
 
-`TELEPORT`, `AUTO_SMELT` and `VOID` have no tiers — there is one destination to send a player to, and an item either
-has a furnace recipe or it does not, and is either destroyed or it is not. All three stay at tier 1.
+`TELEPORT`, `AUTO_SMELT`, `VOID` and `FILTER` have no tiers — there is one destination to send a player to, and an item either
+has a furnace recipe or it does not, is either destroyed or it is not, and is either on the list or it is not. All
+four stay at tier 1.
 
 A trait starts at tier 1, so tier 1's price is never charged. Players upgrade by right-clicking the trait in the
 Traits screen, which charges the next tier's price through Vault and only ever goes up. `/rh settrait <trait> <tier>`

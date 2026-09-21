@@ -19,6 +19,7 @@ import joserodpt.realhoppers.api.config.RHConfig;
 import joserodpt.realhoppers.api.config.RHLanguage;
 import joserodpt.realhoppers.api.hopper.RHopper;
 import joserodpt.realhoppers.api.hopper.trait.traits.RHBlockBreakingTrait;
+import joserodpt.realhoppers.api.hopper.trait.traits.RHFilterTrait;
 import joserodpt.realhoppers.api.hopper.trait.traits.RHGrowTrait;
 import joserodpt.realhoppers.api.hopper.trait.traits.RHHarvestTrait;
 import joserodpt.realhoppers.api.hopper.trait.traits.RHMobPullTrait;
@@ -49,7 +50,8 @@ public enum RHopperTrait {
     HARVEST(Material.DIAMOND_HOE, false, false, true),
     GROW(Material.BONE_MEAL, false, false, true),
     AUTO_COMPACT(Material.IRON_BLOCK, false, false, true),
-    XP_COLLECT(Material.EXPERIENCE_BOTTLE, false, false, true);
+    XP_COLLECT(Material.EXPERIENCE_BOTTLE, false, false, true),
+    FILTER(Material.HOPPER, false, false, false);
 
     private final Material icon;
     private final boolean hasEconomyCapabilities;
@@ -224,6 +226,8 @@ public enum RHopperTrait {
                 return new RHAutoCompactTrait(hopper);
             case XP_COLLECT:
                 return new RHXpCollectTrait(hopper);
+            case FILTER:
+                return new RHFilterTrait(hopper);
             default:
                 return null;
         }

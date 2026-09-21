@@ -35,6 +35,10 @@ public enum TranslatableLine {
     TRAIT_NEEDS_LINK("Hoppers.Traits.Needs-Link", ReplacableVar.TRAIT),
     TRAIT_UNAVAILABLE("Hoppers.Traits.Unavailable", ReplacableVar.TRAIT),
     TRAIT_REMOVED("Hoppers.Traits.Removed", ReplacableVar.TRAIT),
+    FILTER_ADDED("Hoppers.Filter.Added", ReplacableVar.MATERIAL),
+    FILTER_REMOVED("Hoppers.Filter.Removed", ReplacableVar.MATERIAL),
+    FILTER_ALREADY_LISTED("Hoppers.Filter.Already-Listed", ReplacableVar.MATERIAL),
+    FILTER_NOTHING_HELD("Hoppers.Filter.Nothing-Held"),
     TRAIT_TIER_SET("Hoppers.Traits.Tier-Set", ReplacableVar.TRAIT, ReplacableVar.VALUE),
     TRAIT_NOT_SCALABLE("Hoppers.Traits.Not-Scalable", ReplacableVar.TRAIT),
     TRAIT_TIER_UPGRADED("Hoppers.Traits.Tier-Upgraded", ReplacableVar.TRAIT, ReplacableVar.VALUE),
@@ -50,6 +54,9 @@ public enum TranslatableLine {
     // GUI related messages
     GUI_TITLE("GUI.Title"),
     GUI_TRAITS_TITLE("GUI.Traits-Title"),
+    GUI_FILTER_TITLE("GUI.Filter-Title"),
+    GUI_FILTER_ADD_NAME("GUI.Items.Filter.Add.Name"),
+    GUI_FILTER_EMPTY_NAME("GUI.Items.Filter.Empty.Name"),
     GUI_TRAITS_NAME("GUI.Items.Traits.Name"),
     GUI_BACK_NAME("GUI.Items.Back.Name"),
     GUI_CLOSE_NAME("GUI.Items.Close.Name"),
@@ -126,6 +133,7 @@ public enum TranslatableLine {
 
         MONEY("%money%"),
         TRAIT("%trait%"),
+        MATERIAL("%material%"),
         PLAYER("%player%"),
         VALUE("%value%");
 

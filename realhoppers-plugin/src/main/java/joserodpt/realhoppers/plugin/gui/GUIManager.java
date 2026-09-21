@@ -18,6 +18,7 @@ import joserodpt.realhoppers.api.config.TranslatableLine;
 import joserodpt.realhoppers.api.hopper.RHopper;
 import joserodpt.realhoppers.api.hopper.trait.RHopperTrait;
 import joserodpt.realhoppers.api.hopper.trait.RHopperTraitBase;
+import joserodpt.realhoppers.api.hopper.trait.traits.RHFilterTrait;
 import joserodpt.realhoppers.api.utils.GUIBuilder;
 import joserodpt.realhoppers.api.utils.Items;
 import joserodpt.realhoppers.api.utils.Text;
@@ -181,8 +182,11 @@ public class GUIManager {
         for (int i = 0; i < traits.length && i < TRAIT_SLOTS.length; i++) {
             final RHopperTrait trait = traits[i];
             inventory.addItem(e -> {
-                //left click switches the trait on or off, right click walks its tier up
-                if (e.getClick().isRightClick() && hopper.hasTrait(trait)) {
+                //shift click edits a trait that has something to edit, right click walks its tier
+                //up, plain click switches it on or off
+                if (e.getClick().isShiftClick() && trait == RHopperTrait.FILTER && hopper.hasTrait(trait)) {
+                    openLater(target, () -> openFilter(target, hopper));
+                } else if (e.getClick().isRightClick() && hopper.hasTrait(trait)) {
                     raiseTier(target, hopper, trait);
                 } else {
                     toggle(target, hopper, trait);
@@ -212,6 +216,75 @@ public class GUIManager {
     private void openLater(final Player target, final Runnable open) {
         target.closeInventory();
         Bukkit.getScheduler().scheduleSyncDelayedTask(rh.getPlugin(), open, 2);
+    }
+
+    /**
+     * The list a FILTER hopper keeps: what it is allowed to store, one icon each.
+     *
+     * <p>Materials are added by holding the item and clicking, rather than through a picker of
+     * every material in the game - a player deciding what a hopper should keep is nearly always
+     * holding the thing already.</p>
+     */
+    public void openFilter(final Player target, final RHopper hopper) {
+        final RHFilterTrait filter = hopper.getTrait(RHopperTrait.FILTER, RHFilterTrait.class);
+        if (filter == null) {
+            openTraits(target, hopper);
+            return;
+        }
+
+        final GUIBuilder inventory = new GUIBuilder(TranslatableLine.GUI_FILTER_TITLE.get(),
+                TRAIT_GUI_SIZE, target.getUniqueId());
+
+        final List<Material> listed = new ArrayList<>(filter.getMaterials());
+        for (int i = 0; i < listed.size() && i < TRAIT_SLOTS.length; i++) {
+            final Material material = listed.get(i);
+            inventory.addItem(e -> {
+                filter.remove(material);
+                TranslatableLine.FILTER_REMOVED
+                        .setV1(TranslatableLine.ReplacableVar.MATERIAL.eq(Text.beautifyMaterialName(material))).send(target);
+                openFilter(target, hopper);
+            }, Items.createItem(material, 1, "&f" + Text.beautifyMaterialName(material),
+                    RHLanguage.file().getStringList("GUI.Items.Filter.Entry-Description")), TRAIT_SLOTS[i]);
+        }
+
+        //an empty list keeps everything, which is worth saying on the screen that looks empty
+        if (listed.isEmpty()) {
+            inventory.setItem(Items.createItem(Material.BARRIER, 1, TranslatableLine.GUI_FILTER_EMPTY_NAME.get(),
+                    RHLanguage.file().getStringList("GUI.Items.Filter.Empty-Description")), 22);
+        }
+
+        inventory.addItem(e -> addHeldToFilter(target, hopper, filter),
+                Items.createItem(Material.NAME_TAG, 1, TranslatableLine.GUI_FILTER_ADD_NAME.get(),
+                        RHLanguage.file().getStringList("GUI.Items.Filter.Add-Description")), 40);
+
+        inventory.addItem(e -> openLater(target, () -> openTraits(target, hopper)),
+                Items.createItem(Material.RED_BED, 1, TranslatableLine.GUI_BACK_NAME.get()), 36);
+
+        inventory.addItem(e -> target.closeInventory(),
+                Items.createItem(Material.OAK_DOOR, 1, TranslatableLine.GUI_CLOSE_NAME.get(),
+                        RHLanguage.file().getStringList("GUI.Items.Close.Description")), 44);
+
+        inventory.openInventory(target);
+        //not the hopper screen, so nothing here should be redrawn by refresh
+        this.openHoppers.remove(target.getUniqueId());
+    }
+
+    private void addHeldToFilter(final Player target, final RHopper hopper, final RHFilterTrait filter) {
+        final ItemStack held = target.getInventory().getItemInMainHand();
+        if (held == null || held.getType() == Material.AIR) {
+            TranslatableLine.FILTER_NOTHING_HELD.send(target);
+            return;
+        }
+
+        if (!filter.add(held.getType())) {
+            TranslatableLine.FILTER_ALREADY_LISTED
+                    .setV1(TranslatableLine.ReplacableVar.MATERIAL.eq(Text.beautifyMaterialName(held.getType()))).send(target);
+            return;
+        }
+
+        TranslatableLine.FILTER_ADDED
+                .setV1(TranslatableLine.ReplacableVar.MATERIAL.eq(Text.beautifyMaterialName(held.getType()))).send(target);
+        openFilter(target, hopper);
     }
 
     private ItemStack traitIcon(final RHopper hopper, final RHopperTrait trait) {
@@ -244,6 +317,10 @@ public class GUIManager {
         //nowhere to go until one is made, and the icon says so
         if (trait.requiresLink() && !hopper.hasLink()) {
             lore.addAll(RHLanguage.file().getStringList("GUI.Items.Trait.Needs-Link-Description"));
+        }
+
+        if (active && trait == RHopperTrait.FILTER) {
+            lore.addAll(RHLanguage.file().getStringList("GUI.Items.Trait.Filter-Description"));
         }
 
         return active

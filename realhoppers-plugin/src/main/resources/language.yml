@@ -16,6 +16,11 @@ Hoppers:
     Tier-Max: "&e%trait% &eis already at its highest tier."
     Tier-Too-Expensive: "&cThat upgrade costs &e%money%&c, which you cannot afford."
     Not-Scalable: "&cThe %trait% &ctrait has no tiers."
+  Filter:
+    Added: "&fThe filter now keeps &b%material%&f."
+    Removed: "&fThe filter no longer keeps &b%material%&f."
+    Already-Listed: "&c%material% is already in this filter."
+    Nothing-Held: "&cHold the item you want the hopper to keep, then click."
   Link:
     Source-Selected: "&fSource hopper selected. Right-click the hopper it should point at."
     Same-Hopper: "&cA hopper cannot be linked to itself."
@@ -25,6 +30,7 @@ Hoppers:
 GUI:
   Title: "&8Real&dHoppers"
   Traits-Title: "&8Hopper Traits"
+  Filter-Title: "&8Hopper Filter"
   Items:
     Close:
       Name: "&cClose"
@@ -34,6 +40,19 @@ GUI:
       Name: "&eHopper Inventory"
       Description:
         - "&fClick here to open this hopper's inventory."
+    Filter:
+      Add:
+        Name: "&aAdd the item you are holding"
+      Empty:
+        Name: "&eThis filter is empty"
+      Add-Description:
+        - "&fHold an item and click to add it."
+      Empty-Description:
+        - "&7An empty filter keeps everything."
+        - "&7Add something to narrow it down."
+      Entry-Description:
+        - ""
+        - "&7Click to &cremove&7."
     Xp:
       Name: "&aCollect &a%value% experience"
       Description:
@@ -66,6 +85,8 @@ GUI:
       Tier-Max-Description:
         - ""
         - "&7Tier: &b%value% &8(max)"
+      Filter-Description:
+        - "&7Shift-click to choose what it keeps."
       Unavailable-Description:
         - "&7Not available in this version."
     Hopper:
@@ -100,5 +121,6 @@ Traits:
   GROW: "&2Growth"
   AUTO_COMPACT: "&9Auto Compact"
   XP_COLLECT: "&aExperience"
+  FILTER: "&3Filter"
 
-Version: 9
+Version: 10
