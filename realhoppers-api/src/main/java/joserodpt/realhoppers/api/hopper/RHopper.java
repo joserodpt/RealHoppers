@@ -399,12 +399,11 @@ public class RHopper {
     public void saveData(Data d) {
         switch (d) {
             case TRAITS:
-                //a section of TRAIT: tier rather than a list of names, so a trait's tier has
-                //somewhere to live and the file says what it means without being decoded
+                //a section per trait rather than a bare tier, so a trait that has to remember more
+                //than its tier has somewhere to put it
                 final String traitsRoute = "Hoppers." + this.getSerializedLocation() + ".Traits";
                 RHHoppers.file().remove(traitsRoute);
-                this.getTraitMap().forEach((trait, base) ->
-                        RHHoppers.file().set(traitsRoute + "." + trait.name(), base.getTier()));
+                this.getTraitMap().values().forEach(RHopperTraitBase::saveSettings);
                 break;
             case BALANCE:
                 RHHoppers.file().set("Hoppers." + this.getSerializedLocation() + ".Balance", this.getBalance());

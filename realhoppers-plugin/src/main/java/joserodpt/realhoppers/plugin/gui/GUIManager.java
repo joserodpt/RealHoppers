@@ -44,8 +44,18 @@ import java.util.UUID;
  */
 public class GUIManager {
 
-    /** Where the trait icons go, left to right. Seven traits, one row, no pagination needed. */
-    private static final int[] TRAIT_SLOTS = {10, 11, 12, 13, 14, 15, 16};
+    /**
+     * Where the trait icons go: the seven middle columns of the first three rows of a 45 slot
+     * chest, twenty-one places. This was a seven element array against exactly seven traits, and
+     * the render loop stops at its length - so an eighth trait would simply not have appeared.
+     */
+    private static final int[] TRAIT_SLOTS = {
+            10, 11, 12, 13, 14, 15, 16,
+            19, 20, 21, 22, 23, 24, 25,
+            28, 29, 30, 31, 32, 33, 34};
+
+    /** The trait screen, big enough that adding a trait does not mean rearranging it. */
+    private static final int TRAIT_GUI_SIZE = 45;
 
     private final RealHoppers rh;
 
@@ -137,7 +147,7 @@ public class GUIManager {
      * before this, and there was no way at all to take one off.
      */
     public void openTraits(final Player target, final RHopper hopper) {
-        final GUIBuilder inventory = new GUIBuilder(TranslatableLine.GUI_TRAITS_TITLE.get(), 27, target.getUniqueId());
+        final GUIBuilder inventory = new GUIBuilder(TranslatableLine.GUI_TRAITS_TITLE.get(), TRAIT_GUI_SIZE, target.getUniqueId());
 
         final RHopperTrait[] traits = RHopperTrait.values();
         for (int i = 0; i < traits.length && i < TRAIT_SLOTS.length; i++) {
@@ -153,11 +163,11 @@ public class GUIManager {
         }
 
         inventory.addItem(e -> openLater(target, () -> openHopper(target, hopper)),
-                Items.createItem(Material.RED_BED, 1, TranslatableLine.GUI_BACK_NAME.get()), 18);
+                Items.createItem(Material.RED_BED, 1, TranslatableLine.GUI_BACK_NAME.get()), 36);
 
         inventory.addItem(e -> target.closeInventory(),
                 Items.createItem(Material.OAK_DOOR, 1, TranslatableLine.GUI_CLOSE_NAME.get(),
-                        RHLanguage.file().getStringList("GUI.Items.Close.Description")), 26);
+                        RHLanguage.file().getStringList("GUI.Items.Close.Description")), 44);
 
         inventory.openInventory(target);
         //the trait screen is not the hopper screen, so nothing here should be redrawn by refresh

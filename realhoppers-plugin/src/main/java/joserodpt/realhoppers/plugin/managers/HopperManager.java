@@ -101,7 +101,16 @@ public class HopperManager extends HopperManagerAPI {
                     }
                 } else if (RHHoppers.file().isSection(traitsRoute)) {
                     for (final String name : RHHoppers.file().getSection(traitsRoute).getRoutesAsStrings(false)) {
-                        putTrait(traitMap, loaded, name, RHHoppers.file().getInt(traitsRoute + "." + name, 1));
+                        final String route = traitsRoute + "." + name;
+
+                        //a trait is a section of its own settings now. A bare number is the shape
+                        //before that, and means the tier with nothing else alongside it.
+                        if (RHHoppers.file().isSection(route)) {
+                            putTrait(traitMap, loaded, name, RHHoppers.file().getInt(route + ".Tier", 1));
+                        } else {
+                            migrated = true;
+                            putTrait(traitMap, loaded, name, RHHoppers.file().getInt(route, 1));
+                        }
                     }
                 }
 
@@ -160,6 +169,8 @@ public class HopperManager extends HopperManagerAPI {
         }
 
         built.setTier(tier);
+        //whatever else the trait keeps for itself, read from its own section
+        built.loadSettings();
         traitMap.put(type, built);
     }
 

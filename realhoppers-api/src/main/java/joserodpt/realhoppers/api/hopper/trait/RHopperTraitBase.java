@@ -14,6 +14,7 @@ package joserodpt.realhoppers.api.hopper.trait;
  */
 
 import joserodpt.realhoppers.api.RealHoppersAPI;
+import joserodpt.realhoppers.api.config.RHHoppers;
 import joserodpt.realhoppers.api.hopper.RHopper;
 import org.bukkit.entity.Player;
 
@@ -61,6 +62,29 @@ public abstract class RHopperTraitBase {
 
     public int getTier() {
         return this.tier;
+    }
+
+    /**
+     * Where this trait's own settings live in hoppers.yml, for a trait that needs to remember more
+     * than a tier - a filter's material list, say. Written under the hopper it is on.
+     */
+    protected String settingsRoute() {
+        return "Hoppers." + this.main.getSerializedLocation() + ".Traits." + this.getTraitType().name();
+    }
+
+    /**
+     * Writes this trait's settings out. The base class saves the tier; a trait with more to keep
+     * overrides this, calls {@code super}, and adds its own.
+     */
+    public void saveSettings() {
+        RHHoppers.file().set(this.settingsRoute() + ".Tier", this.tier);
+    }
+
+    /**
+     * Reads this trait's settings back. The tier is handled by the loader, so the base does
+     * nothing; a trait with more to keep overrides this.
+     */
+    public void loadSettings() {
     }
 
     /**
