@@ -11,6 +11,9 @@ Hoppers:
     Unavailable: "&cThe %trait% &ctrait is not available yet."
     Removed: "&fRemoved the %trait% &ftrait from this hopper."
     Tier-Set: "&f%trait% &fis now tier &b%value%&f."
+    Tier-Upgraded: "&f%trait% &fupgraded to tier &b%value%&f."
+    Tier-Max: "&e%trait% &eis already at its highest tier."
+    Tier-Too-Expensive: "&cThat upgrade costs &e%money%&c, which you cannot afford."
     Not-Scalable: "&cThe %trait% &ctrait has no tiers."
   Link:
     Source-Selected: "&fSource hopper selected. Right-click the hopper it should point at."
@@ -53,7 +56,11 @@ GUI:
       Tier-Description:
         - ""
         - "&7Tier: &b%value%"
-        - "&7Right-click to raise it."
+        - "&7Next tier: &e%money%"
+        - "&7Right-click to upgrade."
+      Tier-Max-Description:
+        - ""
+        - "&7Tier: &b%value% &8(max)"
       Unavailable-Description:
         - "&7Not available in this version."
     Hopper:
@@ -82,4 +89,4 @@ Traits:
   BLOCK_BREAKING: "&7Block Breaking"
   KILL_MOB: "&4Mob Killing"
 
-Version: 5
+Version: 6

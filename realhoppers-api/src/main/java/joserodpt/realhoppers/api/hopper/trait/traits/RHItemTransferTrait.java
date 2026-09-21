@@ -50,7 +50,7 @@ public class RHItemTransferTrait extends RHopperTraitBase {
             }
 
             final int perCycle = (int) Math.max(1,
-                    RHopperTrait.ITEM_TRANS.configValue("Items", 1) * super.getTier());
+                    RHopperTrait.ITEM_TRANS.configValue("Items", 1) * super.power());
             final int moving = Math.min(perCycle, itemStack.getAmount());
 
             final ItemStack clone = itemStack.clone();

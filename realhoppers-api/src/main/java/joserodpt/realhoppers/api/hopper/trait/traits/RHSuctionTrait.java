@@ -43,7 +43,7 @@ public class RHSuctionTrait extends RHopperTraitBase {
             }
 
             //read each cycle, so /rh reload and a tier change both land without rebuilding the trait
-            final double area = RHopperTrait.SUCTION.configValue("Radius", 2) * super.getTier();
+            final double area = RHopperTrait.SUCTION.configValue("Radius", 2) * super.power();
 
             for (Entity ent : super.getHopper().getWorld().getNearbyEntities(super.getHopper().getLocation(), area, area, area)) {
                 if (ent.getType() == EntityType.DROPPED_ITEM) {

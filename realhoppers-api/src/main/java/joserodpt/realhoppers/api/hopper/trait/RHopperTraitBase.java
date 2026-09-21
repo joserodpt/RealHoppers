@@ -64,6 +64,14 @@ public abstract class RHopperTraitBase {
     }
 
     /**
+     * What this trait's configured value should be multiplied by right now: the power of the tier
+     * it sits at. Read per cycle, so editing the table and reloading takes effect at once.
+     */
+    protected double power() {
+        return this.getTraitType().getTierPower(this.tier);
+    }
+
+    /**
      * Sets the tier, clamped to what the trait allows. A trait that does not scale stays at 1
      * whatever it is handed.
      *

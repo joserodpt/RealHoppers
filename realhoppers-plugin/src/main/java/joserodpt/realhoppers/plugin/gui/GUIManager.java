@@ -191,9 +191,15 @@ public class GUIManager {
 
         //only worth showing on a trait that is on and has something to multiply
         if (active && trait.isScalable()) {
-            final String tier = hopper.getTraitTier(trait) + "&7/&b" + trait.getMaxTier();
-            RHLanguage.file().getStringList("GUI.Items.Trait.Tier-Description")
-                    .forEach(line -> lore.add(line.replace("%value%", tier)));
+            final int current = hopper.getTraitTier(trait);
+            final String tier = current + "&7/&b" + trait.getMaxTier();
+            final boolean maxed = current >= trait.getMaxTier();
+            final String price = maxed ? "" : Text.formatNumber(trait.getTierPrice(current + 1));
+
+            RHLanguage.file().getStringList(maxed
+                            ? "GUI.Items.Trait.Tier-Max-Description"
+                            : "GUI.Items.Trait.Tier-Description")
+                    .forEach(line -> lore.add(line.replace("%value%", tier).replace("%money%", price)));
         }
 
         //a trait that follows the hopper's link can be switched on with no link there; it just has
@@ -208,8 +214,10 @@ public class GUIManager {
     }
 
     /**
-     * Walks a trait's tier up by one, back round to 1 once it is at the top - there is one click to
-     * spend on it, so it has to go both ways.
+     * Buys the next tier of a trait for the player.
+     *
+     * <p>Only ever upwards. An earlier version cycled back to 1 at the top, which was fine while a
+     * tier was free and is not once one has been paid for.</p>
      */
     private void raiseTier(final Player target, final RHopper hopper, final RHopperTrait trait) {
         if (!trait.isScalable()) {
@@ -218,10 +226,33 @@ public class GUIManager {
             return;
         }
 
-        final int next = hopper.getTraitTier(trait) >= trait.getMaxTier() ? 1 : hopper.getTraitTier(trait) + 1;
-        final int set = hopper.setTraitTier(trait, next);
+        final int next = hopper.getTraitTier(trait) + 1;
+        if (next > trait.getMaxTier()) {
+            TranslatableLine.TRAIT_TIER_MAX
+                    .setV1(TranslatableLine.ReplacableVar.TRAIT.eq(trait.getName())).send(target);
+            return;
+        }
 
-        TranslatableLine.TRAIT_TIER_SET
+        final double price = trait.getTierPrice(next);
+        if (price > 0) {
+            if (rh.getEconomy() == null) {
+                //a priced upgrade with no economy to charge it to would otherwise be free
+                TranslatableLine.SYSTEM_VAULT_MISSING.send(target);
+                return;
+            }
+            if (!rh.getEconomy().has(target, price)) {
+                TranslatableLine.TRAIT_TIER_TOO_EXPENSIVE
+                        .setV1(TranslatableLine.ReplacableVar.MONEY.eq(Text.formatNumber(price))).send(target);
+                return;
+            }
+            //taken before the tier is set, so a refused withdrawal cannot hand out the upgrade
+            rh.getEconomy().withdrawPlayer(target, price);
+        }
+
+        final int set = hopper.setTraitTier(trait, next);
+        target.playSound(target.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
+
+        TranslatableLine.TRAIT_TIER_UPGRADED
                 .setV1(TranslatableLine.ReplacableVar.TRAIT.eq(trait.getName()))
                 .setV2(TranslatableLine.ReplacableVar.VALUE.eq(String.valueOf(set))).send(target);
         openTraits(target, hopper);

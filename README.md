@@ -61,24 +61,39 @@ as with `AUTO_SELL`. On a hopper that also has `AUTO_SELL`, the smelted material
 
 ## Tiers
 
-Most traits sit at a **tier**, and the tier multiplies what that trait is configured to do. Tier 1 is the config as
-written, so a tier 3 suction hopper reaches three times as far.
+Most traits sit at a **tier**. A tier has a **power**, which multiplies what the trait is configured to do, and a
+**price**, which is what upgrading to it costs the player. Both are per trait, in `config.yml`:
 
-| Trait            | What the tier multiplies                          | Config key                         |
-|------------------|---------------------------------------------------|------------------------------------|
-| `SUCTION`        | How many blocks around it it pulls items from.    | `SUCTION.Radius`                   |
-| `BLOCK_BREAKING` | How far up the column it breaks, stopping at air. | `BLOCK_BREAKING.Blocks`            |
-| `KILL_MOB`       | Damage per cycle.                                 | `KILL_MOB.Damage`                  |
-| `ITEM_TRANS`     | Items handed over per cycle.                      | `ITEM_TRANS.Items`                 |
-| `AUTO_SELL`      | What each sale pays, on top of the item's price.  | `AUTO_SELL.Price-Multiplier`       |
+```yaml
+    SUCTION:
+      # What the trait is worth at power 1.
+      Radius: 2
+      Tiers:
+        '1': { Power: 1.0, Price: 0 }
+        '2': { Power: 2.0, Price: 500 }
+        '3': { Power: 3.0, Price: 2000 }
+```
+
+A trait has as many tiers as are listed for it, so they need not all have the same number — suction ships with five,
+mob killing with three. The powers need not be linear either: item transfer ships `1, 4, 16, 64`, so the top tier
+moves a full stack a cycle.
+
+| Trait            | What the power multiplies                         | Config key                   |
+|------------------|---------------------------------------------------|------------------------------|
+| `SUCTION`        | How many blocks around it it pulls items from.    | `SUCTION.Radius`             |
+| `BLOCK_BREAKING` | How far up the column it breaks, stopping at air. | `BLOCK_BREAKING.Blocks`      |
+| `KILL_MOB`       | Damage per cycle.                                 | `KILL_MOB.Damage`            |
+| `ITEM_TRANS`     | Items handed over per cycle.                      | `ITEM_TRANS.Items`           |
+| `AUTO_SELL`      | What each sale pays, on top of the item's price.  | `AUTO_SELL.Price-Multiplier` |
 
 `TELEPORT` and `AUTO_SMELT` have no tiers — there is one destination to send a player to, and an item either has a
 furnace recipe or it does not. Both stay at tier 1.
 
-Raise a tier by right-clicking the trait in the Traits screen, which cycles back to 1 at the top, or with
-`/rh settrait <trait> <tier>`. `RealHoppers.Traits.Max-Tier` in `config.yml` caps it.
+A trait starts at tier 1, so tier 1's price is never charged. Players upgrade by right-clicking the trait in the
+Traits screen, which charges the next tier's price through Vault and only ever goes up. `/rh settrait <trait> <tier>`
+sets a tier outright without charging, for admins.
 
-## Requirements
+## Requirements## Requirements
 
 * Spigot, Paper or Purpur, 1.14 or newer
 * Java 16 or newer
@@ -134,10 +149,11 @@ RealHoppers:
   Save-Interval-Seconds: 60
   Drop-Items-If-Full: true
   Traits:
-    Max-Tier: 5
     SUCTION:
       Radius: 2
-    # ... one block per trait, see Tiers above
+      Tiers:
+        '1': { Power: 1.0, Price: 0 }
+        # ... one block per trait, see Tiers above
   Material-Values:
     COBBLESTONE: 5
     SAND: 2

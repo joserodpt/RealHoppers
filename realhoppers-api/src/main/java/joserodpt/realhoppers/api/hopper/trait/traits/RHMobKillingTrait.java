@@ -43,7 +43,7 @@ public class RHMobKillingTrait extends RHopperTraitBase {
             }
 
             final double radius = RHopperTrait.KILL_MOB.configValue("Radius", 1.5);
-            final double damage = RHopperTrait.KILL_MOB.configValue("Damage", 2) * super.getTier();
+            final double damage = RHopperTrait.KILL_MOB.configValue("Damage", 2) * super.power();
 
             for (Entity nearbyEntity : super.getHopper().getWorld().getNearbyEntities(super.getHopper().getLocation(), radius, radius, radius)) {
                 if (nearbyEntity.getType() != EntityType.PLAYER && nearbyEntity instanceof LivingEntity) {

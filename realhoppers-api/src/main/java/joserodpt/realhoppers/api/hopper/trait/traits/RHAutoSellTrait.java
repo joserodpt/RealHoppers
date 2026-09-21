@@ -44,7 +44,7 @@ public class RHAutoSellTrait extends RHopperTraitBase {
             return false;
         }
         final double payout = price
-                * RHopperTrait.AUTO_SELL.configValue("Price-Multiplier", 1) * super.getTier();
+                * RHopperTrait.AUTO_SELL.configValue("Price-Multiplier", 1) * super.power();
         super.getHopper().setBalance(super.getHopper().getBalance() + payout);
         return true;
     }

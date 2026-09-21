@@ -17,6 +17,7 @@ import joserodpt.realhoppers.api.RealHoppersAPI;
 import joserodpt.realhoppers.api.config.RHConfig;
 import joserodpt.realhoppers.api.event.RealHoppersPluginLoadedEvent;
 import joserodpt.realhoppers.api.config.RHHoppers;
+import joserodpt.realhoppers.api.hopper.trait.RHopperTrait;
 import joserodpt.realhoppers.api.utils.GUIBuilder;
 import joserodpt.realhoppers.api.utils.Smelting;
 import joserodpt.realhoppers.api.utils.Text;
@@ -70,6 +71,9 @@ public final class RealHoppersPlugin extends JavaPlugin {
         //per item: the recipe list does not change while the server is up.
         Smelting.load();
         getLogger().info("Loaded " + Smelting.size() + " smelting recipes.");
+
+        //the tier tables, before any hopper is read: loading a trait clamps its tier to the table
+        RHopperTrait.loadTiers();
 
         realHoppers.getHopperManager().loadHoppers();
         getLogger().info("Loaded " + realHoppers.getHopperManager().getHoppersMap().size() + " hoppers.");

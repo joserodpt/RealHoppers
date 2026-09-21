@@ -9,29 +9,56 @@ RealHoppers:
   Save-Interval-Seconds: 60
   Drop-Items-If-Full: true
 
-  # A trait sits at a tier, and the tier multiplies the value below it. Tier 1 is the value as
-  # written; a tier 3 suction hopper reaches three times as far.
+  # A trait on a hopper sits at a tier. Each tier has a Power, which multiplies what the trait is
+  # worth below, and a Price, which is what upgrading to that tier costs the player through Vault.
+  #
+  # Tier 1 is where a trait starts, so its Price is never charged. How many tiers a trait has is
+  # however many are listed here, so a trait can have more tiers than another, or none at all.
   Traits:
-    Max-Tier: 5
     SUCTION:
-      # Blocks in each direction the hopper pulls dropped items in from.
+      # Blocks in each direction the hopper pulls dropped items in from, at power 1.
       Radius: 2
+      Tiers:
+        '1': { Power: 1.0, Price: 0 }
+        '2': { Power: 2.0, Price: 500 }
+        '3': { Power: 3.0, Price: 2000 }
+        '4': { Power: 4.0, Price: 8000 }
+        '5': { Power: 6.0, Price: 25000 }
     BLOCK_BREAKING:
-      # How far up the column it breaks each cycle. It stops at the first gap.
+      # How far up the column it breaks each cycle, at power 1. It stops at the first gap.
       Blocks: 1
+      Tiers:
+        '1': { Power: 1.0, Price: 0 }
+        '2': { Power: 2.0, Price: 750 }
+        '3': { Power: 3.0, Price: 3000 }
+        '4': { Power: 5.0, Price: 12000 }
     KILL_MOB:
-      # Damage dealt to each living thing on top of the hopper, per cycle.
+      # Damage dealt to each living thing on top of the hopper, per cycle, at power 1.
       Damage: 2.0
       # How far it reaches. Not multiplied by the tier - raise the tier for damage, not range.
       Radius: 1.5
+      Tiers:
+        '1': { Power: 1.0, Price: 0 }
+        '2': { Power: 2.0, Price: 1000 }
+        '3': { Power: 4.0, Price: 5000 }
     ITEM_TRANS:
-      # Items handed to the linked hopper each cycle.
+      # Items handed to the linked hopper each cycle, at power 1.
       Items: 1
+      Tiers:
+        '1': { Power: 1.0, Price: 0 }
+        '2': { Power: 4.0, Price: 1500 }
+        '3': { Power: 16.0, Price: 6000 }
+        '4': { Power: 64.0, Price: 20000 }
     AUTO_SELL:
-      # Paid on top of the material's price in Material-Values, so 2.0 at tier 3 pays six times.
+      # Paid on top of the material's price in Material-Values, at power 1.
       Price-Multiplier: 1.0
+      Tiers:
+        '1': { Power: 1.0, Price: 0 }
+        '2': { Power: 1.5, Price: 5000 }
+        '3': { Power: 2.0, Price: 20000 }
+
   Material-Values:
     COBBLESTONE: 5
     SAND: 2
 
-Version: 3
+Version: 4

@@ -14,6 +14,7 @@ package joserodpt.realhoppers.api.hopper.trait;
  */
 
 
+import joserodpt.realhoppers.api.RealHoppersAPI;
 import joserodpt.realhoppers.api.config.RHConfig;
 import joserodpt.realhoppers.api.config.RHLanguage;
 import joserodpt.realhoppers.api.hopper.RHopper;
@@ -25,6 +26,9 @@ import joserodpt.realhoppers.api.hopper.trait.traits.RHMobKillingTrait;
 import joserodpt.realhoppers.api.hopper.trait.traits.RHSuctionTrait;
 import joserodpt.realhoppers.api.hopper.trait.traits.RHTeleportationTrait;
 import org.bukkit.Material;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public enum RHopperTrait {
     TELEPORT(Material.ENDER_PEARL, false, true, false),
@@ -58,12 +62,85 @@ public enum RHopperTrait {
         return this.scalable;
     }
 
-    /** The highest tier this trait can be raised to. */
-    public int getMaxTier() {
-        if (!this.scalable) {
-            return 1;
+    /**
+     * What each of this trait's tiers is worth and what it costs, read from config.yml.
+     *
+     * <p>Held rather than read per use because the suction radius and the rest are asked for on
+     * every cycle of every hopper. {@link #loadTiers()} fills it on startup and on reload.</p>
+     */
+    private final Map<Integer, Tier> tiers = new HashMap<>();
+
+    /**
+     * Reads every trait's tier table out of config.yml. Call once the config is up, and again after
+     * a reload.
+     */
+    public static void loadTiers() {
+        for (final RHopperTrait trait : values()) {
+            trait.tiers.clear();
+
+            if (!trait.scalable) {
+                //one tier, free, doing exactly what the config says
+                trait.tiers.put(1, new Tier(1D, 0D));
+                continue;
+            }
+
+            final String route = "RealHoppers.Traits." + trait.name() + ".Tiers";
+            if (RHConfig.file().isSection(route)) {
+                //keys are read as text on purpose: an unquoted 2 in YAML is a number, and looking
+                //it up as a string route would then miss
+                for (final String key : RHConfig.file().getSection(route).getRoutesAsStrings(false)) {
+                    final int number;
+                    try {
+                        number = Integer.parseInt(key.trim());
+                    } catch (final NumberFormatException e) {
+                        RealHoppersAPI.getInstance().getLogger()
+                                .severe("Tier '" + key + "' of the " + trait.name() + " trait is not a number! Skipping.");
+                        continue;
+                    }
+                    trait.tiers.put(number, new Tier(
+                            RHConfig.file().getDouble(route + "." + key + ".Power", (double) number),
+                            RHConfig.file().getDouble(route + "." + key + ".Price", 0D)));
+                }
+            }
+
+            if (trait.tiers.isEmpty()) {
+                //no table for this trait: fall back to what the tier number itself says, free
+                RealHoppersAPI.getInstance().getLogger()
+                        .warning("The " + trait.name() + " trait has no Tiers in config.yml. Using tier 1 only.");
+                trait.tiers.put(1, new Tier(1D, 0D));
+            }
         }
-        return Math.max(1, RHConfig.file().getInt("RealHoppers.Traits.Max-Tier", 5));
+    }
+
+    /** The highest tier this trait can be raised to, which is however many are configured. */
+    public int getMaxTier() {
+        return this.tiers.keySet().stream().mapToInt(Integer::intValue).max().orElse(1);
+    }
+
+    /**
+     * What a tier multiplies the trait's configured value by. A tier with no entry is worth its own
+     * number, which is the linear behaviour a config without a tier table gets.
+     */
+    public double getTierPower(final int tier) {
+        final Tier spec = this.tiers.get(tier);
+        return spec == null ? Math.max(1, tier) : spec.power;
+    }
+
+    /** What upgrading to a tier costs. Tier 1 is where a trait starts, so it is never charged. */
+    public double getTierPrice(final int tier) {
+        final Tier spec = this.tiers.get(tier);
+        return spec == null ? 0D : spec.price;
+    }
+
+    /** One row of a trait's tier table. */
+    private static final class Tier {
+        private final double power;
+        private final double price;
+
+        private Tier(final double power, final double price) {
+            this.power = power;
+            this.price = price;
+        }
     }
 
     /**

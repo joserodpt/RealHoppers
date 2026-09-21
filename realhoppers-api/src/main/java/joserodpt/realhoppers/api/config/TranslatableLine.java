@@ -36,6 +36,9 @@ public enum TranslatableLine {
     TRAIT_REMOVED("Hoppers.Traits.Removed", ReplacableVar.TRAIT),
     TRAIT_TIER_SET("Hoppers.Traits.Tier-Set", ReplacableVar.TRAIT, ReplacableVar.VALUE),
     TRAIT_NOT_SCALABLE("Hoppers.Traits.Not-Scalable", ReplacableVar.TRAIT),
+    TRAIT_TIER_UPGRADED("Hoppers.Traits.Tier-Upgraded", ReplacableVar.TRAIT, ReplacableVar.VALUE),
+    TRAIT_TIER_MAX("Hoppers.Traits.Tier-Max", ReplacableVar.TRAIT),
+    TRAIT_TIER_TOO_EXPENSIVE("Hoppers.Traits.Tier-Too-Expensive", ReplacableVar.MONEY),
 
     // Linking two hoppers with the stick
     LINK_SOURCE_SELECTED("Hoppers.Link.Source-Selected"),

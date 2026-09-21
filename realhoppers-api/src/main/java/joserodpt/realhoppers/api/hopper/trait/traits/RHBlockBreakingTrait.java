@@ -43,7 +43,7 @@ public class RHBlockBreakingTrait extends RHopperTraitBase {
             }
 
             final int blocks = (int) Math.max(1,
-                    RHopperTrait.BLOCK_BREAKING.configValue("Blocks", 1) * super.getTier());
+                    RHopperTrait.BLOCK_BREAKING.configValue("Blocks", 1) * super.power());
 
             for (int height = 1; height <= blocks; height++) {
                 final Block toBreak = super.getHopper().getBlock().getRelative(0, height, 0);
