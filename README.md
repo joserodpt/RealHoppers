@@ -50,6 +50,8 @@ restart.
 | `MOB_PULL`       | Drags living things nearby onto the hopper it is linked to.                              |
 | `HARVEST`        | Cuts fully grown crops around it and replants them.                                      |
 | `GROW`           | Nudges crops around it along, the way bonemeal would.                                    |
+| `AUTO_COMPACT`   | Squashes its contents — nine ingots become a block, nine nuggets an ingot.               |
+| `XP_COLLECT`     | Soaks up experience orbs nearby and keeps them until somebody takes them.                |
 
 `TELEPORT` and `ITEM_TRANSF` are *linked* traits: they follow the hopper's link. A hopper has **one** link, and both
 traits use it — so a linked pair can be a teleporter and an item pipe at the same time, and re-pointing the hopper
@@ -57,6 +59,13 @@ moves both at once. Either trait can be switched on before a link exists; it sim
 
 `AUTO_SELL` is what gives a hopper a balance. Open the hopper's GUI and click the hopper icon to collect it —
 left-click takes half, shift-left-click takes all.
+
+`XP_COLLECT` keeps experience the same way, in a separate store, with its own button in the panel — that one is not
+money and is handed straight back as levels rather than paid through Vault.
+
+`AUTO_COMPACT` reads the server's crafting recipes for anything that is nine of one thing filling the grid, so
+datapack recipes work as well. Its result goes back through the hopper, which means a compacting hopper that also
+sells prices the block rather than the ingots.
 
 `AUTO_SMELT` uses the server's own furnace recipes, so anything a player could smelt by hand — including recipes added
 by a datapack — smelts in the hopper. On a hopper that also has `AUTO_SELL`, the smelted material is the one that gets
@@ -99,6 +108,8 @@ moves a full stack a cycle.
 | `MOB_PULL`       | How far it drags living things in from.           | `MOB_PULL.Radius`            |
 | `HARVEST`        | How far it reaps.                                 | `HARVEST.Radius`             |
 | `GROW`           | How far it grows.                                 | `GROW.Radius`                |
+| `AUTO_COMPACT`   | Sweeps over the contents per cycle.               | `AUTO_COMPACT.Passes`        |
+| `XP_COLLECT`     | How far it soaks orbs up from.                    | `XP_COLLECT.Radius`          |
 
 `TELEPORT`, `AUTO_SMELT` and `VOID` have no tiers — there is one destination to send a player to, and an item either
 has a furnace recipe or it does not, and is either destroyed or it is not. All three stay at tier 1.

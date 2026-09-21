@@ -22,6 +22,7 @@ import joserodpt.realhoppers.api.hopper.trait.traits.RHBlockBreakingTrait;
 import joserodpt.realhoppers.api.hopper.trait.traits.RHGrowTrait;
 import joserodpt.realhoppers.api.hopper.trait.traits.RHHarvestTrait;
 import joserodpt.realhoppers.api.hopper.trait.traits.RHMobPullTrait;
+import joserodpt.realhoppers.api.hopper.trait.traits.RHAutoCompactTrait;
 import joserodpt.realhoppers.api.hopper.trait.traits.RHAutoSellTrait;
 import joserodpt.realhoppers.api.hopper.trait.traits.RHAutoSmeltTrait;
 import joserodpt.realhoppers.api.hopper.trait.traits.RHItemTransferTrait;
@@ -29,6 +30,7 @@ import joserodpt.realhoppers.api.hopper.trait.traits.RHMobKillingTrait;
 import joserodpt.realhoppers.api.hopper.trait.traits.RHSuctionTrait;
 import joserodpt.realhoppers.api.hopper.trait.traits.RHTeleportationTrait;
 import joserodpt.realhoppers.api.hopper.trait.traits.RHVoidTrait;
+import joserodpt.realhoppers.api.hopper.trait.traits.RHXpCollectTrait;
 import org.bukkit.Material;
 
 import java.util.HashMap;
@@ -45,7 +47,9 @@ public enum RHopperTrait {
     VOID(Material.LAVA_BUCKET, false, false, false),
     MOB_PULL(Material.LEAD, false, true, true),
     HARVEST(Material.DIAMOND_HOE, false, false, true),
-    GROW(Material.BONE_MEAL, false, false, true);
+    GROW(Material.BONE_MEAL, false, false, true),
+    AUTO_COMPACT(Material.IRON_BLOCK, false, false, true),
+    XP_COLLECT(Material.EXPERIENCE_BOTTLE, false, false, true);
 
     private final Material icon;
     private final boolean hasEconomyCapabilities;
@@ -216,6 +220,10 @@ public enum RHopperTrait {
                 return new RHHarvestTrait(hopper);
             case GROW:
                 return new RHGrowTrait(hopper);
+            case AUTO_COMPACT:
+                return new RHAutoCompactTrait(hopper);
+            case XP_COLLECT:
+                return new RHXpCollectTrait(hopper);
             default:
                 return null;
         }

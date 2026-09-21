@@ -105,6 +105,15 @@ public class GUIManager {
         inventory.addItem(e -> collect(target, hopper, e.getClick()),
                 Items.createItem(Material.HOPPER, 1, TranslatableLine.GUI_HOPPER_NAME.get(), hopper.getHopperDescription()), 13);
 
+        //only on a hopper that gathers any, so the panel of one that does not is unchanged
+        if (hopper.hasXpCapabilities()) {
+            inventory.addItem(e -> collectXp(target, hopper),
+                    Items.createItem(Material.EXPERIENCE_BOTTLE, 1,
+                            TranslatableLine.GUI_XP_NAME
+                                    .setV1(TranslatableLine.ReplacableVar.VALUE.eq(String.valueOf(hopper.getXp()))).get(),
+                            RHLanguage.file().getStringList("GUI.Items.Xp.Description")), 17);
+        }
+
         inventory.addItem(e -> openLater(target, () -> openTraits(target, hopper)),
                 Items.createItem(Material.BOOK, 1, TranslatableLine.GUI_TRAITS_NAME.get(),
                         RHLanguage.file().getStringList("GUI.Items.Traits.Description")), 15);
@@ -140,6 +149,25 @@ public class GUIManager {
         //setBalance fires the state change event, which brings this screen back through refresh
         hopper.setBalance(hopper.getBalance() - amount);
         target.playSound(target.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
+    }
+
+    /**
+     * Hands the hopper's gathered experience to the player. Unlike the balance this is not paid
+     * through Vault - it goes straight back as levels.
+     */
+    private void collectXp(final Player target, final RHopper hopper) {
+        if (hopper.getXp() <= 0) {
+            return;
+        }
+
+        final int gathered = hopper.getXp();
+        target.giveExp(gathered);
+        //setXp fires the state change event, which brings this screen back through refresh
+        hopper.setXp(0);
+        target.playSound(target.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
+
+        TranslatableLine.HOPPER_XP_COLLECTED
+                .setV1(TranslatableLine.ReplacableVar.VALUE.eq(String.valueOf(gathered))).send(target);
     }
 
     /**

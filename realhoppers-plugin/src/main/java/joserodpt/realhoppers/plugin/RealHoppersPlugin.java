@@ -18,6 +18,7 @@ import joserodpt.realhoppers.api.config.RHConfig;
 import joserodpt.realhoppers.api.event.RealHoppersPluginLoadedEvent;
 import joserodpt.realhoppers.api.config.RHHoppers;
 import joserodpt.realhoppers.api.hopper.trait.RHopperTrait;
+import joserodpt.realhoppers.api.utils.Compacting;
 import joserodpt.realhoppers.api.utils.GUIBuilder;
 import joserodpt.realhoppers.api.utils.Smelting;
 import joserodpt.realhoppers.api.utils.Text;
@@ -70,7 +71,8 @@ public final class RealHoppersPlugin extends JavaPlugin {
         //the server's furnace recipes, which is what AUTO_SMELT smelts by. Read here rather than
         //per item: the recipe list does not change while the server is up.
         Smelting.load();
-        getLogger().info("Loaded " + Smelting.size() + " smelting recipes.");
+        Compacting.load();
+        getLogger().info("Loaded " + Smelting.size() + " smelting and " + Compacting.size() + " compacting recipes.");
 
         //the tier tables, before any hopper is read: loading a trait clamps its tier to the table
         RHopperTrait.loadTiers();

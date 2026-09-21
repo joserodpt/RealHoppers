@@ -45,11 +45,19 @@ import java.util.stream.Collectors;
 
 public class RHopper {
 
-    public enum Data {ALL, BALANCE, TRAITS, LINK }
+    public enum Data {ALL, BALANCE, TRAITS, LINK, XP }
 
     private Block block;
     private boolean visualizing;
     private double balance;
+
+    /**
+     * Experience gathered by XP_COLLECT, waiting to be taken out.
+     *
+     * <p>Kept apart from the balance on purpose: the balance is money and is paid through Vault,
+     * this is levels and is handed back to the player directly.</p>
+     */
+    private int xp;
     private Map<RHopperTrait, RHopperTraitBase> traitMap = new HashMap<>();
 
     /**
@@ -109,11 +117,39 @@ public class RHopper {
         this.balance = i;
     }
 
+    public int getXp() {
+        return this.xp;
+    }
+
+    public void setXp(final int xp) {
+        this.xp = Math.max(0, xp);
+        Bukkit.getPluginManager().callEvent(new RHopperStateChangeEvent(this));
+        this.saveData(Data.XP);
+    }
+
+    public void addXp(final int amount) {
+        this.setXp(this.xp + amount);
+    }
+
+    /** Puts experience back on a hopper being read from disk, firing nothing and saving nothing. */
+    public void restoreXp(final int xp) {
+        this.xp = Math.max(0, xp);
+    }
+
+    /** Whether anything on this hopper gathers experience, which is what the GUI asks. */
+    public boolean hasXpCapabilities() {
+        return this.hasTrait(RHopperTrait.XP_COLLECT);
+    }
+
     public List<String> getHopperDescription() {
         List<String> desc = new ArrayList<>();
         if (this.hasEconomyCapabilities()) {
             desc.add(TranslatableLine.GUI_HOPPER_BALANCE
                     .setV1(TranslatableLine.ReplacableVar.MONEY.eq(Text.formatNumber(this.getBalance()))).get());
+        }
+        if (this.hasXpCapabilities()) {
+            desc.add(TranslatableLine.GUI_HOPPER_XP
+                    .setV1(TranslatableLine.ReplacableVar.VALUE.eq(String.valueOf(this.getXp()))).get());
         }
         if (this.hasLink()) {
             desc.add(TranslatableLine.GUI_HOPPER_LINK
@@ -416,6 +452,9 @@ public class RHopper {
             case BALANCE:
                 RHHoppers.file().set("Hoppers." + this.getSerializedLocation() + ".Balance", this.getBalance());
                 break;
+            case XP:
+                RHHoppers.file().set("Hoppers." + this.getSerializedLocation() + ".XP", this.getXp());
+                break;
             case LINK:
                 RHHoppers.file().set("Hoppers." + this.getSerializedLocation() + ".Link",
                         this.link == null ? null : this.link.getSerializedLocation());
@@ -424,6 +463,7 @@ public class RHopper {
                 saveData(Data.TRAITS);
                 saveData(Data.BALANCE);
                 saveData(Data.LINK);
+                saveData(Data.XP);
                 break;
         }
         RHHoppers.markDirty();

@@ -56,6 +56,21 @@ RealHoppers:
         '1': { Power: 1.0, Price: 0 }
         '2': { Power: 1.5, Price: 5000 }
         '3': { Power: 2.0, Price: 20000 }
+    AUTO_COMPACT:
+      # Sweeps over the hopper's contents each cycle, at power 1. More than one lets a stack of
+      # nuggets become ingots and then a block in the same cycle.
+      Passes: 1
+      Tiers:
+        '1': { Power: 1.0, Price: 0 }
+        '2': { Power: 2.0, Price: 4000 }
+        '3': { Power: 3.0, Price: 15000 }
+    XP_COLLECT:
+      # Blocks in each direction it soaks experience orbs up from, at power 1.
+      Radius: 3
+      Tiers:
+        '1': { Power: 1.0, Price: 0 }
+        '2': { Power: 2.0, Price: 4000 }
+        '3': { Power: 3.0, Price: 15000 }
     MOB_PULL:
       # Blocks in each direction it drags living things in from, at power 1.
       Radius: 3
@@ -86,4 +101,4 @@ RealHoppers:
     COBBLESTONE: 5
     SAND: 2
 
-Version: 6
+Version: 7

@@ -19,6 +19,7 @@ import joserodpt.realhoppers.api.config.RHHoppers;
 import joserodpt.realhoppers.api.config.RHLanguage;
 import joserodpt.realhoppers.api.hopper.trait.RHopperTrait;
 import joserodpt.realhoppers.api.managers.HopperManagerAPI;
+import joserodpt.realhoppers.api.utils.Compacting;
 import joserodpt.realhoppers.api.utils.Smelting;
 import joserodpt.realhoppers.api.managers.PlayerManagerAPI;
 import joserodpt.realhoppers.plugin.gui.GUIManager;
@@ -77,6 +78,7 @@ public class RealHoppers extends RealHoppersAPI {
         RHHoppers.reload();
         //a datapack or plugin may have added furnace recipes since the last load
         Smelting.load();
+        Compacting.load();
         RHopperTrait.loadTiers();
         //loadHoppers stops whatever is running before it replaces the map
         this.getHopperManager().loadHoppers();

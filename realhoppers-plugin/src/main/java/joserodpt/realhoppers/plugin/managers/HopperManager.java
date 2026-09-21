@@ -82,6 +82,7 @@ public class HopperManager extends HopperManagerAPI {
                 //that was just read out of the file
                 loaded.restoreBalance(RHHoppers.file().getDouble("Hoppers." + hopperSTR + ".Balance"));
                 loaded.setLinkLocation(RHHoppers.file().getString("Hoppers." + hopperSTR + ".Link"));
+                loaded.restoreXp(RHHoppers.file().getInt("Hoppers." + hopperSTR + ".XP", 0));
 
                 final String traitsRoute = "Hoppers." + hopperSTR + ".Traits";
                 boolean migrated = false;

@@ -25,6 +25,7 @@ public enum TranslatableLine {
     HOPPER_TELEPORTED("Hoppers.Teleported"),
     HOPPER_REMOVED("Hoppers.Removed"),
     HOPPER_BALANCE_COLLECTED("Hoppers.Balance-Collected", ReplacableVar.MONEY),
+    HOPPER_XP_COLLECTED("Hoppers.Xp-Collected", ReplacableVar.VALUE),
     HOPPER_BALANCE_COLLECTED_ON_BREAK("Hoppers.Balance-Collected-On-Break", ReplacableVar.MONEY),
     HOPPER_NOT_LOOKING_AT("Hoppers.Not-Looking-At"),
 
@@ -56,6 +57,8 @@ public enum TranslatableLine {
     GUI_HOPPER_NAME("GUI.Items.Hopper.Name"),
     GUI_HOPPER_BALANCE("GUI.Items.Hopper.Balance", ReplacableVar.MONEY),
     GUI_HOPPER_LINK("GUI.Items.Hopper.Link", ReplacableVar.VALUE),
+    GUI_HOPPER_XP("GUI.Items.Hopper.Xp", ReplacableVar.VALUE),
+    GUI_XP_NAME("GUI.Items.Xp.Name", ReplacableVar.VALUE),
     GUI_HOPPER_TRAITS_HEADER("GUI.Items.Hopper.Traits-Header"),
     GUI_HOPPER_NO_TRAITS("GUI.Items.Hopper.No-Traits"),
     GUI_HOPPER_TRAIT_ENTRY("GUI.Items.Hopper.Trait-Entry", ReplacableVar.TRAIT, ReplacableVar.VALUE),

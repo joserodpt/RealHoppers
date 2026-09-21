@@ -2,6 +2,7 @@ Hoppers:
   Teleported: "&fYou have been teleported!"
   Removed: "&fYou removed this special hopper."
   Balance-Collected: "&fYou collected &e%money% &ffrom this hopper."
+  Xp-Collected: "&fYou collected &a%value% experience &ffrom this hopper."
   Balance-Collected-On-Break: "&fYou collected &e%money% &ffrom the hopper you broke."
   Not-Looking-At: "&cYou are not looking at a hopper."
   Traits:
@@ -33,6 +34,10 @@ GUI:
       Name: "&eHopper Inventory"
       Description:
         - "&fClick here to open this hopper's inventory."
+    Xp:
+      Name: "&aCollect &a%value% experience"
+      Description:
+        - "&fClick here to take this hopper's experience."
     Traits:
       Name: "&bTraits"
       Description:
@@ -67,6 +72,7 @@ GUI:
       Name: "&dHopper"
       Balance: "&fBalance: &e%money%"
       Link: "&fLinked to: &b%value%"
+      Xp: "&fExperience: &a%value%"
       Traits-Header: "&f&nHopper traits:"
       No-Traits: " &7None."
       Trait-Entry: "&7- &f%trait% &8(tier %value%)"
@@ -92,5 +98,7 @@ Traits:
   MOB_PULL: "&5Mob Pulling"
   HARVEST: "&aHarvest"
   GROW: "&2Growth"
+  AUTO_COMPACT: "&9Auto Compact"
+  XP_COLLECT: "&aExperience"
 
-Version: 8
+Version: 9
