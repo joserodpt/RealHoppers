@@ -3,6 +3,8 @@ RealHoppers:
   Effects:
     Sounds: true
     Particles: true
+  # How long a player is left alone after a hopper teleports them, in TICKS - 20 is one second.
+  # Without it the hopper they land on would send them straight back.
   Teleportation-Cooldown: 20
   # How often hoppers.yml is written, in seconds. Hopper balances and traits are kept in memory
   # between writes, so a crash can cost at most this much.
@@ -101,4 +103,4 @@ RealHoppers:
     COBBLESTONE: 5
     SAND: 2
 
-Version: 7
+Version: 8

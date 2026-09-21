@@ -146,9 +146,9 @@ sets a tier outright without charging, for admins.
 
 Place a hopper. Every hopper you place is registered with RealHoppers, with no traits on it yet.
 
-Right-click it to open its panel. One screen holds everything: the hopper's own five slots along the top, which you
-can move items in and out of exactly as you would the normal hopper screen, every trait below them, and its balance
-and experience on the bottom row.
+Right-click it to open its panel. One screen holds everything: the hopper's own five slots on the second row, which
+you can move items in and out of exactly as you would the normal hopper screen, its balance and experience beside
+them, and every trait on the two rows below.
 
 To give it a trait, click it — clicking one it already has takes it off again. Right-click a trait to buy its next
 tier, and shift-click `FILTER` to choose what the hopper keeps. The same thing from the command line, looking at the
@@ -182,7 +182,7 @@ RealHoppers:
   Effects:
     Sounds: true
     Particles: true
-  Teleportation-Cooldown: 20
+  Teleportation-Cooldown: 20   # ticks, so 20 is one second
   Save-Interval-Seconds: 60
   Drop-Items-If-Full: true
   Traits:

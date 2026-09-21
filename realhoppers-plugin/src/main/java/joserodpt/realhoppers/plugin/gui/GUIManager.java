@@ -49,21 +49,32 @@ import java.util.stream.Collectors;
  */
 public class GUIManager {
 
+    /** A full double chest, so the layout has room to grow into rather than be rearranged. */
+    private static final int GUI_SIZE = 54;
+
     /**
-     * Where the trait icons go: the seven middle columns of the first three rows of a 45 slot
-     * chest, twenty-one places. This was a seven element array against exactly seven traits, and
-     * the render loop stops at its length - so an eighth trait would simply not have appeared.
+     * The whole of rows three and four, eighteen places for fourteen traits. It was a seven element
+     * array against exactly seven traits, and the render loop stops at its length - so an eighth
+     * trait would simply not have appeared.
      */
     private static final int[] TRAIT_SLOTS = {
-            10, 11, 12, 13, 14, 15, 16,
-            19, 20, 21, 22, 23, 24, 25,
-            28, 29, 30, 31, 32, 33, 34};
+            18, 19, 20, 21, 22, 23, 24, 25, 26,
+            27, 28, 29, 30, 31, 32, 33, 34, 35};
 
-    /** The screen, big enough that adding a trait does not mean rearranging it. */
-    private static final int TRAIT_GUI_SIZE = 45;
+    /** The hopper's own five slots, centred on row two. */
+    private static final int[] HOPPER_SLOTS = {11, 12, 13, 14, 15};
 
-    /** Where the hopper's own five slots sit, centred along the top row. */
-    private static final int[] HOPPER_SLOTS = {2, 3, 4, 5, 6};
+    /** The rest of row two, around them: experience and the balance on the left, close on the right. */
+    private static final int XP_SLOT = 9;
+    private static final int BALANCE_SLOT = 10;
+    private static final int CLOSE_SLOT = 16;
+
+    /** The filter screen puts its buttons on the bottom row instead. */
+    private static final int FILTER_BACK_SLOT = 45;
+    private static final int FILTER_PICK_SLOT = 48;
+    private static final int FILTER_ADD_SLOT = 50;
+    private static final int FILTER_CLOSE_SLOT = 53;
+    private static final int FILTER_EMPTY_SLOT = 31;
 
     private final RealHoppers rh;
 
@@ -110,7 +121,7 @@ public class GUIManager {
     }
 
     public void openHopper(final Player target, final RHopper hopper) {
-        final GUIBuilder inventory = new GUIBuilder(TranslatableLine.GUI_TITLE.get(), TRAIT_GUI_SIZE, target.getUniqueId());
+        final GUIBuilder inventory = new GUIBuilder(TranslatableLine.GUI_TITLE.get(), GUI_SIZE, target.getUniqueId());
 
         //the hopper's own five slots, along the top, with its contents in them. They used to be a
         //button that closed this screen and opened the vanilla hopper one; there is one screen now
@@ -142,7 +153,7 @@ public class GUIManager {
         }
 
         inventory.addItem(e -> collect(target, hopper, e.getClick()),
-                Items.createItem(Material.HOPPER, 1, TranslatableLine.GUI_HOPPER_NAME.get(), hopper.getHopperDescription()), 38);
+                Items.createItem(Material.HOPPER, 1, TranslatableLine.GUI_HOPPER_NAME.get(), hopper.getHopperDescription()), BALANCE_SLOT);
 
         //only on a hopper that gathers any, so the panel of one that does not is unchanged
         if (hopper.hasXpCapabilities()) {
@@ -150,12 +161,12 @@ public class GUIManager {
                     Items.createItem(Material.EXPERIENCE_BOTTLE, 1,
                             TranslatableLine.GUI_XP_NAME
                                     .setV1(TranslatableLine.ReplacableVar.VALUE.eq(String.valueOf(hopper.getXp()))).get(),
-                            RHLanguage.file().getStringList("GUI.Items.Xp.Description")), 40);
+                            RHLanguage.file().getStringList("GUI.Items.Xp.Description")), XP_SLOT);
         }
 
         inventory.addItem(e -> target.closeInventory(),
                 Items.createItem(Material.OAK_DOOR, 1, TranslatableLine.GUI_CLOSE_NAME.get(),
-                        RHLanguage.file().getStringList("GUI.Items.Close.Description")), 44);
+                        RHLanguage.file().getStringList("GUI.Items.Close.Description")), CLOSE_SLOT);
 
         inventory.openInventory(target);
         this.openHoppers.put(target.getUniqueId(), hopper);
@@ -251,7 +262,7 @@ public class GUIManager {
         }
 
         final GUIBuilder inventory = new GUIBuilder(TranslatableLine.GUI_FILTER_TITLE.get(),
-                TRAIT_GUI_SIZE, target.getUniqueId());
+                GUI_SIZE, target.getUniqueId());
 
         final List<Material> listed = new ArrayList<>(filter.getMaterials());
         for (int i = 0; i < listed.size() && i < TRAIT_SLOTS.length; i++) {
@@ -268,7 +279,7 @@ public class GUIManager {
         //an empty list keeps everything, which is worth saying on the screen that looks empty
         if (listed.isEmpty()) {
             inventory.setItem(Items.createItem(Material.BARRIER, 1, TranslatableLine.GUI_FILTER_EMPTY_NAME.get(),
-                    RHLanguage.file().getStringList("GUI.Items.Filter.Empty-Description")), 22);
+                    RHLanguage.file().getStringList("GUI.Items.Filter.Empty-Description")), FILTER_EMPTY_SLOT);
         }
 
         inventory.addItem(e -> openLater(target, () -> {
@@ -283,19 +294,19 @@ public class GUIManager {
             });
             picker.openInventory(target);
         }), Items.createItem(Material.COMPASS, 1, TranslatableLine.GUI_FILTER_PICK_NAME.get(),
-                RHLanguage.file().getStringList("GUI.Items.Filter.Pick-Description")), 38);
+                RHLanguage.file().getStringList("GUI.Items.Filter.Pick-Description")), FILTER_PICK_SLOT);
 
         //still the quicker way when the thing is already in hand
         inventory.addItem(e -> addHeldToFilter(target, hopper, filter),
                 Items.createItem(Material.NAME_TAG, 1, TranslatableLine.GUI_FILTER_ADD_NAME.get(),
-                        RHLanguage.file().getStringList("GUI.Items.Filter.Add-Description")), 40);
+                        RHLanguage.file().getStringList("GUI.Items.Filter.Add-Description")), FILTER_ADD_SLOT);
 
         inventory.addItem(e -> openLater(target, () -> openHopper(target, hopper)),
-                Items.createItem(Material.RED_BED, 1, TranslatableLine.GUI_BACK_NAME.get()), 36);
+                Items.createItem(Material.RED_BED, 1, TranslatableLine.GUI_BACK_NAME.get()), FILTER_BACK_SLOT);
 
         inventory.addItem(e -> target.closeInventory(),
                 Items.createItem(Material.OAK_DOOR, 1, TranslatableLine.GUI_CLOSE_NAME.get(),
-                        RHLanguage.file().getStringList("GUI.Items.Close.Description")), 44);
+                        RHLanguage.file().getStringList("GUI.Items.Close.Description")), FILTER_CLOSE_SLOT);
 
         inventory.openInventory(target);
         //not the hopper screen, so nothing here should be redrawn by refresh
