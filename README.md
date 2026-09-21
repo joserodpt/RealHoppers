@@ -47,7 +47,7 @@ restart.
 | `AUTO_SELL`      | Anything the hopper cannot fit is sold instead, into a balance the owner collects later. |
 | `AUTO_SMELT`     | Smelts what the hopper takes in — cobblestone lands as stone, ore as ingots.             |
 | `VOID`           | Destroys whatever will not fit, instead of dropping it on the floor.                     |
-| `MOB_PULL`       | Drags living things nearby onto the hopper it is linked to.                              |
+| `MOB_PULL`       | Drags living things nearby onto the hopper itself. Pair it with `KILL_MOB`.              |
 | `HARVEST`        | Cuts fully grown crops around it and replants them.                                      |
 | `GROW`           | Nudges crops around it along, the way bonemeal would.                                    |
 | `AUTO_COMPACT`   | Squashes its contents — nine ingots become a block, nine nuggets an ingot.               |
@@ -60,6 +60,9 @@ moves both at once. Either trait can be switched on before a link exists; it sim
 
 `AUTO_SELL` is what gives a hopper a balance. Open the hopper's GUI and click the hopper icon to collect it —
 left-click takes half, shift-left-click takes all.
+
+`MOB_PULL` gathers onto the hopper's own top, so one hopper carrying both `MOB_PULL` and `KILL_MOB` is a complete
+grinder. With something built directly over it there is nowhere up there to stand, so mobs go beside it instead.
 
 `XP_COLLECT` keeps experience the same way, in a separate store, with its own button in the panel — that one is not
 money and is handed straight back as levels rather than paid through Vault.

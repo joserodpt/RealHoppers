@@ -107,6 +107,51 @@ System:
   Error-Command: "&cThe command you're trying to use doesn't exist."
   Error-Usage: "&cWrong usage for the command!"
 
+# What each trait does, shown on its icon in the Traits screen.
+Trait-Descriptions:
+  TELEPORT:
+    - "&7Sends a player who steps on the"
+    - "&7hopper to the hopper it is linked to."
+  ITEM_TRANSF:
+    - "&7Hands its contents to the hopper"
+    - "&7it is linked to, a few at a time."
+  AUTO_SELL:
+    - "&7Sells whatever will not fit,"
+    - "&7into a balance you collect."
+  AUTO_SMELT:
+    - "&7Smelts what comes in. Cobblestone"
+    - "&7lands as stone, ore as ingots."
+  SUCTION:
+    - "&7Pulls in dropped items"
+    - "&7from the ground nearby."
+  BLOCK_BREAKING:
+    - "&7Breaks the blocks above it"
+    - "&7and keeps what they drop."
+  KILL_MOB:
+    - "&7Hurts living things standing on"
+    - "&7it and claims what they drop."
+  VOID:
+    - "&7Destroys whatever will not fit,"
+    - "&7instead of dropping it."
+  MOB_PULL:
+    - "&7Drags living things nearby onto"
+    - "&7the hopper. Pair it with Mob Killing."
+  HARVEST:
+    - "&7Cuts fully grown crops around"
+    - "&7it and replants them."
+  GROW:
+    - "&7Grows the crops around it,"
+    - "&7the way bonemeal would."
+  AUTO_COMPACT:
+    - "&7Squashes what it holds. Nine ingots"
+    - "&7become a block, nine nuggets an ingot."
+  XP_COLLECT:
+    - "&7Soaks up experience orbs nearby"
+    - "&7and keeps them until you collect."
+  FILTER:
+    - "&7Decides what the hopper may keep."
+    - "&7An empty filter keeps everything."
+
 Traits:
   TELEPORT: "&5Teleport"
   ITEM_TRANSF: "&fItem Transfer"
@@ -123,4 +168,4 @@ Traits:
   XP_COLLECT: "&aExperience"
   FILTER: "&3Filter"
 
-Version: 10
+Version: 11

@@ -35,6 +35,7 @@ import joserodpt.realhoppers.api.hopper.trait.traits.RHXpCollectTrait;
 import org.bukkit.Material;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public enum RHopperTrait {
@@ -46,7 +47,7 @@ public enum RHopperTrait {
     BLOCK_BREAKING(Material.TNT, false, false, true),
     KILL_MOB(Material.DIAMOND_SWORD, true, false, true),
     VOID(Material.LAVA_BUCKET, false, false, false),
-    MOB_PULL(Material.LEAD, false, true, true),
+    MOB_PULL(Material.LEAD, false, false, true),
     HARVEST(Material.DIAMOND_HOE, false, false, true),
     GROW(Material.BONE_MEAL, false, false, true),
     AUTO_COMPACT(Material.IRON_BLOCK, false, false, true),
@@ -239,5 +240,13 @@ public enum RHopperTrait {
      */
     public String getName() {
         return RHLanguage.file().getString("Traits." + this.name(), this.name());
+    }
+
+    /**
+     * What the trait does, in a line or two, for the icon in the trait screen. A constant with no
+     * entry simply shows nothing rather than a gap where a description should be.
+     */
+    public List<String> getDescription() {
+        return RHLanguage.file().getStringList("Trait-Descriptions." + this.name());
     }
 }

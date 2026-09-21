@@ -288,7 +288,11 @@ public class GUIManager {
     }
 
     private ItemStack traitIcon(final RHopper hopper, final RHopperTrait trait) {
-        final List<String> lore = new ArrayList<>();
+        //what the trait does comes first, before whether this hopper has it
+        final List<String> lore = new ArrayList<>(trait.getDescription());
+        if (!lore.isEmpty()) {
+            lore.add("");
+        }
 
         if (trait.build(hopper) == null) {
             lore.addAll(RHLanguage.file().getStringList("GUI.Items.Trait.Unavailable-Description"));
