@@ -42,6 +42,7 @@ public enum TranslatableLine {
     HOPPER_BALANCE_COLLECTED_ON_BREAK("Hoppers.Balance-Collected-On-Break"),
     HOPPER_NOT_LOOKING_AT("Hoppers.Not-Looking-At"),
     HOPPER_PLACED("Hoppers.Placed"),
+    HOPPER_RESTORED("Hoppers.Restored"),
     HOPPER_UNKNOWN_OWNER("Hoppers.Unknown-Owner"),
 
     // Ownership and access

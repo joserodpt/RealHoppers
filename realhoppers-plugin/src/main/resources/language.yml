@@ -6,6 +6,15 @@ Hoppers:
   Balance-Collected-On-Break: "&fYou collected &e%money% &ffrom the hopper you broke."
   Not-Looking-At: "&cYou are not looking at a hopper."
   Placed: "&fYou placed &d%name%&f. It is %value%&f."
+  Restored: "&fYou put &d%name% &fback. It is still &b%player%&f's, private, with its items inside."
+  # the item a private hopper drops as. %player% is the owner, %value% how many items it holds
+  Stored-Item:
+    Name: "&dPrivate Hopper &7(%player%&7)"
+    Description:
+      - "&7Owner: &b%player%"
+      - "&7Items inside: &e%value%"
+      - ""
+      - "&7Place it to put the hopper back as it was."
   Unknown-Owner: "&7Nobody"
   Access:
     Names:
@@ -282,4 +291,4 @@ Traits:
   XP_COLLECT: "&aExperience"
   FILTER: "&3Filter"
 
-Version: 15
+Version: 16

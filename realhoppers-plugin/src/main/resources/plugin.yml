@@ -8,6 +8,9 @@ authors: [JoseGamer_PT]
 softdepend: [ Vault, PlaceholderAPI, RealPermissions ]
 website: https://www.spigotmc.org/members/40267/
 permissions:
+  realhoppers.keepcontents:
+    description: Breaking a private hopper drops it with its owner and contents kept, when Keep-Private-Contents-On-Break is on.
+    default: op
   realhoppers.trait.*:
     description: Lets the player add every trait to their hoppers.
     default: op

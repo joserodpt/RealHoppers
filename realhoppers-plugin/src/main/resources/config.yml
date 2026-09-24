@@ -109,9 +109,13 @@ RealHoppers:
     # Colour codes don't count towards this.
     Name-Max-Length: 32
     Whitelist-Max-Size: 27
+    # When a private hopper is broken, drop it as an item that keeps its owner and its contents, so
+    # placing it again puts it back as it was. Turned off, it drops as a plain hopper and its
+    # contents spill out. The player breaking it also needs realhoppers.keepcontents.
+    Keep-Private-Contents-On-Break: true
 
   Material-Values:
     COBBLESTONE: 5
     SAND: 2
 
-Version: 9
+Version: 10

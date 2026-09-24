@@ -148,6 +148,9 @@ public final class RealHoppersPlugin extends JavaPlugin {
             permissions.add(new ExternalPluginPermission("realhoppers.admin",
                     "Allow access to the main operator commands of RealHoppers, and to open, break, link and manage any hopper, private or not.",
                     Arrays.asList("rh reload", "rh settrait <trait>", "rh list <player>")));
+            permissions.add(new ExternalPluginPermission(EventListener.KEEP_CONTENTS_PERMISSION,
+                    "Breaking a private hopper drops it with its owner and contents kept, so it can be placed back as it was.",
+                    Collections.emptyList()));
             permissions.add(new ExternalPluginPermission(RHopperTrait.WILDCARD_PERMISSION,
                     "Allow adding every trait to a hopper.", Collections.emptyList()));
             for (final RHopperTrait trait : RHopperTrait.values()) {

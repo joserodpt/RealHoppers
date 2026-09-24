@@ -17,6 +17,8 @@ import joserodpt.realhoppers.api.config.TranslatableLine;
 import joserodpt.realhoppers.api.config.RHConfig;
 import joserodpt.realhoppers.plugin.RealHoppers;
 import joserodpt.realhoppers.api.hopper.RHopper;
+import joserodpt.realhoppers.api.hopper.RHopperAccess;
+import joserodpt.realhoppers.plugin.managers.StoredHopper;
 import joserodpt.realhoppers.api.hopper.events.RHopperStateChangeEvent;
 import joserodpt.realhoppers.api.utils.Text;
 import joserodpt.realhoppers.api.hopper.trait.RHopperTrait;
@@ -42,13 +44,18 @@ import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.metadata.MetadataValue;
 
+import java.util.Arrays;
 import java.util.List;
 
 import static joserodpt.realhoppers.api.config.TranslatableLine.TranslatableLinePlaceholder.MONEY;
 import static joserodpt.realhoppers.api.config.TranslatableLine.TranslatableLinePlaceholder.NAME;
+import static joserodpt.realhoppers.api.config.TranslatableLine.TranslatableLinePlaceholder.PLAYER;
 import static joserodpt.realhoppers.api.config.TranslatableLine.TranslatableLinePlaceholder.VALUE;
 
 public class EventListener implements Listener {
+    /** Needed, on top of the config option, for a broken private hopper to keep its owner and contents. */
+    public static final String KEEP_CONTENTS_PERMISSION = "realhoppers.keepcontents";
+
     private final RealHoppers rh;
     public EventListener(RealHoppers rh) {
         this.rh = rh;
@@ -64,6 +71,24 @@ public class EventListener implements Listener {
             //whoever placed it owns it
             final RHopper placed = new RHopper(e.getBlockPlaced(), e.getPlayer());
             rh.getHopperManager().getHoppersMap().put(e.getBlockPlaced(), placed);
+
+            //unless it is a private hopper that was broken and is being put back: then it is still
+            //its old owner's, still private, and has its items again
+            final StoredHopper stored = StoredHopper.fromItem(rh.getPlugin(), e.getItemInHand());
+            if (stored != null) {
+                placed.restoreOwner(stored.getOwner(), stored.getOwnerName());
+                placed.restoreAccess(RHopperAccess.PRIVATE);
+                placed.saveData(RHopper.Data.OWNERSHIP);
+                final Inventory inventory = placed.getInventory();
+                if (inventory != null) {
+                    inventory.setContents(Arrays.copyOf(stored.getContents(), inventory.getSize()));
+                }
+                TranslatableLine.HOPPER_RESTORED
+                        .with(NAME, placed.getName())
+                        .with(PLAYER, placed.getOwnerDisplayName()).send(e.getPlayer());
+                return;
+            }
+
             TranslatableLine.HOPPER_PLACED
                     .with(NAME, placed.getName())
                     .with(VALUE, placed.getAccess().getDisplayName()).send(e.getPlayer());
@@ -95,12 +120,42 @@ public class EventListener implements Listener {
             if (h != null) {
                 //before the contents drop and the hopper goes, so nobody is left clicking at a dead block
                 rh.getGUIManager().closeScreens(h);
+                if (h.getAccess() == RHopperAccess.PRIVATE && h.hasOwner()
+                        && RHConfig.file().getBoolean("RealHoppers.Hoppers.Keep-Private-Contents-On-Break", true)
+                        && (e.getPlayer().hasPermission(KEEP_CONTENTS_PERMISSION)
+                        || e.getPlayer().hasPermission(RHopper.ADMIN_PERMISSION))) {
+                    dropStored(e, h);
+                }
                 payOut(h, e.getPlayer());
                 rh.getHopperManager().delete(h);
                 TranslatableLine.HOPPER_REMOVED.send(e.getPlayer());
                 //TODO: drop special hopper item
             }
         }
+    }
+
+    /**
+     * Drops a private hopper as an item that remembers its owner and contents, instead of the plain
+     * hopper and its items spilling out. Only when the break would have dropped the hopper at all;
+     * otherwise (by hand, say) the contents spill as they always did.
+     */
+    private void dropStored(final BlockBreakEvent e, final RHopper h) {
+        final Inventory inventory = h.getInventory();
+        if (inventory == null || !e.isDropItems()
+                || e.getBlock().getDrops(e.getPlayer().getInventory().getItemInMainHand()).isEmpty()) {
+            return;
+        }
+
+        final ItemStack[] contents = new ItemStack[inventory.getSize()];
+        for (int i = 0; i < contents.length; i++) {
+            final ItemStack item = inventory.getItem(i);
+            contents[i] = item == null ? null : item.clone();
+        }
+        //emptied first, or the block would still spill its contents as it breaks
+        inventory.clear();
+        e.setDropItems(false);
+        e.getBlock().getWorld().dropItemNaturally(e.getBlock().getLocation().add(0.5, 0.5, 0.5),
+                StoredHopper.toItem(rh.getPlugin(), h, contents));
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
