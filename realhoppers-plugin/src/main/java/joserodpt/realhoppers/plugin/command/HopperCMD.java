@@ -43,6 +43,11 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
+import static joserodpt.realhoppers.api.config.TranslatableLine.TranslatableLinePlaceholder.NAME;
+import static joserodpt.realhoppers.api.config.TranslatableLine.TranslatableLinePlaceholder.PLAYER;
+import static joserodpt.realhoppers.api.config.TranslatableLine.TranslatableLinePlaceholder.TRAIT;
+import static joserodpt.realhoppers.api.config.TranslatableLine.TranslatableLinePlaceholder.VALUE;
+
 @Command({"realhoppers", "rh"})
 public class HopperCMD {
 
@@ -90,7 +95,7 @@ public class HopperCMD {
 
         if (hopper.hasTrait(trait)) {
             TranslatableLine.TRAIT_ALREADY_PRESENT
-                    .setV1(TranslatableLine.ReplacableVar.TRAIT.eq(trait.getName())).send(p);
+                    .with(TRAIT, trait.getName()).send(p);
             return;
         }
 
@@ -99,31 +104,31 @@ public class HopperCMD {
             //a constant with no implementation behind it. The old switch covered four of the seven
             //and did nothing at all for the rest.
             TranslatableLine.TRAIT_UNAVAILABLE
-                    .setV1(TranslatableLine.ReplacableVar.TRAIT.eq(trait.getName())).send(p);
+                    .with(TRAIT, trait.getName()).send(p);
             return;
         }
 
         hopper.setTrait(trait, built);
         TranslatableLine.TRAIT_ADDED
-                .setV1(TranslatableLine.ReplacableVar.TRAIT.eq(trait.getName())).send(p);
+                .with(TRAIT, trait.getName()).send(p);
 
         if (tier != null) {
             if (!trait.isScalable()) {
                 TranslatableLine.TRAIT_NOT_SCALABLE
-                        .setV1(TranslatableLine.ReplacableVar.TRAIT.eq(trait.getName())).send(p);
+                        .with(TRAIT, trait.getName()).send(p);
             } else {
                 //clamped rather than refused, so /rh settrait SUCTION 99 gives the top tier
                 final int set = hopper.setTraitTier(trait, tier);
                 TranslatableLine.TRAIT_TIER_SET
-                        .setV1(TranslatableLine.ReplacableVar.TRAIT.eq(trait.getName()))
-                        .setV2(TranslatableLine.ReplacableVar.VALUE.eq(String.valueOf(set))).send(p);
+                        .with(TRAIT, trait.getName())
+                        .with(VALUE, String.valueOf(set)).send(p);
             }
         }
 
         //the trait is on either way, it just sits idle until the hopper has somewhere to point
         if (trait.requiresLink() && !hopper.hasLink()) {
             TranslatableLine.TRAIT_NEEDS_LINK
-                    .setV1(TranslatableLine.ReplacableVar.TRAIT.eq(trait.getName())).send(p);
+                    .with(TRAIT, trait.getName()).send(p);
         }
     }
 
@@ -146,8 +151,8 @@ public class HopperCMD {
 
         if (!hopper.canAccess(p)) {
             TranslatableLine.ACCESS_DENIED
-                    .setV1(TranslatableLine.ReplacableVar.NAME.eq(hopper.getName()))
-                    .setV2(TranslatableLine.ReplacableVar.PLAYER.eq(hopper.getOwnerDisplayName())).send(p);
+                    .with(NAME, hopper.getName())
+                    .with(PLAYER, hopper.getOwnerDisplayName()).send(p);
             return;
         }
 
@@ -156,11 +161,11 @@ public class HopperCMD {
                 : String.join(", ", hopper.getWhitelist().values());
 
         Text.sendList(p, Arrays.asList(
-                TranslatableLine.INFO_HEADER.setV1(TranslatableLine.ReplacableVar.NAME.eq(hopper.getName())).get(),
-                TranslatableLine.INFO_OWNER.setV1(TranslatableLine.ReplacableVar.PLAYER.eq(hopper.getOwnerDisplayName())).get(),
-                TranslatableLine.INFO_ACCESS.setV1(TranslatableLine.ReplacableVar.VALUE.eq(hopper.getAccess().getDisplayName())).get(),
-                TranslatableLine.INFO_LOCATION.setV1(TranslatableLine.ReplacableVar.VALUE.eq(Text.cords(hopper.getLocation()))).get(),
-                TranslatableLine.INFO_WHITELIST.setV1(TranslatableLine.ReplacableVar.VALUE.eq(whitelist)).get()));
+                TranslatableLine.INFO_HEADER.with(NAME, hopper.getName()).get(),
+                TranslatableLine.INFO_OWNER.with(PLAYER, hopper.getOwnerDisplayName()).get(),
+                TranslatableLine.INFO_ACCESS.with(VALUE, hopper.getAccess().getDisplayName()).get(),
+                TranslatableLine.INFO_LOCATION.with(VALUE, Text.cords(hopper.getLocation())).get(),
+                TranslatableLine.INFO_WHITELIST.with(VALUE, whitelist).get()));
     }
 
     /** The last String is greedy, which is what lets a name have spaces in it. */
@@ -218,12 +223,12 @@ public class HopperCMD {
         }
 
         TranslatableLine.WHITELIST_LIST_HEADER
-                .setV1(TranslatableLine.ReplacableVar.NAME.eq(hopper.getName()))
-                .setV2(TranslatableLine.ReplacableVar.VALUE.eq(String.valueOf(hopper.getWhitelist().size()))).send(p);
+                .with(NAME, hopper.getName())
+                .with(VALUE, String.valueOf(hopper.getWhitelist().size())).send(p);
         Text.sendList(p, hopper.getWhitelist().entrySet().stream()
                 .map(entry -> TranslatableLine.WHITELIST_LIST_ENTRY
-                        .setV1(TranslatableLine.ReplacableVar.PLAYER.eq(entry.getValue() == null
-                                ? entry.getKey().toString() : entry.getValue())).get())
+                        .with(PLAYER, entry.getValue() == null
+                                ? entry.getKey().toString() : entry.getValue()).get())
                 .collect(Collectors.toList()));
     }
 
@@ -251,7 +256,7 @@ public class HopperCMD {
             target = HopperOwnership.findPlayer(player);
             if (target == null) {
                 TranslatableLine.LIST_PLAYER_NOT_FOUND
-                        .setV1(TranslatableLine.ReplacableVar.PLAYER.eq(player)).send(sender);
+                        .with(PLAYER, player).send(sender);
                 return;
             }
         }
@@ -262,17 +267,17 @@ public class HopperCMD {
                 Bukkit.getScheduler().runTask(rh.getPlugin(), () -> {
                     if (owned.isEmpty()) {
                         TranslatableLine.LIST_EMPTY
-                                .setV1(TranslatableLine.ReplacableVar.PLAYER.eq(targetName)).send(sender);
+                                .with(PLAYER, targetName).send(sender);
                         return;
                     }
 
                     TranslatableLine.LIST_HEADER
-                            .setV1(TranslatableLine.ReplacableVar.PLAYER.eq(targetName))
-                            .setV2(TranslatableLine.ReplacableVar.VALUE.eq(String.valueOf(owned.size()))).send(sender);
+                            .with(PLAYER, targetName)
+                            .with(VALUE, String.valueOf(owned.size())).send(sender);
                     Text.sendList(sender, owned.stream().map(h -> TranslatableLine.LIST_ENTRY
-                            .setV1(TranslatableLine.ReplacableVar.NAME.eq(h.getName()))
-                            .setV2(TranslatableLine.ReplacableVar.VALUE.eq(h.getLocation().replace(":", " ")
-                                    + " &8- " + RHopperAccess.parse(h.getAccess()).getDisplayName())).get())
+                            .with(NAME, h.getName())
+                            .with(VALUE, h.getLocation().replace(":", " ")
+                                    + " &8- " + RHopperAccess.parse(h.getAccess()).getDisplayName()).get())
                             .collect(Collectors.toList()));
                 }));
     }

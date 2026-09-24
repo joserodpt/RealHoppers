@@ -39,6 +39,10 @@ import org.bukkit.inventory.ItemStack;
 
 import java.util.List;
 
+import static joserodpt.realhoppers.api.config.TranslatableLine.TranslatableLinePlaceholder.MONEY;
+import static joserodpt.realhoppers.api.config.TranslatableLine.TranslatableLinePlaceholder.NAME;
+import static joserodpt.realhoppers.api.config.TranslatableLine.TranslatableLinePlaceholder.VALUE;
+
 public class EventListener implements Listener {
     private final RealHoppers rh;
     public EventListener(RealHoppers rh) {
@@ -56,8 +60,8 @@ public class EventListener implements Listener {
             final RHopper placed = new RHopper(e.getBlockPlaced(), e.getPlayer());
             rh.getHopperManager().getHoppersMap().put(e.getBlockPlaced(), placed);
             TranslatableLine.HOPPER_PLACED
-                    .setV1(TranslatableLine.ReplacableVar.NAME.eq(placed.getName()))
-                    .setV2(TranslatableLine.ReplacableVar.VALUE.eq(placed.getAccess().getDisplayName())).send(e.getPlayer());
+                    .with(NAME, placed.getName())
+                    .with(VALUE, placed.getAccess().getDisplayName()).send(e.getPlayer());
         }
     }
 
@@ -75,7 +79,7 @@ public class EventListener implements Listener {
         if (h != null && !h.canAccess(e.getPlayer())) {
             e.setCancelled(true);
             TranslatableLine.ACCESS_NO_BREAK
-                    .setV1(TranslatableLine.ReplacableVar.NAME.eq(h.getName())).send(e.getPlayer());
+                    .with(NAME, h.getName()).send(e.getPlayer());
         }
     }
 
@@ -129,7 +133,7 @@ public class EventListener implements Listener {
         }
         rh.getEconomy().depositPlayer(p, h.getBalance());
         TranslatableLine.HOPPER_BALANCE_COLLECTED_ON_BREAK
-                .setV1(TranslatableLine.ReplacableVar.MONEY.eq(Text.formatNumber(h.getBalance()))).send(p);
+                .with(MONEY, Text.formatNumber(h.getBalance())).send(p);
         h.setBalance(0);
     }
 

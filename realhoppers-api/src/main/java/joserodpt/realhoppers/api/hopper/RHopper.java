@@ -45,6 +45,11 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static joserodpt.realhoppers.api.config.TranslatableLine.TranslatableLinePlaceholder.MONEY;
+import static joserodpt.realhoppers.api.config.TranslatableLine.TranslatableLinePlaceholder.PLAYER;
+import static joserodpt.realhoppers.api.config.TranslatableLine.TranslatableLinePlaceholder.TRAIT;
+import static joserodpt.realhoppers.api.config.TranslatableLine.TranslatableLinePlaceholder.VALUE;
+
 public class RHopper {
 
     public enum Data {ALL, BALANCE, TRAITS, LINK, XP, OWNERSHIP }
@@ -303,20 +308,20 @@ public class RHopper {
     public List<String> getHopperDescription() {
         List<String> desc = new ArrayList<>();
         desc.add(TranslatableLine.GUI_HOPPER_OWNER
-                .setV1(TranslatableLine.ReplacableVar.PLAYER.eq(this.getOwnerDisplayName())).get());
+                .with(PLAYER, this.getOwnerDisplayName()).get());
         desc.add(TranslatableLine.GUI_HOPPER_ACCESS
-                .setV1(TranslatableLine.ReplacableVar.VALUE.eq(this.access.getDisplayName())).get());
+                .with(VALUE, this.access.getDisplayName()).get());
         if (this.hasEconomyCapabilities()) {
             desc.add(TranslatableLine.GUI_HOPPER_BALANCE
-                    .setV1(TranslatableLine.ReplacableVar.MONEY.eq(Text.formatNumber(this.getBalance()))).get());
+                    .with(MONEY, Text.formatNumber(this.getBalance())).get());
         }
         if (this.hasXpCapabilities()) {
             desc.add(TranslatableLine.GUI_HOPPER_XP
-                    .setV1(TranslatableLine.ReplacableVar.VALUE.eq(String.valueOf(this.getXp()))).get());
+                    .with(VALUE, String.valueOf(this.getXp())).get());
         }
         if (this.hasLink()) {
             desc.add(TranslatableLine.GUI_HOPPER_LINK
-                    .setV1(TranslatableLine.ReplacableVar.VALUE.eq(Text.cords(this.link.getLocation()))).get());
+                    .with(VALUE, Text.cords(this.link.getLocation())).get());
         }
 
         desc.add(TranslatableLine.GUI_HOPPER_TRAITS_HEADER.get());
@@ -325,8 +330,8 @@ public class RHopper {
             desc.add(TranslatableLine.GUI_HOPPER_NO_TRAITS.get());
         } else {
             this.getTraitMap().forEach((trait, base) -> desc.add(TranslatableLine.GUI_HOPPER_TRAIT_ENTRY
-                    .setV1(TranslatableLine.ReplacableVar.TRAIT.eq(trait.getName()))
-                    .setV2(TranslatableLine.ReplacableVar.VALUE.eq(String.valueOf(base.getTier()))).get()));
+                    .with(TRAIT, trait.getName())
+                    .with(VALUE, String.valueOf(base.getTier())).get()));
         }
 
         if (this.hasEconomyCapabilities()) {

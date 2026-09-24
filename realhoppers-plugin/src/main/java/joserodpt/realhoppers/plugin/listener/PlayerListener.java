@@ -33,6 +33,9 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.EquipmentSlot;
 
+import static joserodpt.realhoppers.api.config.TranslatableLine.TranslatableLinePlaceholder.NAME;
+import static joserodpt.realhoppers.api.config.TranslatableLine.TranslatableLinePlaceholder.PLAYER;
+
 public class PlayerListener implements Listener {
 
     /** What a player holds to link two hoppers instead of opening one. */
@@ -91,13 +94,13 @@ public class PlayerListener implements Listener {
             if (player.getInventory().getItemInMainHand().getType() == LINK_TOOL) {
                 //kept pending, so the player can go and click a hopper they may link to
                 TranslatableLine.ACCESS_NO_LINK
-                        .setV1(TranslatableLine.ReplacableVar.NAME.eq(clicked.getName())).send(player);
+                        .with(NAME, clicked.getName()).send(player);
                 return;
             }
             cancelLink(player);
             TranslatableLine.ACCESS_DENIED
-                    .setV1(TranslatableLine.ReplacableVar.NAME.eq(clicked.getName()))
-                    .setV2(TranslatableLine.ReplacableVar.PLAYER.eq(clicked.getOwnerDisplayName())).send(player);
+                    .with(NAME, clicked.getName())
+                    .with(PLAYER, clicked.getOwnerDisplayName()).send(player);
             return;
         }
 
@@ -162,7 +165,7 @@ public class PlayerListener implements Listener {
         //its owner may have made it private since
         if (!source.canAccess(player)) {
             TranslatableLine.ACCESS_NO_LINK
-                    .setV1(TranslatableLine.ReplacableVar.NAME.eq(source.getName())).send(player);
+                    .with(NAME, source.getName()).send(player);
             return;
         }
 

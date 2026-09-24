@@ -48,6 +48,13 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static joserodpt.realhoppers.api.config.TranslatableLine.TranslatableLinePlaceholder.MATERIAL;
+import static joserodpt.realhoppers.api.config.TranslatableLine.TranslatableLinePlaceholder.MONEY;
+import static joserodpt.realhoppers.api.config.TranslatableLine.TranslatableLinePlaceholder.NAME;
+import static joserodpt.realhoppers.api.config.TranslatableLine.TranslatableLinePlaceholder.PLAYER;
+import static joserodpt.realhoppers.api.config.TranslatableLine.TranslatableLinePlaceholder.TRAIT;
+import static joserodpt.realhoppers.api.config.TranslatableLine.TranslatableLinePlaceholder.VALUE;
+
 /**
  * Every screen RealHoppers opens, built on {@link GUIBuilder} - a click runnable per slot, rather
  * than the switch over raw slot numbers the old HopperGUI carried.
@@ -164,7 +171,7 @@ public class GUIManager {
 
     public void openHopper(final Player target, final RHopper hopper) {
         final GUIBuilder inventory = new GUIBuilder(TranslatableLine.GUI_TITLE
-                .setV1(TranslatableLine.ReplacableVar.NAME.eq(hopper.getName())).get(), GUI_SIZE, target.getUniqueId());
+                .with(NAME, hopper.getName()).get(), GUI_SIZE, target.getUniqueId());
 
         //the hopper's own five slots, along the top, with its contents in them. They used to be a
         //button that closed this screen and opened the vanilla hopper one; there is one screen now
@@ -211,7 +218,7 @@ public class GUIManager {
             inventory.addItem(e -> collectXp(target, hopper),
                     Items.createItem(Material.EXPERIENCE_BOTTLE, 1,
                             TranslatableLine.GUI_XP_NAME
-                                    .setV1(TranslatableLine.ReplacableVar.VALUE.eq(String.valueOf(hopper.getXp()))).get(),
+                                    .with(VALUE, String.valueOf(hopper.getXp())).get(),
                             RHLanguage.file().getStringList("GUI.Items.Xp.Description")), XP_SLOT);
         }
 
@@ -233,7 +240,7 @@ public class GUIManager {
                     .replace("%whitelisted%", String.valueOf(hopper.getWhitelist().size())));
         }
         inventory.setItem(head(hopper.getOwner(), TranslatableLine.GUI_OWNER_NAME
-                .setV1(TranslatableLine.ReplacableVar.PLAYER.eq(hopper.getOwnerDisplayName())).get(), ownerLore), OWNER_SLOT);
+                .with(PLAYER, hopper.getOwnerDisplayName()).get(), ownerLore), OWNER_SLOT);
 
         //only the owner and admins see the controls; everyone else just sees whose it is
         if (!hopper.canManage(target)) {
@@ -242,7 +249,7 @@ public class GUIManager {
 
         inventory.addItem(e -> this.rename(target, hopper),
                 Items.createItem(Material.NAME_TAG, 1, TranslatableLine.GUI_RENAME_NAME
-                                .setV1(TranslatableLine.ReplacableVar.NAME.eq(hopper.getName())).get(),
+                                .with(NAME, hopper.getName()).get(),
                         RHLanguage.file().getStringList("GUI.Items.Rename.Description")), RENAME_SLOT);
 
         final boolean isPublic = hopper.getAccess() == RHopperAccess.PUBLIC;
@@ -250,14 +257,14 @@ public class GUIManager {
         inventory.addItem(e -> HopperOwnership.setAccess(target, hopper, hopper.getAccess().next()),
                 Items.createItem(isPublic ? Material.LIME_DYE : Material.RED_DYE, 1,
                         TranslatableLine.GUI_ACCESS_NAME
-                                .setV1(TranslatableLine.ReplacableVar.VALUE.eq(hopper.getAccess().getDisplayName())).get(),
+                                .with(VALUE, hopper.getAccess().getDisplayName()).get(),
                         RHLanguage.file().getStringList(isPublic
                                 ? "GUI.Items.Access.Public-Description"
                                 : "GUI.Items.Access.Private-Description")), ACCESS_SLOT);
 
         inventory.addItem(e -> openLater(target, () -> openWhitelist(target, hopper, 0)),
                 Items.createItem(Material.BOOK, 1, TranslatableLine.GUI_WHITELIST_NAME
-                                .setV1(TranslatableLine.ReplacableVar.VALUE.eq(String.valueOf(hopper.getWhitelist().size()))).get(),
+                                .with(VALUE, String.valueOf(hopper.getWhitelist().size())).get(),
                         RHLanguage.file().getStringList("GUI.Items.Whitelist.Description")), WHITELIST_SLOT);
     }
 
@@ -293,7 +300,7 @@ public class GUIManager {
         }
 
         final GUIBuilder inventory = new GUIBuilder(TranslatableLine.GUI_WHITELIST_TITLE
-                .setV1(TranslatableLine.ReplacableVar.NAME.eq(hopper.getName())).get(), GUI_SIZE, target.getUniqueId());
+                .with(NAME, hopper.getName()).get(), GUI_SIZE, target.getUniqueId());
 
         final Pagination<Map.Entry<UUID, String>> pages = new Pagination<>(WHITELIST_SLOTS.length,
                 new ArrayList<>(hopper.getWhitelist().entrySet()));
@@ -312,7 +319,7 @@ public class GUIManager {
                     HopperOwnership.removeFromWhitelist(target, hopper, uuid, name);
                     openWhitelist(target, hopper, shown);
                 }, head(uuid, TranslatableLine.GUI_WHITELIST_ENTRY_NAME
-                                .setV1(TranslatableLine.ReplacableVar.PLAYER.eq(name)).get(),
+                                .with(PLAYER, name).get(),
                         RHLanguage.file().getStringList("GUI.Items.Whitelist.Entry.Description")), WHITELIST_SLOTS[i]);
             }
         }
@@ -409,7 +416,7 @@ public class GUIManager {
         final double amount = click == ClickType.SHIFT_LEFT ? hopper.getBalance() : hopper.getBalance() / 2;
         rh.getEconomy().depositPlayer(target, amount);
         TranslatableLine.HOPPER_BALANCE_COLLECTED
-                .setV1(TranslatableLine.ReplacableVar.MONEY.eq(Text.formatNumber(amount))).send(target);
+                .with(MONEY, Text.formatNumber(amount)).send(target);
 
         //setBalance fires the state change event, which brings this screen back through refresh
         hopper.setBalance(hopper.getBalance() - amount);
@@ -432,7 +439,7 @@ public class GUIManager {
         target.playSound(target.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
 
         TranslatableLine.HOPPER_XP_COLLECTED
-                .setV1(TranslatableLine.ReplacableVar.VALUE.eq(String.valueOf(gathered))).send(target);
+                .with(VALUE, String.valueOf(gathered)).send(target);
     }
 
     /**
@@ -458,7 +465,7 @@ public class GUIManager {
             inventory.addItem(e -> {
                 filter.remove(material);
                 TranslatableLine.FILTER_REMOVED
-                        .setV1(TranslatableLine.ReplacableVar.MATERIAL.eq(Text.beautifyMaterialName(material))).send(target);
+                        .with(MATERIAL, Text.beautifyMaterialName(material)).send(target);
                 openFilter(target, hopper);
             }, Items.createItem(material, 1, "&f" + Text.beautifyMaterialName(material),
                     RHLanguage.file().getStringList("GUI.Items.Filter.Entry-Description")), TRAIT_SLOTS[i]);
@@ -476,7 +483,7 @@ public class GUIManager {
                     MaterialPickerGUI.MaterialLists.ONLY_ITEMS, material -> {
                 if (material != null && filter.add(material)) {
                     TranslatableLine.FILTER_ADDED
-                            .setV1(TranslatableLine.ReplacableVar.MATERIAL.eq(Text.beautifyMaterialName(material))).send(target);
+                            .with(MATERIAL, Text.beautifyMaterialName(material)).send(target);
                 }
                 openFilter(target, hopper);
             });
@@ -510,12 +517,12 @@ public class GUIManager {
 
         if (!filter.add(held.getType())) {
             TranslatableLine.FILTER_ALREADY_LISTED
-                    .setV1(TranslatableLine.ReplacableVar.MATERIAL.eq(Text.beautifyMaterialName(held.getType()))).send(target);
+                    .with(MATERIAL, Text.beautifyMaterialName(held.getType())).send(target);
             return;
         }
 
         TranslatableLine.FILTER_ADDED
-                .setV1(TranslatableLine.ReplacableVar.MATERIAL.eq(Text.beautifyMaterialName(held.getType()))).send(target);
+                .with(MATERIAL, Text.beautifyMaterialName(held.getType())).send(target);
         openFilter(target, hopper);
     }
 
@@ -585,14 +592,14 @@ public class GUIManager {
     private void raiseTier(final Player target, final RHopper hopper, final RHopperTrait trait) {
         if (!trait.isScalable()) {
             TranslatableLine.TRAIT_NOT_SCALABLE
-                    .setV1(TranslatableLine.ReplacableVar.TRAIT.eq(trait.getName())).send(target);
+                    .with(TRAIT, trait.getName()).send(target);
             return;
         }
 
         final int next = hopper.getTraitTier(trait) + 1;
         if (next > trait.getMaxTier()) {
             TranslatableLine.TRAIT_TIER_MAX
-                    .setV1(TranslatableLine.ReplacableVar.TRAIT.eq(trait.getName())).send(target);
+                    .with(TRAIT, trait.getName()).send(target);
             return;
         }
 
@@ -605,7 +612,7 @@ public class GUIManager {
             }
             if (!rh.getEconomy().has(target, price)) {
                 TranslatableLine.TRAIT_TIER_TOO_EXPENSIVE
-                        .setV1(TranslatableLine.ReplacableVar.MONEY.eq(Text.formatNumber(price))).send(target);
+                        .with(MONEY, Text.formatNumber(price)).send(target);
                 return;
             }
             //taken before the tier is set, so a refused withdrawal cannot hand out the upgrade
@@ -616,15 +623,15 @@ public class GUIManager {
         target.playSound(target.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
 
         TranslatableLine.TRAIT_TIER_UPGRADED
-                .setV1(TranslatableLine.ReplacableVar.TRAIT.eq(trait.getName()))
-                .setV2(TranslatableLine.ReplacableVar.VALUE.eq(String.valueOf(set))).send(target);
+                .with(TRAIT, trait.getName())
+                .with(VALUE, String.valueOf(set)).send(target);
         openHopper(target, hopper);
     }
 
     private void toggle(final Player target, final RHopper hopper, final RHopperTrait trait) {
         if (hopper.removeTrait(trait)) {
             TranslatableLine.TRAIT_REMOVED
-                    .setV1(TranslatableLine.ReplacableVar.TRAIT.eq(trait.getName())).send(target);
+                    .with(TRAIT, trait.getName()).send(target);
             openHopper(target, hopper);
             return;
         }
@@ -632,17 +639,17 @@ public class GUIManager {
         final RHopperTraitBase built = trait.build(hopper);
         if (built == null) {
             TranslatableLine.TRAIT_UNAVAILABLE
-                    .setV1(TranslatableLine.ReplacableVar.TRAIT.eq(trait.getName())).send(target);
+                    .with(TRAIT, trait.getName()).send(target);
             return;
         }
 
         hopper.setTrait(trait, built);
         TranslatableLine.TRAIT_ADDED
-                .setV1(TranslatableLine.ReplacableVar.TRAIT.eq(trait.getName())).send(target);
+                .with(TRAIT, trait.getName()).send(target);
 
         if (trait.requiresLink() && !hopper.hasLink()) {
             TranslatableLine.TRAIT_NEEDS_LINK
-                    .setV1(TranslatableLine.ReplacableVar.TRAIT.eq(trait.getName())).send(target);
+                    .with(TRAIT, trait.getName()).send(target);
         }
         openHopper(target, hopper);
     }

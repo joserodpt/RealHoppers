@@ -26,6 +26,10 @@ import org.bukkit.entity.Player;
 import java.util.Map;
 import java.util.UUID;
 
+import static joserodpt.realhoppers.api.config.TranslatableLine.TranslatableLinePlaceholder.NAME;
+import static joserodpt.realhoppers.api.config.TranslatableLine.TranslatableLinePlaceholder.PLAYER;
+import static joserodpt.realhoppers.api.config.TranslatableLine.TranslatableLinePlaceholder.VALUE;
+
 /**
  * Renaming a hopper, changing its access and editing its whitelist - the same rules whether it is
  * done from the hopper's screen or with /rh. Each one checks the player may manage the hopper,
@@ -60,12 +64,12 @@ public final class HopperOwnership {
         final int max = RHConfig.file().getInt("RealHoppers.Hoppers.Name-Max-Length", 32);
         if (visible.length() > max) {
             TranslatableLine.NAME_TOO_LONG
-                    .setV1(TranslatableLine.ReplacableVar.VALUE.eq(String.valueOf(max))).send(p);
+                    .with(VALUE, String.valueOf(max)).send(p);
             return false;
         }
 
         hopper.setName(trimmed);
-        TranslatableLine.NAME_SET.setV1(TranslatableLine.ReplacableVar.NAME.eq(trimmed)).send(p);
+        TranslatableLine.NAME_SET.with(NAME, trimmed).send(p);
         return true;
     }
 
@@ -76,8 +80,8 @@ public final class HopperOwnership {
 
         hopper.setAccess(access);
         TranslatableLine.ACCESS_SET
-                .setV1(TranslatableLine.ReplacableVar.NAME.eq(hopper.getName()))
-                .setV2(TranslatableLine.ReplacableVar.VALUE.eq(access.getDisplayName())).send(p);
+                .with(NAME, hopper.getName())
+                .with(VALUE, access.getDisplayName()).send(p);
         return true;
     }
 
@@ -89,7 +93,7 @@ public final class HopperOwnership {
         final OfflinePlayer target = findPlayer(playerName);
         if (target == null) {
             TranslatableLine.WHITELIST_NOT_FOUND
-                    .setV1(TranslatableLine.ReplacableVar.PLAYER.eq(playerName)).send(p);
+                    .with(PLAYER, playerName).send(p);
             return false;
         }
 
@@ -100,21 +104,21 @@ public final class HopperOwnership {
 
         if (hopper.isWhitelisted(target.getUniqueId())) {
             TranslatableLine.WHITELIST_ALREADY
-                    .setV1(TranslatableLine.ReplacableVar.PLAYER.eq(target.getName())).send(p);
+                    .with(PLAYER, target.getName()).send(p);
             return false;
         }
 
         final int max = RHConfig.file().getInt("RealHoppers.Hoppers.Whitelist-Max-Size", 27);
         if (hopper.getWhitelist().size() >= max) {
             TranslatableLine.WHITELIST_FULL
-                    .setV1(TranslatableLine.ReplacableVar.VALUE.eq(String.valueOf(max))).send(p);
+                    .with(VALUE, String.valueOf(max)).send(p);
             return false;
         }
 
         hopper.addToWhitelist(target);
         TranslatableLine.WHITELIST_ADDED
-                .setV1(TranslatableLine.ReplacableVar.PLAYER.eq(target.getName()))
-                .setV2(TranslatableLine.ReplacableVar.NAME.eq(hopper.getName())).send(p);
+                .with(PLAYER, target.getName())
+                .with(NAME, hopper.getName()).send(p);
         return true;
     }
 
@@ -150,13 +154,13 @@ public final class HopperOwnership {
 
         if (uuid == null || !hopper.removeFromWhitelist(uuid)) {
             TranslatableLine.WHITELIST_NOT_ON
-                    .setV1(TranslatableLine.ReplacableVar.PLAYER.eq(shown)).send(p);
+                    .with(PLAYER, shown).send(p);
             return false;
         }
 
         TranslatableLine.WHITELIST_REMOVED
-                .setV1(TranslatableLine.ReplacableVar.PLAYER.eq(shown))
-                .setV2(TranslatableLine.ReplacableVar.NAME.eq(hopper.getName())).send(p);
+                .with(PLAYER, shown)
+                .with(NAME, hopper.getName()).send(p);
         return true;
     }
 
