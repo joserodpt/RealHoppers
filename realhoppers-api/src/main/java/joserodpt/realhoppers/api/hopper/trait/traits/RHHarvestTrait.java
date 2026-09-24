@@ -19,10 +19,14 @@ import joserodpt.realhoppers.api.hopper.RHopper;
 import joserodpt.realhoppers.api.hopper.trait.RHopperTrait;
 import joserodpt.realhoppers.api.hopper.trait.RHopperTraitBase;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.block.data.Ageable;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+
+import java.util.EnumSet;
+import java.util.Set;
 
 /**
  * Cuts fully grown crops around the hopper and replants them.
@@ -31,6 +35,14 @@ import org.bukkit.inventory.ItemStack;
  * else is on the hopper, exactly as suction and block breaking are.</p>
  */
 public class RHHarvestTrait extends RHopperTraitBase {
+
+    /**
+     * What counts as a crop. Anything Ageable used to: sugar cane, cactus, kelp and fire are too,
+     * and setting one of those back to age 0 while keeping its drops made them endless.
+     */
+    private static final Set<Material> CROPS = EnumSet.of(
+            Material.WHEAT, Material.CARROTS, Material.POTATOES, Material.BEETROOTS,
+            Material.NETHER_WART, Material.COCOA, Material.SWEET_BERRY_BUSH);
 
     public RHHarvestTrait(RHopper main) {
         super(main);
@@ -51,6 +63,9 @@ public class RHHarvestTrait extends RHopperTraitBase {
             final int radius = (int) Math.max(1, RHopperTrait.HARVEST.configValue("Radius", 2) * super.power());
 
             super.forEachBlockAround(radius, block -> {
+                if (!CROPS.contains(block.getType())) {
+                    return;
+                }
                 final BlockData data = block.getBlockData();
                 if (!(data instanceof Ageable)) {
                     return;

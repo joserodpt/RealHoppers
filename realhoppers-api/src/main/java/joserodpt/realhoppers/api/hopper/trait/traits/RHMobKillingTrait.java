@@ -47,9 +47,10 @@ public class RHMobKillingTrait extends RHopperTraitBase {
 
             for (Entity nearbyEntity : super.getHopper().getWorld().getNearbyEntities(super.getHopper().getLocation(), radius, radius, radius)) {
                 if (nearbyEntity.getType() != EntityType.PLAYER && nearbyEntity instanceof LivingEntity) {
+                    //set on every hit, before it, so the kill is credited to the hopper that dealt it
+                    //rather than whichever one first touched the mob
+                    nearbyEntity.setMetadata("rh", new FixedMetadataValue(RealHoppersAPI.getInstance().getPlugin(), super.getHopper()));
                     ((LivingEntity) nearbyEntity).damage(damage);
-                    if (!nearbyEntity.hasMetadata("rh"))
-                        nearbyEntity.setMetadata("rh", new FixedMetadataValue(RealHoppersAPI.getInstance().getPlugin(), super.getHopper()));
                 }
             }
         }, 20, 20);

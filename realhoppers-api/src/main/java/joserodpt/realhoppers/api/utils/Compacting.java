@@ -145,9 +145,11 @@ public class Compacting {
     }
 
     private static Material materialAt(final ShapedRecipe shaped, final char slot) {
-        final Material fromChoice = materialOf(shaped.getChoiceMap().get(slot));
-        if (fromChoice != null) {
-            return fromChoice;
+        final RecipeChoice choice = shaped.getChoiceMap().get(slot);
+        if (choice != null) {
+            //no falling back when the choice was refused: the ingredient map would hand an
+            //ExactChoice slot back as its bare material
+            return materialOf(choice);
         }
         //older servers, where the choice map may not be populated
         final ItemStack legacy = shaped.getIngredientMap().get(slot);
@@ -159,15 +161,14 @@ public class Compacting {
      *
      * <p>Null when it accepts more than one - an ingredient written as a tag is ambiguous here in
      * a way it is not for smelting, since "nine of any of these" has no one answer.</p>
+     *
+     * <p>Null for an exact choice too. The trait compacts by material, so a recipe that wants nine
+     * of one particular named or enchanted item would take nine plain ones.</p>
      */
     private static Material materialOf(final RecipeChoice choice) {
         if (choice instanceof RecipeChoice.MaterialChoice) {
             final List<Material> choices = ((RecipeChoice.MaterialChoice) choice).getChoices();
             return choices.size() == 1 ? choices.get(0) : null;
-        }
-        if (choice instanceof RecipeChoice.ExactChoice) {
-            final List<ItemStack> choices = ((RecipeChoice.ExactChoice) choice).getChoices();
-            return choices.size() == 1 ? choices.get(0).getType() : null;
         }
         return null;
     }

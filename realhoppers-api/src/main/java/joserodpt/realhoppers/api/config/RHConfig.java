@@ -40,8 +40,9 @@ public class RHConfig implements Listener {
                     DumperSettings.DEFAULT,
                     UpdaterSettings.builder().setVersioning(new BasicVersioning("Version")).build());
         } catch (final IOException e) {
-            RealHoppersAPI.getInstance().getLogger().severe( "Couldn't setup " + name + "!");
-            RealHoppersAPI.getInstance().getLogger().severe(e.getMessage());
+            //the plugin's logger: setup runs before the API instance is set
+            rm.getLogger().severe("Couldn't setup " + name + "!");
+            rm.getLogger().severe(e.getMessage());
         }
     }
 

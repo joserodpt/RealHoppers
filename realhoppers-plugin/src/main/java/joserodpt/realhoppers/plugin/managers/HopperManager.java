@@ -75,44 +75,12 @@ public class HopperManager extends HopperManagerAPI {
         this.stopHoppers();
         this.getHoppersMap().clear();
         for (final DatabaseManager.StoredHopper stored : rh.getDatabaseManager().loadAll()) {
-            final HopperRow row = stored.getHopper();
-
-            //a world that is not loaded, or a block that is no longer a hopper, is skipped but left
-            //in the database: unloading a world for a while should not cost its hoppers
-            final Location l = LocationUtil.deserializeLocation(row.getLocation());
-            if (l == null) {
-                rh.getLogger().warning("Could not find the world of the hopper at " + row.getLocation() + "! Skipping.");
-                continue;
+            //one row that trips something up costs that hopper, not every one after it
+            try {
+                this.loadHopper(stored);
+            } catch (final RuntimeException e) {
+                rh.getLogger().severe("Could not load the hopper at " + stored.getHopper().getLocation() + ": " + e + ". Skipping.");
             }
-
-            final Block b = l.getBlock();
-            if (b.getType() != Material.HOPPER) {
-                rh.getLogger().warning("Block at location " + row.getLocation() + " isn't a Hopper! Skipping.");
-                continue;
-            }
-
-            final RHopper loaded = new RHopper(b, false);
-            //not the setters: those fire state change events and queue writes, for values that
-            //were just read out of the database
-            loaded.restoreName(row.getName());
-            loaded.restoreOwner(row.getOwnerUUID(), row.getOwnerName());
-            loaded.restoreAccess(RHopperAccess.parse(row.getAccess()));
-            loaded.restoreCreatedAt(row.getCreatedAt());
-            loaded.restoreBalance(row.getBalance());
-            loaded.restoreXp(row.getXp());
-            loaded.setLinkLocation(row.getLink());
-
-            for (final HopperWhitelistRow entry : stored.getWhitelist()) {
-                loaded.restoreWhitelisted(entry.getPlayerUUID(), entry.getPlayerName());
-            }
-
-            final Map<RHopperTrait, RHopperTraitBase> traitMap = new HashMap<>();
-            for (final HopperTraitRow trait : stored.getTraits()) {
-                putTrait(traitMap, loaded, trait.getTrait(), trait.getTier(), trait.getSettings());
-            }
-            loaded.setTraits(traitMap, false);
-
-            this.getHoppersMap().put(b, loaded);
         }
 
         //links first: a hopper can be linked to one stored after it, and a trait that follows
@@ -134,6 +102,47 @@ public class HopperManager extends HopperManagerAPI {
                 }
             }
         }
+    }
+
+    private void loadHopper(final DatabaseManager.StoredHopper stored) {
+        final HopperRow row = stored.getHopper();
+
+        //a world that is not loaded, or a block that is no longer a hopper, is skipped but left
+        //in the database: unloading a world for a while should not cost its hoppers
+        final Location l = LocationUtil.deserializeLocation(row.getLocation());
+        if (l == null) {
+            rh.getLogger().warning("Could not find the world of the hopper at " + row.getLocation() + "! Skipping.");
+            return;
+        }
+
+        final Block b = l.getBlock();
+        if (b.getType() != Material.HOPPER) {
+            rh.getLogger().warning("Block at location " + row.getLocation() + " isn't a Hopper! Skipping.");
+            return;
+        }
+
+        final RHopper loaded = new RHopper(b, false);
+        //not the setters: those fire state change events and queue writes, for values that
+        //were just read out of the database
+        loaded.restoreName(row.getName());
+        loaded.restoreOwner(row.getOwnerUUID(), row.getOwnerName());
+        loaded.restoreAccess(RHopperAccess.parse(row.getAccess()));
+        loaded.restoreCreatedAt(row.getCreatedAt());
+        loaded.restoreBalance(row.getBalance());
+        loaded.restoreXp(row.getXp());
+        loaded.setLinkLocation(row.getLink());
+
+        for (final HopperWhitelistRow entry : stored.getWhitelist()) {
+            loaded.restoreWhitelisted(entry.getPlayerUUID(), entry.getPlayerName());
+        }
+
+        final Map<RHopperTrait, RHopperTraitBase> traitMap = new HashMap<>();
+        for (final HopperTraitRow trait : stored.getTraits()) {
+            putTrait(traitMap, loaded, trait.getTrait(), trait.getTier(), trait.getSettings());
+        }
+        loaded.setTraits(traitMap, false);
+
+        this.getHoppersMap().put(b, loaded);
     }
 
     /**
@@ -168,8 +177,9 @@ public class HopperManager extends HopperManagerAPI {
     @Override
     public void delete(RHopper h) {
         h.stopHopper();
-        //out of the map before the database is told, so the flush cannot write it back
-        this.getHoppersMap().remove(h.getBlock());
+        //out of the map before the database is told, so the flush cannot write it back. Only if it
+        //is still this object: a hopper from before a reload must not take its replacement with it
+        this.getHoppersMap().remove(h.getBlock(), h);
         rh.getDatabaseManager().delete(h);
         //anything pointing at the hopper that is going away is left pointing at nothing, so the
         //link is dropped and whatever followed it stops

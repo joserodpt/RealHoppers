@@ -34,16 +34,21 @@ public class RHSQLConfig {
         try {
             document = YamlDocument.create(new File(rm.getDataFolder(), name), rm.getResource(name));
         } catch (final IOException e) {
-            RealHoppersAPI.getInstance().getLogger().severe("Couldn't setup " + name + "!");
-            RealHoppersAPI.getInstance().getLogger().severe(e.getMessage());
+            //the plugin's logger: setup runs before the API instance is set
+            rm.getLogger().severe("Couldn't setup " + name + "!");
+            rm.getLogger().severe(e.getMessage());
         }
     }
 
+    /** Null when sql.yml could not be read at setup; the database manager refuses to start then. */
     public static YamlDocument file() {
         return document;
     }
 
     public static void reload() {
+        if (document == null) {
+            return;
+        }
         try {
             document.reload();
         } catch (final IOException e) {

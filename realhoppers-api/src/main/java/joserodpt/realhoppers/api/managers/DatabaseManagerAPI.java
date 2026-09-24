@@ -34,6 +34,13 @@ public abstract class DatabaseManagerAPI {
      */
     public abstract void flush(boolean async);
 
+    /**
+     * Writes this one hopper straight away, off the main thread, rather than at the next flush. For
+     * changes that have already had an effect elsewhere - a balance paid out through Vault - and
+     * would be undone by a crash before the flush.
+     */
+    public abstract void saveNow(RHopper hopper);
+
     /** Removes a hopper, its traits and its whitelist from the database. */
     public abstract void delete(RHopper hopper);
 

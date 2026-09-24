@@ -15,12 +15,16 @@ package joserodpt.realhoppers.plugin.managers;
 
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.dao.DaoManager;
+import com.j256.ormlite.dao.DatabaseResultsMapper;
+import com.j256.ormlite.dao.GenericRawResults;
 import com.j256.ormlite.jdbc.db.DatabaseTypeUtils;
 import com.j256.ormlite.jdbc.JdbcConnectionSource;
+import com.j256.ormlite.jdbc.JdbcPooledConnectionSource;
 import com.j256.ormlite.logger.LoggerFactory;
 import com.j256.ormlite.logger.NullLogBackend;
 import com.j256.ormlite.misc.TransactionManager;
 import com.j256.ormlite.stmt.DeleteBuilder;
+import com.j256.ormlite.stmt.GenericRowMapper;
 import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
 import joserodpt.realhoppers.api.config.RHSQLConfig;
@@ -35,6 +39,7 @@ import java.io.File;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -45,6 +50,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -79,11 +85,27 @@ public class DatabaseManager extends DatabaseManagerAPI {
         //ORMLite logs every statement it prepares otherwise
         LoggerFactory.setLogBackendFactory(new NullLogBackend.NullLogBackendFactory());
 
+        //caught by the caller like any other connection failure, which disables the plugin
+        if (RHSQLConfig.file() == null) {
+            throw new SQLException("sql.yml could not be read");
+        }
+
         final String databaseURL = this.getDatabaseURL();
-        this.connectionSource = new JdbcConnectionSource(databaseURL,
-                RHSQLConfig.file().getString("username"),
-                RHSQLConfig.file().getString("password"),
-                DatabaseTypeUtils.createDatabaseType(databaseURL));
+        final String username = RHSQLConfig.file().getString("username");
+        final String password = RHSQLConfig.file().getString("password");
+        if (databaseURL.startsWith("jdbc:sqlite:")) {
+            //a local file that never times out, and more than one connection to it only buys "database is locked"
+            this.connectionSource = new JdbcConnectionSource(databaseURL, username, password,
+                    DatabaseTypeUtils.createDatabaseType(databaseURL));
+        } else {
+            //a single JdbcConnectionSource connection is never reopened, so once the server drops it
+            //(PostgreSQL has no autoReconnect) every write fails until the next restart
+            final JdbcPooledConnectionSource pooled = new JdbcPooledConnectionSource(databaseURL, username, password,
+                    DatabaseTypeUtils.createDatabaseType(databaseURL));
+            pooled.setTestBeforeGet(true);
+            pooled.setMaxConnectionAgeMillis(TimeUnit.MINUTES.toMillis(30));
+            this.connectionSource = pooled;
+        }
 
         TableUtils.createTableIfNotExists(this.connectionSource, HopperRow.class);
         TableUtils.createTableIfNotExists(this.connectionSource, HopperTraitRow.class);
@@ -150,13 +172,17 @@ public class DatabaseManager extends DatabaseManagerAPI {
     public List<StoredHopper> loadAll() {
         try {
             return this.writer.submit(() -> {
-                final Map<String, List<HopperTraitRow>> traits = this.traitDao.queryForAll().stream()
-                        .collect(Collectors.groupingBy(HopperTraitRow::getHopperLocation));
-                final Map<String, List<HopperWhitelistRow>> whitelists = this.whitelistDao.queryForAll().stream()
-                        .collect(Collectors.groupingBy(HopperWhitelistRow::getHopperLocation));
+                final Map<String, List<HopperTraitRow>> traits = new HashMap<>();
+                for (final HopperTraitRow row : this.readAll(this.traitDao, "trait")) {
+                    traits.computeIfAbsent(row.getHopperLocation(), k -> new ArrayList<>()).add(row);
+                }
+                final Map<String, List<HopperWhitelistRow>> whitelists = new HashMap<>();
+                for (final HopperWhitelistRow row : this.readAll(this.whitelistDao, "whitelist")) {
+                    whitelists.computeIfAbsent(row.getHopperLocation(), k -> new ArrayList<>()).add(row);
+                }
 
                 final List<StoredHopper> stored = new ArrayList<>();
-                for (final HopperRow row : this.hopperDao.queryForAll()) {
+                for (final HopperRow row : this.readAll(this.hopperDao, "hopper")) {
                     stored.add(new StoredHopper(row,
                             traits.getOrDefault(row.getLocation(), Collections.emptyList()),
                             whitelists.getOrDefault(row.getLocation(), Collections.emptyList())));
@@ -169,6 +195,35 @@ public class DatabaseManager extends DatabaseManagerAPI {
             this.rh.getLogger().severe("Could not read the hoppers from the database: " + e.getCause().getMessage());
         }
         return Collections.emptyList();
+    }
+
+    /**
+     * Every row of a table, skipping and logging any that cannot be read. queryForAll fails
+     * outright on the first bad row, and an empty load would leave every hopper unregistered.
+     */
+    private <T, ID> List<T> readAll(final Dao<T, ID> dao, final String what) throws SQLException {
+        final GenericRowMapper<T> mapper = dao.getSelectStarRowMapper();
+        final StringBuilder sql = new StringBuilder("SELECT * FROM ");
+        this.connectionSource.getDatabaseType().appendEscapedEntityName(sql, dao.getTableName());
+
+        final List<T> rows = new ArrayList<>();
+        try (final GenericRawResults<T> results = dao.queryRaw(sql.toString(), (DatabaseResultsMapper<T>) row -> {
+            try {
+                return mapper.mapRow(row);
+            } catch (final SQLException | RuntimeException e) {
+                this.rh.getLogger().severe("Skipping an unreadable " + what + " row: " + e.getMessage());
+                return null;
+            }
+        })) {
+            for (final T row : results) {
+                if (row != null) {
+                    rows.add(row);
+                }
+            }
+        } catch (final Exception e) {
+            throw e instanceof SQLException ? (SQLException) e : new SQLException(e);
+        }
+        return rows;
     }
 
     @Override
@@ -187,6 +242,22 @@ public class DatabaseManager extends DatabaseManagerAPI {
             final String location = this.hopper.getLocation();
             h.getTraitMap().forEach((trait, base) -> this.traits.add(new HopperTraitRow(location, trait, base)));
             h.getWhitelist().forEach((uuid, name) -> this.whitelist.add(new HopperWhitelistRow(location, uuid, name)));
+        }
+    }
+
+    @Override
+    public void saveNow(final RHopper hopper) {
+        //through the same writer as the flush, so it lands in order with every other write
+        if (this.writer.isShutdown() || this.rh.getHopperManager().getHopper(hopper.getBlock()) != hopper) {
+            return;
+        }
+        this.dirty.remove(hopper);
+        final Snapshot snapshot = new Snapshot(hopper);
+        try {
+            this.writer.execute(() -> this.write(snapshot));
+        } catch (final RejectedExecutionException e) {
+            //shut down in between: close() flushes what was marked, so mark it again
+            this.dirty.add(hopper);
         }
     }
 
@@ -273,6 +344,18 @@ public class DatabaseManager extends DatabaseManagerAPI {
 
     @Override
     public CompletableFuture<List<OwnedHopper>> getOwnedHoppers(final UUID owner) {
+        if (this.writer.isShutdown()) {
+            return CompletableFuture.completedFuture(Collections.emptyList());
+        }
+        try {
+            return this.supplyOwnedHoppers(owner);
+        } catch (final RejectedExecutionException e) {
+            //shut down between the check and the submit
+            return CompletableFuture.completedFuture(Collections.emptyList());
+        }
+    }
+
+    private CompletableFuture<List<OwnedHopper>> supplyOwnedHoppers(final UUID owner) {
         return CompletableFuture.supplyAsync(() -> {
             try {
                 return this.hopperDao.queryForEq("owner_uuid", owner).stream()

@@ -670,6 +670,7 @@ public class RHopper {
      */
     public void setLink(final RHopper link) {
         this.link = link;
+        this.linkLocation = null;
         this.saveData(Data.LINK);
         this.startTraitTasks();
     }
@@ -677,6 +678,7 @@ public class RHopper {
     /** Drops the link. Traits that need one stop until the hopper is linked again. */
     public void removeLink() {
         this.link = null;
+        this.linkLocation = null;
         this.saveData(Data.LINK);
         this.getTraitMap().forEach((trait, base) -> {
             if (trait.requiresLink()) {
@@ -699,11 +701,21 @@ public class RHopper {
             return;
         }
 
+        //a world that isn't loaded right now isn't proof the target is gone: the stored link is
+        //kept, and written back as it was, until that world comes back
+        final String[] parts = this.linkLocation.split(":");
+        if (parts.length == 4 && Bukkit.getWorld(parts[3]) == null) {
+            RealHoppersAPI.getInstance().getLogger().warning("The hopper at " + this.getSerializedLocation()
+                    + " is linked to " + this.linkLocation + ", in a world that is not loaded. Keeping the link.");
+            return;
+        }
+
         final Location l = LocationUtil.deserializeLocation(this.linkLocation);
         if (l == null) {
             RealHoppersAPI.getInstance().getLogger().severe("Could not parse the link of the hopper at "
                     + this.getSerializedLocation() + " (" + this.linkLocation + ")! Unlinking.");
             this.linkLocation = null;
+            this.saveData(Data.LINK);
             return;
         }
 
@@ -718,6 +730,17 @@ public class RHopper {
 
         this.link = linked;
         this.linkLocation = null;
+    }
+
+    /**
+     * What to store as the link: the linked hopper, or a link still waiting on its world to load.
+     * Null when there is neither.
+     */
+    public String getStoredLink() {
+        if (this.link != null) {
+            return this.link.getSerializedLocation();
+        }
+        return this.linkLocation;
     }
 
     /** Cancels everything this hopper has running and puts its balance beyond the next flush. */

@@ -23,17 +23,19 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class PlayerInput implements Listener {
 
-    private static final Map<UUID, PlayerInput> inputs = new HashMap<>();
+    //read and taken from the async chat thread, written from the main thread
+    private static final Map<UUID, PlayerInput> inputs = new ConcurrentHashMap<>();
     private final UUID uuid;
 
     private final List<String> texts;
@@ -77,19 +79,44 @@ public class PlayerInput implements Listener {
             public void onPlayerChat(final AsyncPlayerChatEvent event) {
                 final Player p = event.getPlayer();
                 final String input = event.getMessage();
-                final UUID uuid = p.getUniqueId();
 
-                if (inputs.containsKey(uuid)) {
+                //taken in one step, so two quick messages can't both answer the same prompt
+                final PlayerInput current = inputs.remove(p.getUniqueId());
+                if (current != null) {
                     event.setCancelled(true);
-                    handlePlayerInput(p, input, uuid);
+                    //this is the async chat thread: the task, the title and the callbacks belong on the main one
+                    Bukkit.getScheduler().runTask(RealHoppersAPI.getInstance().getPlugin(),
+                            () -> handlePlayerInput(p, input, current));
+                }
+            }
+
+            @EventHandler
+            public void onQuit(final PlayerQuitEvent event) {
+                //otherwise the title task runs forever and their first chat line after rejoining answers
+                //a prompt from a previous session
+                final PlayerInput current = inputs.remove(event.getPlayer().getUniqueId());
+                if (current != null) {
+                    current.taskId.cancel();
                 }
             }
         };
     }
 
-    private static void handlePlayerInput(final Player p, String input, final UUID uuid) {
-        final PlayerInput current = inputs.get(uuid);
+    /** Drops every unanswered prompt, for a reload: their callbacks hold hoppers that are about to be replaced. */
+    public static void cancelAll() {
+        for (final UUID uuid : inputs.keySet()) {
+            final PlayerInput current = inputs.remove(uuid);
+            if (current != null) {
+                current.taskId.cancel();
+                final Player p = Bukkit.getPlayer(uuid);
+                if (p != null) {
+                    p.sendTitle("", "", 0, 1, 0);
+                }
+            }
+        }
+    }
 
+    private static void handlePlayerInput(final Player p, String input, final PlayerInput current) {
         if (current.clearInput) {
             input = ChatColor.stripColor(Text.color(input)).trim();
         }
@@ -97,7 +124,6 @@ public class PlayerInput implements Listener {
         try {
             current.taskId.cancel();
             p.sendTitle("", "", 0, 1, 0);
-            current.unregister();
             final String cleanInput = current.clearInput ? ChatColor.stripColor(Text.color(input)) : input.trim();
             if (input.equalsIgnoreCase("cancel")) {
                 TranslatableLine.SYSTEM_INPUT_CANCELLED.send(p);
@@ -112,11 +138,11 @@ public class PlayerInput implements Listener {
     }
 
     private void register() {
-        inputs.put(this.uuid, this);
-    }
-
-    private void unregister() {
-        inputs.remove(this.uuid);
+        final PlayerInput previous = inputs.put(this.uuid, this);
+        //a new prompt replaces an unanswered one, whose title task would otherwise never stop
+        if (previous != null) {
+            previous.taskId.cancel();
+        }
     }
 
     @FunctionalInterface

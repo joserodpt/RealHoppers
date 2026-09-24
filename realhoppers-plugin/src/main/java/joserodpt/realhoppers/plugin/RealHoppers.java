@@ -90,6 +90,11 @@ public class RealHoppers extends RealHoppersAPI {
     }
     @Override
     public void reload() {
+        //every open screen, prompt and half-made link holds a hopper object the reload replaces, and
+        //acting on one of those afterwards would change a hopper that is no longer saved or ticked
+        this.guiManager.closeAll();
+        this.playerManagerAPI.getPendingLinks().clear();
+
         RHConfig.reload();
         RHLanguage.reload();
         //everything changed so far is written before the hoppers are read back, or the reload

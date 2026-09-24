@@ -19,7 +19,11 @@ import joserodpt.realhoppers.plugin.RealHoppers;
 import joserodpt.realhoppers.api.hopper.RHopper;
 import joserodpt.realhoppers.api.hopper.events.RHopperStateChangeEvent;
 import joserodpt.realhoppers.api.utils.Text;
+import joserodpt.realhoppers.api.hopper.trait.RHopperTrait;
+import net.milkbowl.vault.economy.EconomyResponse;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.block.Block;
 import org.bukkit.block.Hopper;
 import org.bukkit.event.EventHandler;
@@ -36,6 +40,7 @@ import org.bukkit.event.inventory.InventoryPickupItemEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.metadata.MetadataValue;
 
 import java.util.List;
 
@@ -88,6 +93,8 @@ public class EventListener implements Listener {
         if (e.getBlock().getType() == Material.HOPPER) {
             RHopper h = rh.getHopperManager().getHopper(e.getBlock());
             if (h != null) {
+                //before the contents drop and the hopper goes, so nobody is left clicking at a dead block
+                rh.getGUIManager().closeScreens(h);
                 payOut(h, e.getPlayer());
                 rh.getHopperManager().delete(h);
                 TranslatableLine.HOPPER_REMOVED.send(e.getPlayer());
@@ -116,6 +123,9 @@ public class EventListener implements Listener {
             if (block.getType() == Material.HOPPER) {
                 RHopper h = rh.getHopperManager().getHopper(block);
                 if (h != null) {
+                    rh.getGUIManager().closeScreens(h);
+                    //nobody broke it, so the balance can only go to its owner
+                    payOut(h, null);
                     rh.getHopperManager().delete(h);
                     //TODO: drop special hopper item
                 }
@@ -124,25 +134,64 @@ public class EventListener implements Listener {
     }
 
     /**
-     * Hands whatever an auto-selling hopper had banked to the player breaking it. Deleting the
-     * hopper deletes its balance with it, so without this the money is simply gone.
+     * Hands whatever the hopper had banked to its owner. Deleting the hopper deletes its balance
+     * with it, so without this the money is simply gone. It used to go to whoever broke it, which on
+     * a public hopper was anyone.
+     *
+     * @param breaker who broke it, or null for an explosion. Paid only for a hopper nobody owns.
      */
-    private void payOut(final RHopper h, final Player p) {
-        if (h.getBalance() <= 0 || rh.getEconomy() == null) {
+    private void payOut(final RHopper h, final Player breaker) {
+        final OfflinePlayer payee = h.hasOwner() ? Bukkit.getOfflinePlayer(h.getOwner()) : breaker;
+        if (payee == null) {
             return;
         }
-        rh.getEconomy().depositPlayer(p, h.getBalance());
-        TranslatableLine.HOPPER_BALANCE_COLLECTED_ON_BREAK
-                .with(MONEY, Text.formatNumber(h.getBalance())).send(p);
-        h.setBalance(0);
+
+        final double balance = h.getBalance();
+        if (balance > 0 && rh.getEconomy() != null) {
+            //Vault pays offline players too
+            final EconomyResponse paid = rh.getEconomy().depositPlayer(payee, balance);
+            if (paid != null && paid.transactionSuccess()) {
+                if (payee.getPlayer() != null) {
+                    TranslatableLine.HOPPER_BALANCE_COLLECTED_ON_BREAK
+                            .with(MONEY, Text.formatNumber(balance)).send(payee.getPlayer());
+                }
+            } else {
+                rh.getLogger().warning("Could not pay the balance of the hopper at " + h.getSerializedLocation()
+                        + " (" + balance + ") to " + payee.getName() + ": "
+                        + (paid == null ? "no response" : paid.errorMessage));
+            }
+        }
+
+        //experience cannot be handed to an offline player, so it only goes to one who is online
+        final Player online = payee.getPlayer();
+        if (h.getXp() > 0 && online != null) {
+            online.giveExp(h.getXp());
+        }
+
+        //the restore setters: the hopper is about to be deleted, and the event would only redraw it
+        h.restoreBalance(0);
+        h.restoreXp(0);
     }
 
     @EventHandler
     public void onEntityDeath(EntityDeathEvent event) {
-        // Check if the entity is a mob
-        if (event.getEntity().hasMetadata("rh")) {
-            RHopper source = (RHopper) event.getEntity().getMetadata("rh").get(0).value();
-            if (source != null) {
+        if (!event.getEntity().hasMetadata("rh")) {
+            return;
+        }
+        //a mob a hopper wore down and a player finished off is the player's kill
+        if (event.getEntity().getKiller() != null) {
+            return;
+        }
+
+        for (final MetadataValue value : event.getEntity().getMetadata("rh")) {
+            if (value.getOwningPlugin() != rh.getPlugin() || !(value.value() instanceof RHopper)) {
+                continue;
+            }
+            final RHopper tagged = (RHopper) value.value();
+            //looked up again by location: the tagged hopper may have been broken since, or replaced by
+            //a reload, and a stale one would store into a block that isn't registered any more
+            final RHopper source = rh.getHopperManager().getHopper(tagged.getBlock());
+            if (source != null && source.hasTrait(RHopperTrait.KILL_MOB)) {
                 for (ItemStack drop : event.getDrops()) {
                     //sold a single unit of the stack and threw the rest away before this
                     final ItemStack left = source.offer(drop);
@@ -151,6 +200,7 @@ public class EventListener implements Listener {
                     }
                 }
                 event.getDrops().clear();
+                return;
             }
         }
     }

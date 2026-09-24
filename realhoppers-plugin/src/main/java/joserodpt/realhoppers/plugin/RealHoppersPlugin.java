@@ -49,6 +49,7 @@ public final class RealHoppersPlugin extends JavaPlugin {
     private RealHoppers realHoppers;
     private BukkitTask hopperSweep;
     private BukkitTask hopperFlush;
+    private BukkitTask screenSync;
 
     public static RealHoppersPlugin getPlugin() {
         return instance;
@@ -108,6 +109,10 @@ public final class RealHoppersPlugin extends JavaPlugin {
 
         this.hopperSweep = Bukkit.getScheduler().runTaskTimer(this,
                 () -> realHoppers.getHopperManager().tick(), 10, 10);
+
+        //every tick, so an open hopper screen shows what vanilla hoppers are moving in and out of it
+        this.screenSync = Bukkit.getScheduler().runTaskTimer(this,
+                () -> realHoppers.getGUIManager().syncOpenScreens(), 1, 1);
 
         //hoppers mark themselves as changed and this is what writes them to the database. A write
         //per change would be one per item for an auto-selling hopper.
@@ -173,11 +178,18 @@ public final class RealHoppersPlugin extends JavaPlugin {
         if (this.hopperFlush != null) {
             this.hopperFlush.cancel();
         }
+        if (this.screenSync != null) {
+            this.screenSync.cancel();
+        }
 
         //disabled before it got going, for want of a database
         if (realHoppers == null || realHoppers.getDatabaseManager() == null) {
             return;
         }
+
+        //once disabled nothing cancels clicks on these screens, and the hopper slots on them are
+        //only pictures that could be taken out as real items
+        realHoppers.getGUIManager().closeAll();
 
         //stopHoppers cancels the trait tasks and marks the last balances; close writes them out
         realHoppers.getHopperManager().stopHoppers();

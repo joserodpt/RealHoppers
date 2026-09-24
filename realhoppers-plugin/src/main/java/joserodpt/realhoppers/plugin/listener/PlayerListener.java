@@ -23,7 +23,9 @@ import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerDropItemEvent;
@@ -54,7 +56,8 @@ public class PlayerListener implements Listener {
         rh.getPlayerManager().clear(e.getPlayer().getUniqueId());
     }
 
-    @EventHandler
+    //HIGH, so protection plugins have had their say by the time this reads it
+    @EventHandler(priority = EventPriority.HIGH)
     public void onPlayerInteract(PlayerInteractEvent event) {
         //a right-click fires once per hand, and the off-hand pass would run the whole link flow a
         //second time - far enough along to answer its own first click with "cannot link to itself"
@@ -77,6 +80,12 @@ public class PlayerListener implements Listener {
             if (action == Action.LEFT_CLICK_BLOCK || action == Action.RIGHT_CLICK_BLOCK) {
                 cancelLink(player);
             }
+            return;
+        }
+
+        //a protection plugin refused the use of this block. Asked this way rather than with
+        //ignoreCancelled, since a right-click on the air arrives already cancelled
+        if (event.useInteractedBlock() == Event.Result.DENY) {
             return;
         }
 
@@ -145,7 +154,11 @@ public class PlayerListener implements Listener {
      * hoppers can be a teleporter and an item pipe at once, and re-pointing the source moves both.</p>
      */
     private void link(final Player player, final RHopper clicked) {
-        final RHopper source = rh.getPlayerManager().getPendingLinks().get(player.getUniqueId());
+        RHopper source = rh.getPlayerManager().getPendingLinks().get(player.getUniqueId());
+        //picked before the hopper was broken, or before a reload replaced it: start over from this one
+        if (source != null && rh.getHopperManager().getHopper(source.getBlock()) != source) {
+            source = null;
+        }
 
         if (source == null) {
             rh.getPlayerManager().getPendingLinks().put(player.getUniqueId(), clicked);
@@ -207,7 +220,9 @@ public class PlayerListener implements Listener {
 
     private void executeHopperTeleport(Player player, Block playerBlock) {
         RHopper h = rh.getHopperManager().getHopper(playerBlock);
-        if (h != null && h.hasTrait(RHopperTrait.TELEPORT) && h.getTrait(RHopperTrait.TELEPORT).isLinked()) {
+        //a private hopper's teleporter is as closed as its screen
+        if (h != null && h.hasTrait(RHopperTrait.TELEPORT) && h.getTrait(RHopperTrait.TELEPORT).isLinked()
+                && h.canAccess(player)) {
             h.getTrait(RHopperTrait.TELEPORT).executeAction(player);
         }
     }

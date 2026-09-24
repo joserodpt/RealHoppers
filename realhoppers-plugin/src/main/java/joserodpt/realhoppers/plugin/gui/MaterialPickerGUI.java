@@ -29,6 +29,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
@@ -120,16 +121,19 @@ public class MaterialPickerGUI {
             public void onClick(final InventoryClickEvent e) {
                 final HumanEntity clicker = e.getWhoClicked();
                 if (clicker instanceof Player) {
-                    if (e.getCurrentItem() == null) {
-                        return;
-                    }
                     final UUID uuid = clicker.getUniqueId();
                     if (inventories.containsKey(uuid)) {
                         final MaterialPickerGUI current = inventories.get(uuid);
-                        if (e.getInventory().getHolder() != current.getInventory().getHolder()) {
+                        //both holders are null, so comparing them matched any plugin's GUI
+                        if (!current.getInventory().equals(e.getInventory())) {
                             return;
                         }
 
+                        //before the empty-slot return, or a click on an empty slot moved items freely
+                        e.setCancelled(true);
+                        if (e.getCurrentItem() == null) {
+                            return;
+                        }
                         final Player p = (Player) clicker;
 
                         switch (e.getRawSlot()) {
@@ -162,11 +166,12 @@ public class MaterialPickerGUI {
                         }
 
                         if (current.display.containsKey(e.getRawSlot())) {
-                            p.closeInventory();
-                            Bukkit.getScheduler().scheduleSyncDelayedTask(RealHoppersAPI.getInstance().getPlugin(), () -> current.materialRunnable.selectedMaterial(current.display.get(e.getRawSlot())), 3);
+                            //read now, not from the event three ticks later
+                            final Material picked = current.display.get(e.getRawSlot());
+                            //closed a tick later: Bukkit doesn't support closing the inventory from inside its own click event
+                            Bukkit.getScheduler().runTask(RealHoppersAPI.getInstance().getPlugin(), () -> p.closeInventory());
+                            Bukkit.getScheduler().scheduleSyncDelayedTask(RealHoppersAPI.getInstance().getPlugin(), () -> current.materialRunnable.selectedMaterial(picked), 3);
                         }
-
-                        e.setCancelled(true);
                     }
                 }
             }
@@ -188,6 +193,15 @@ public class MaterialPickerGUI {
             }
 
             @EventHandler
+            public void onDrag(final InventoryDragEvent e) {
+                final MaterialPickerGUI current = inventories.get(e.getWhoClicked().getUniqueId());
+                //dragging over this GUI's slots would drop the dragged items into it
+                if (current != null && current.getInventory().equals(e.getInventory())) {
+                    e.setCancelled(true);
+                }
+            }
+
+            @EventHandler
             public void onClose(final InventoryCloseEvent e) {
                 if (e.getPlayer() instanceof Player) {
                     if (e.getInventory() == null) {
@@ -195,8 +209,9 @@ public class MaterialPickerGUI {
                     }
                     final Player p = (Player) e.getPlayer();
                     final UUID uuid = p.getUniqueId();
-                    if (inventories.containsKey(uuid)) {
-                        inventories.get(uuid).unregister();
+                    final MaterialPickerGUI current = inventories.get(uuid);
+                    if (current != null && e.getInventory().equals(current.getInventory())) {
+                        current.unregister();
                     }
                 }
             }
@@ -242,16 +257,28 @@ public class MaterialPickerGUI {
         final InventoryView openInv = target.getOpenInventory();
         if (openInv != null) {
             final Inventory openTop = target.getOpenInventory().getTopInventory();
-            if (openTop != null && openTop.getType().name().equalsIgnoreCase(inv.getType().name())) {
-                openTop.setContents(inv.getContents());
-            } else {
+            //only ever this picker's own inventory; pouring into any open inventory of the same
+            //type could overwrite a real chest
+            if (!inv.equals(openTop)) {
                 target.openInventory(inv);
             }
         }
     }
 
+    /** Closes every picker, for a reload. */
+    public static void closeAll() {
+        for (final MaterialPickerGUI current : new ArrayList<>(inventories.values())) {
+            final Player p = Bukkit.getPlayer(current.uuid);
+            if (p != null && current.getInventory().equals(p.getOpenInventory().getTopInventory())) {
+                p.closeInventory();
+            }
+        }
+        inventories.clear();
+    }
+
     protected void exit(final Player p) {
-        p.closeInventory();
+        //a tick later, since this is called from the click event
+        Bukkit.getScheduler().runTask(RealHoppersAPI.getInstance().getPlugin(), () -> p.closeInventory());
         Bukkit.getScheduler().scheduleSyncDelayedTask(RealHoppersAPI.getInstance().getPlugin(), () -> materialRunnable.selectedMaterial(null), 3);
     }
 

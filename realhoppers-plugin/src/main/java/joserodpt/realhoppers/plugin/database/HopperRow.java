@@ -86,7 +86,7 @@ public class HopperRow {
         this.access = hopper.getAccess().name();
         this.balance = hopper.getBalance();
         this.xp = hopper.getXp();
-        this.link = hopper.hasLink() ? hopper.getLink().getSerializedLocation() : null;
+        this.link = hopper.getStoredLink();
         this.createdAt = hopper.getCreatedAt();
     }
 
