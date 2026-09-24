@@ -16,7 +16,6 @@ package joserodpt.realhoppers.plugin;
 import joserodpt.realhoppers.api.RealHoppersAPI;
 import joserodpt.realhoppers.api.config.RHConfig;
 import joserodpt.realhoppers.api.event.RealHoppersPluginLoadedEvent;
-import joserodpt.realhoppers.api.config.RHHoppers;
 import joserodpt.realhoppers.api.hopper.trait.RHopperTrait;
 import joserodpt.realhoppers.api.utils.Compacting;
 import joserodpt.realhoppers.api.utils.GUIBuilder;
@@ -64,6 +63,12 @@ public final class RealHoppersPlugin extends JavaPlugin {
         realHoppers = new RealHoppers(this);
         RealHoppersAPI.setInstance(realHoppers);
 
+        if (realHoppers.getDatabaseManager() == null) {
+            getLogger().severe("RealHoppers cannot run without its database. Check sql.yml. Disabling.");
+            Bukkit.getPluginManager().disablePlugin(this);
+            return;
+        }
+
         PluginManager pm = Bukkit.getPluginManager();
         pm.registerEvents(new PlayerListener(realHoppers), this);
         pm.registerEvents(new EventListener(realHoppers), this);
@@ -104,11 +109,11 @@ public final class RealHoppersPlugin extends JavaPlugin {
         this.hopperSweep = Bukkit.getScheduler().runTaskTimer(this,
                 () -> realHoppers.getHopperManager().tick(), 10, 10);
 
-        //hoppers write themselves into the document as they go and this is what puts it on disk.
-        //It used to be written in full on every balance change, which for an auto-selling hopper is
-        //once per item swallowed.
+        //hoppers mark themselves as changed and this is what writes them to the database. A write
+        //per change would be one per item for an auto-selling hopper.
         final long flushTicks = Math.max(1L, RHConfig.file().getInt("RealHoppers.Save-Interval-Seconds", 60)) * 20L;
-        this.hopperFlush = Bukkit.getScheduler().runTaskTimer(this, RHHoppers::saveIfDirty, flushTicks, flushTicks);
+        this.hopperFlush = Bukkit.getScheduler().runTaskTimer(this,
+                () -> realHoppers.getDatabaseManager().flush(true), flushTicks, flushTicks);
 
         if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
             new RealHoppersPlaceholderAPI(realHoppers).register();
@@ -136,8 +141,8 @@ public final class RealHoppersPlugin extends JavaPlugin {
                     this.getDescription().getName(), "&fReal&6Hoppers", this.getDescription().getDescription(),
                     Material.HOPPER,
                     Collections.singletonList(new ExternalPluginPermission("realhoppers.admin",
-                            "Allow access to the main operator commands of RealHoppers.",
-                            Arrays.asList("rh reload", "rh settrait <trait>"))),
+                            "Allow access to the main operator commands of RealHoppers, and to open, break, link and manage any hopper, private or not.",
+                            Arrays.asList("rh reload", "rh settrait <trait>", "rh list <player>"))),
                     this.getDescription().getVersion()));
         } catch (final Exception e) {
             getLogger().warning("Error while trying to register RealHoppers permissions onto RealPermissions.");
@@ -169,8 +174,14 @@ public final class RealHoppersPlugin extends JavaPlugin {
             this.hopperFlush.cancel();
         }
 
-        //stopHoppers cancels the trait tasks and flushes the last balances itself
+        //disabled before it got going, for want of a database
+        if (realHoppers == null || realHoppers.getDatabaseManager() == null) {
+            return;
+        }
+
+        //stopHoppers cancels the trait tasks and marks the last balances; close writes them out
         realHoppers.getHopperManager().stopHoppers();
+        realHoppers.getDatabaseManager().close();
     }
 
     public Economy getEconomy() {

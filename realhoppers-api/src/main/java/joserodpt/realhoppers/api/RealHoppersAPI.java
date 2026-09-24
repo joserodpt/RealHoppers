@@ -14,6 +14,7 @@ package joserodpt.realhoppers.api;
  */
 
 import com.google.common.base.Preconditions;
+import joserodpt.realhoppers.api.managers.DatabaseManagerAPI;
 import joserodpt.realhoppers.api.managers.HopperManagerAPI;
 import joserodpt.realhoppers.api.managers.PlayerManagerAPI;
 import net.milkbowl.vault.economy.Economy;
@@ -51,6 +52,8 @@ public abstract class RealHoppersAPI {
     public abstract PlayerManagerAPI getPlayerManager();
 
     public abstract HopperManagerAPI getHopperManager();
+
+    public abstract DatabaseManagerAPI getDatabaseManager();
 
     public abstract void reload();
 

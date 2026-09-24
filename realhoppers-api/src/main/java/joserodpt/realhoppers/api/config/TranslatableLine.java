@@ -28,6 +28,37 @@ public enum TranslatableLine {
     HOPPER_XP_COLLECTED("Hoppers.Xp-Collected", ReplacableVar.VALUE),
     HOPPER_BALANCE_COLLECTED_ON_BREAK("Hoppers.Balance-Collected-On-Break", ReplacableVar.MONEY),
     HOPPER_NOT_LOOKING_AT("Hoppers.Not-Looking-At"),
+    HOPPER_PLACED("Hoppers.Placed", ReplacableVar.NAME, ReplacableVar.VALUE),
+    HOPPER_UNKNOWN_OWNER("Hoppers.Unknown-Owner"),
+
+    // Ownership and access
+    ACCESS_DENIED("Hoppers.Access.Denied", ReplacableVar.NAME, ReplacableVar.PLAYER),
+    ACCESS_NO_BREAK("Hoppers.Access.No-Break", ReplacableVar.NAME),
+    ACCESS_NO_LINK("Hoppers.Access.No-Link", ReplacableVar.NAME),
+    ACCESS_NO_MANAGE("Hoppers.Access.No-Manage"),
+    ACCESS_SET("Hoppers.Access.Set", ReplacableVar.NAME, ReplacableVar.VALUE),
+    NAME_SET("Hoppers.Name.Set", ReplacableVar.NAME),
+    NAME_TOO_LONG("Hoppers.Name.Too-Long", ReplacableVar.VALUE),
+    NAME_EMPTY("Hoppers.Name.Empty"),
+    WHITELIST_ADDED("Hoppers.Whitelist.Added", ReplacableVar.PLAYER, ReplacableVar.NAME),
+    WHITELIST_REMOVED("Hoppers.Whitelist.Removed", ReplacableVar.PLAYER, ReplacableVar.NAME),
+    WHITELIST_ALREADY("Hoppers.Whitelist.Already", ReplacableVar.PLAYER),
+    WHITELIST_NOT_ON("Hoppers.Whitelist.Not-On", ReplacableVar.PLAYER),
+    WHITELIST_NOT_FOUND("Hoppers.Whitelist.Not-Found", ReplacableVar.PLAYER),
+    WHITELIST_FULL("Hoppers.Whitelist.Full", ReplacableVar.VALUE),
+    WHITELIST_IS_OWNER("Hoppers.Whitelist.Is-Owner"),
+    WHITELIST_EMPTY("Hoppers.Whitelist.Empty"),
+    WHITELIST_LIST_HEADER("Hoppers.Whitelist.List-Header", ReplacableVar.NAME, ReplacableVar.VALUE),
+    WHITELIST_LIST_ENTRY("Hoppers.Whitelist.List-Entry", ReplacableVar.PLAYER),
+    INFO_HEADER("Hoppers.Info.Header", ReplacableVar.NAME),
+    INFO_OWNER("Hoppers.Info.Owner", ReplacableVar.PLAYER),
+    INFO_ACCESS("Hoppers.Info.Access", ReplacableVar.VALUE),
+    INFO_LOCATION("Hoppers.Info.Location", ReplacableVar.VALUE),
+    INFO_WHITELIST("Hoppers.Info.Whitelist", ReplacableVar.VALUE),
+    LIST_HEADER("Hoppers.List.Header", ReplacableVar.PLAYER, ReplacableVar.VALUE),
+    LIST_ENTRY("Hoppers.List.Entry", ReplacableVar.NAME, ReplacableVar.VALUE),
+    LIST_EMPTY("Hoppers.List.Empty", ReplacableVar.PLAYER),
+    LIST_PLAYER_NOT_FOUND("Hoppers.List.Player-Not-Found", ReplacableVar.PLAYER),
 
     // Traits
     TRAIT_ADDED("Hoppers.Traits.Added", ReplacableVar.TRAIT),
@@ -73,6 +104,16 @@ public enum TranslatableLine {
     GUI_HOPPER_NO_TRAITS("GUI.Items.Hopper.No-Traits"),
     GUI_HOPPER_TRAIT_ENTRY("GUI.Items.Hopper.Trait-Entry", ReplacableVar.TRAIT, ReplacableVar.VALUE),
     GUI_HOPPER_COLLECT("GUI.Items.Hopper.Collect"),
+    GUI_HOPPER_OWNER("GUI.Items.Hopper.Owner", ReplacableVar.PLAYER),
+    GUI_HOPPER_ACCESS("GUI.Items.Hopper.Access", ReplacableVar.VALUE),
+    GUI_RENAME_NAME("GUI.Items.Rename.Name", ReplacableVar.NAME),
+    GUI_ACCESS_NAME("GUI.Items.Access.Name", ReplacableVar.VALUE),
+    GUI_WHITELIST_NAME("GUI.Items.Whitelist.Name", ReplacableVar.VALUE),
+    GUI_OWNER_NAME("GUI.Items.Owner.Name", ReplacableVar.PLAYER),
+    GUI_WHITELIST_TITLE("GUI.Whitelist-Title", ReplacableVar.NAME),
+    GUI_WHITELIST_ADD_NAME("GUI.Items.Whitelist.Add.Name"),
+    GUI_WHITELIST_ENTRY_NAME("GUI.Items.Whitelist.Entry.Name", ReplacableVar.PLAYER),
+    GUI_WHITELIST_EMPTY_NAME("GUI.Items.Whitelist.Empty.Name"),
 
     // System related messages
     SYSTEM_RELOADED("System.Reloaded"),
@@ -141,6 +182,7 @@ public enum TranslatableLine {
         TRAIT("%trait%"),
         MATERIAL("%material%"),
         PLAYER("%player%"),
+        NAME("%name%"),
         VALUE("%value%");
 
         private final String key;

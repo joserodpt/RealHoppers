@@ -14,16 +14,13 @@ package joserodpt.realhoppers.api.hopper.trait.traits;
  */
 
 import joserodpt.realhoppers.api.RealHoppersAPI;
-import joserodpt.realhoppers.api.config.RHHoppers;
 import joserodpt.realhoppers.api.hopper.RHopper;
 import joserodpt.realhoppers.api.hopper.trait.RHopperTrait;
 import joserodpt.realhoppers.api.hopper.trait.RHopperTraitBase;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 
-import java.util.ArrayList;
 import java.util.EnumSet;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -70,23 +67,24 @@ public class RHFilterTrait extends RHopperTraitBase {
         return true;
     }
 
+    /** The materials, by name, separated by semicolons. */
     @Override
-    public void saveSettings() {
-        super.saveSettings();
-        RHHoppers.file().set(super.settingsRoute() + ".Materials",
-                this.materials.stream().map(Material::name).collect(Collectors.toList()));
+    public String serializeSettings() {
+        return this.materials.stream().map(Material::name).collect(Collectors.joining(";"));
     }
 
     @Override
-    public void loadSettings() {
+    public void deserializeSettings(final String settings) {
         this.materials.clear();
+        if (settings == null || settings.isEmpty()) {
+            return;
+        }
 
-        final List<String> saved = new ArrayList<>(RHHoppers.file().getStringList(super.settingsRoute() + ".Materials"));
-        for (final String name : saved) {
+        for (final String name : settings.split(";")) {
             try {
                 this.materials.add(Material.valueOf(name));
             } catch (final IllegalArgumentException e) {
-                //a material this server does not have, from a hand-edited file or an older version
+                //a material this server does not have, from an older version or a newer database
                 RealHoppersAPI.getInstance().getLogger().warning(name
                         + " in the filter of the hopper at " + super.getHopper().getSerializedLocation()
                         + " is not a material! Skipping.");

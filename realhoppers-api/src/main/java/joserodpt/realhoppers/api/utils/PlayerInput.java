@@ -36,8 +36,7 @@ public class PlayerInput implements Listener {
     private static final Map<UUID, PlayerInput> inputs = new HashMap<>();
     private final UUID uuid;
 
-    private final List<String> texts = Text
-            .color(RHLanguage.file().getStringList("System.Type-Input"));
+    private final List<String> texts;
 
     private final InputRunnable runGo;
     private final InputRunnable runCancel;
@@ -45,6 +44,19 @@ public class PlayerInput implements Listener {
     private boolean clearInput = true;
 
     public PlayerInput(final boolean clearInput, final Player p, final InputRunnable correct, final InputRunnable cancel) {
+        this(clearInput, p, RHLanguage.file().getStringList("System.Type-Input"), correct, cancel);
+    }
+
+    /**
+     * Waits for the player to type something in chat, with its own two title lines in place of the
+     * search prompt.
+     *
+     * @param clearInput strip colour codes from what is typed. Without it, {@code &} codes reach
+     *                   the runnable as typed, for input such as a hopper's name that may be coloured
+     */
+    public PlayerInput(final boolean clearInput, final Player p, final List<String> titles,
+                       final InputRunnable correct, final InputRunnable cancel) {
+        this.texts = Text.color(titles.size() >= 2 ? titles : RHLanguage.file().getStringList("System.Type-Input"));
         this.uuid = p.getUniqueId();
         p.closeInventory();
         this.runGo = correct;
@@ -86,7 +98,7 @@ public class PlayerInput implements Listener {
             current.taskId.cancel();
             p.sendTitle("", "", 0, 1, 0);
             current.unregister();
-            String cleanInput = ChatColor.stripColor(Text.color(input));
+            final String cleanInput = current.clearInput ? ChatColor.stripColor(Text.color(input)) : input.trim();
             if (input.equalsIgnoreCase("cancel")) {
                 TranslatableLine.SYSTEM_INPUT_CANCELLED.send(p);
                 Bukkit.getScheduler().scheduleSyncDelayedTask(RealHoppersAPI.getInstance().getPlugin(), () -> current.runCancel.run(cleanInput), 3);

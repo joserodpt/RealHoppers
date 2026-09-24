@@ -71,6 +71,10 @@ public class RealHoppersPlaceholderAPI extends PlaceholderExpansion {
                         .mapToDouble(RHopper::getBalance).sum());
             case "version":
                 return this.plugin.getVersion();
+            case "owned":
+                //the loaded hoppers only: this is asked every tick and cannot wait on the database
+                return player == null ? "0"
+                        : String.valueOf(this.plugin.getHopperManager().getHoppersOwnedBy(player.getUniqueId()).size());
             default:
                 break;
         }

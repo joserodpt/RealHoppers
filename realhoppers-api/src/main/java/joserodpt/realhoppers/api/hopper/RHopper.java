@@ -14,7 +14,7 @@ package joserodpt.realhoppers.api.hopper;
  */
 
 import joserodpt.realhoppers.api.RealHoppersAPI;
-import joserodpt.realhoppers.api.config.RHHoppers;
+import joserodpt.realhoppers.api.config.RHConfig;
 import joserodpt.realhoppers.api.config.TranslatableLine;
 import joserodpt.realhoppers.api.hopper.events.RHopperStateChangeEvent;
 import joserodpt.realhoppers.api.hopper.trait.RHopperTrait;
@@ -27,6 +27,7 @@ import joserodpt.realhoppers.api.utils.Text;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Block;
@@ -36,14 +37,20 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class RHopper {
 
-    public enum Data {ALL, BALANCE, TRAITS, LINK, XP }
+    public enum Data {ALL, BALANCE, TRAITS, LINK, XP, OWNERSHIP }
+
+    /** Lets an admin open, break, link and manage any hopper, private or not. */
+    public static final String ADMIN_PERMISSION = "realhoppers.admin";
 
     private Block block;
     private double balance;
@@ -67,12 +74,169 @@ public class RHopper {
     /** The link as it was read off disk, until {@link #loadLink()} can turn it into a hopper. */
     private String linkLocation;
 
+    /** What the hopper is called on its screen and in /rh list. */
+    private String name;
+
+    /** Who placed it. Null only for a hopper nobody placed, which is treated as public. */
+    private UUID owner;
+
+    /** The owner's name when they were last seen, so it can be shown without a lookup. */
+    private String ownerName;
+
+    private RHopperAccess access = RHopperAccess.PUBLIC;
+
+    /** Players who may use a private hopper as its owner can, by UUID, with their last known name. */
+    private final Map<UUID, String> whitelist = new LinkedHashMap<>();
+
+    private long createdAt;
+
+    /**
+     * A hopper being read back from the database. Everything else is put back through the
+     * {@code restore} methods, which neither fire events nor queue writes.
+     */
     public RHopper(Block b, boolean save) {
-        //new hopper
         this.block = b;
+        this.name = getDefaultName();
+        this.createdAt = System.currentTimeMillis();
 
         if (save)
             this.saveData(Data.ALL);
+    }
+
+    /** A hopper just placed by a player, who owns it from then on. */
+    public RHopper(Block b, Player owner) {
+        this.block = b;
+        this.name = getDefaultName();
+        this.access = RHopperAccess.getDefault();
+        this.createdAt = System.currentTimeMillis();
+        if (owner != null) {
+            this.owner = owner.getUniqueId();
+            this.ownerName = owner.getName();
+        }
+        this.saveData(Data.ALL);
+    }
+
+    public static String getDefaultName() {
+        return RHConfig.file().getString("RealHoppers.Hoppers.Default-Name", "RealHopper");
+    }
+
+    public String getName() {
+        return this.name;
+    }
+
+    public void setName(final String name) {
+        this.name = name;
+        Bukkit.getPluginManager().callEvent(new RHopperStateChangeEvent(this));
+        this.saveData(Data.OWNERSHIP);
+    }
+
+    public void restoreName(final String name) {
+        this.name = name == null || name.isEmpty() ? getDefaultName() : name;
+    }
+
+    public UUID getOwner() {
+        return this.owner;
+    }
+
+    public String getOwnerName() {
+        return this.ownerName;
+    }
+
+    public boolean hasOwner() {
+        return this.owner != null;
+    }
+
+    public void setOwner(final OfflinePlayer owner) {
+        this.owner = owner == null ? null : owner.getUniqueId();
+        this.ownerName = owner == null ? null : owner.getName();
+        //the new owner has no business being on their own whitelist
+        if (this.owner != null) {
+            this.whitelist.remove(this.owner);
+        }
+        Bukkit.getPluginManager().callEvent(new RHopperStateChangeEvent(this));
+        this.saveData(Data.OWNERSHIP);
+    }
+
+    public void restoreOwner(final UUID owner, final String ownerName) {
+        this.owner = owner;
+        this.ownerName = ownerName;
+    }
+
+    public RHopperAccess getAccess() {
+        return this.access;
+    }
+
+    public void setAccess(final RHopperAccess access) {
+        this.access = access;
+        Bukkit.getPluginManager().callEvent(new RHopperStateChangeEvent(this));
+        this.saveData(Data.OWNERSHIP);
+    }
+
+    public void restoreAccess(final RHopperAccess access) {
+        this.access = access;
+    }
+
+    public long getCreatedAt() {
+        return this.createdAt;
+    }
+
+    public void restoreCreatedAt(final long createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    /** The whitelist, UUID to last known name, in the order players were added. Read only. */
+    public Map<UUID, String> getWhitelist() {
+        return Collections.unmodifiableMap(this.whitelist);
+    }
+
+    public boolean isWhitelisted(final UUID uuid) {
+        return this.whitelist.containsKey(uuid);
+    }
+
+    /** @return false when the player was already on it */
+    public boolean addToWhitelist(final OfflinePlayer player) {
+        if (this.whitelist.containsKey(player.getUniqueId())) {
+            return false;
+        }
+        this.whitelist.put(player.getUniqueId(), player.getName());
+        Bukkit.getPluginManager().callEvent(new RHopperStateChangeEvent(this));
+        this.saveData(Data.OWNERSHIP);
+        return true;
+    }
+
+    /** @return false when the player was not on it */
+    public boolean removeFromWhitelist(final UUID uuid) {
+        if (this.whitelist.remove(uuid) == null) {
+            return false;
+        }
+        Bukkit.getPluginManager().callEvent(new RHopperStateChangeEvent(this));
+        this.saveData(Data.OWNERSHIP);
+        return true;
+    }
+
+    public void restoreWhitelisted(final UUID uuid, final String name) {
+        this.whitelist.put(uuid, name);
+    }
+
+    public boolean isOwner(final Player p) {
+        return this.owner != null && this.owner.equals(p.getUniqueId());
+    }
+
+    /**
+     * Whether a player may open this hopper's screen - and, on a private hopper, break it or link
+     * it. The one place that is decided.
+     */
+    public boolean canAccess(final Player p) {
+        return this.access == RHopperAccess.PUBLIC
+                || this.owner == null
+                || this.isOwner(p)
+                || this.isWhitelisted(p.getUniqueId())
+                || p.hasPermission(ADMIN_PERMISSION);
+    }
+
+    /** Whether a player may rename this hopper, change its access and edit its whitelist. */
+    public boolean canManage(final Player p) {
+        return this.isOwner(p) || p.hasPermission(ADMIN_PERMISSION);
     }
 
     public Location getLocation() {
@@ -138,6 +302,10 @@ public class RHopper {
 
     public List<String> getHopperDescription() {
         List<String> desc = new ArrayList<>();
+        desc.add(TranslatableLine.GUI_HOPPER_OWNER
+                .setV1(TranslatableLine.ReplacableVar.PLAYER.eq(this.getOwnerDisplayName())).get());
+        desc.add(TranslatableLine.GUI_HOPPER_ACCESS
+                .setV1(TranslatableLine.ReplacableVar.VALUE.eq(this.access.getDisplayName())).get());
         if (this.hasEconomyCapabilities()) {
             desc.add(TranslatableLine.GUI_HOPPER_BALANCE
                     .setV1(TranslatableLine.ReplacableVar.MONEY.eq(Text.formatNumber(this.getBalance()))).get());
@@ -444,43 +612,33 @@ public class RHopper {
     }
 
     /**
-     * Writes this hopper into the in-memory hoppers document and marks it dirty. The file itself is
-     * written by the flush task, not here: an auto-selling hopper changes its balance every time it
-     * swallows an item, and this used to serialise and rewrite the whole of hoppers.yml each time.
+     * Queues this hopper to be written to the database. The write itself happens on the flush
+     * task, not here: an auto-selling hopper changes its balance every time it swallows an item, and
+     * a write per item would be the plugin's heaviest piece of IO. Whatever changed, the whole
+     * hopper is written, so the part is only kept for callers that already say it.
      */
     public void saveData(Data d) {
-        switch (d) {
-            case TRAITS:
-                //a section per trait rather than a bare tier, so a trait that has to remember more
-                //than its tier has somewhere to put it
-                final String traitsRoute = "Hoppers." + this.getSerializedLocation() + ".Traits";
-                RHHoppers.file().remove(traitsRoute);
-                this.getTraitMap().values().forEach(RHopperTraitBase::saveSettings);
-                break;
-            case BALANCE:
-                RHHoppers.file().set("Hoppers." + this.getSerializedLocation() + ".Balance", this.getBalance());
-                break;
-            case XP:
-                RHHoppers.file().set("Hoppers." + this.getSerializedLocation() + ".XP", this.getXp());
-                break;
-            case LINK:
-                RHHoppers.file().set("Hoppers." + this.getSerializedLocation() + ".Link",
-                        this.link == null ? null : this.link.getSerializedLocation());
-                break;
-            case ALL:
-                saveData(Data.TRAITS);
-                saveData(Data.BALANCE);
-                saveData(Data.LINK);
-                saveData(Data.XP);
-                break;
+        RealHoppersAPI.getInstance().getDatabaseManager().markDirty(this);
+    }
+
+    /** The owner's name for display, or the language file's word for nobody. */
+    public String getOwnerDisplayName() {
+        if (this.owner == null) {
+            return TranslatableLine.HOPPER_UNKNOWN_OWNER.get();
         }
-        RHHoppers.markDirty();
+        if (this.ownerName == null) {
+            final String name = Bukkit.getOfflinePlayer(this.owner).getName();
+            return name == null ? TranslatableLine.HOPPER_UNKNOWN_OWNER.get() : name;
+        }
+        return this.ownerName;
     }
 
     @Override
     public String toString() {
         return "RHopper{" +
                 "location=" + block.getLocation() +
+                ", name=" + this.name +
+                ", owner=" + this.owner +
                 ", traits=" + this.getTraitMap().keySet() +
                 '}';
     }

@@ -6,6 +6,7 @@ import org.bukkit.block.Block;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 public abstract class HopperManagerAPI {
     public abstract Map<Block, RHopper> getHoppersMap();
@@ -13,6 +14,9 @@ public abstract class HopperManagerAPI {
     public abstract List<RHopper> getHoppers();
 
     public abstract RHopper getHopper(Block b);
+
+    /** The loaded hoppers a player owns. Hoppers in unloaded worlds are only in the database. */
+    public abstract List<RHopper> getHoppersOwnedBy(UUID owner);
 
     public abstract void loadHoppers();
 

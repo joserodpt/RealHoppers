@@ -6,7 +6,7 @@ RealHoppers:
   # How long a player is left alone after a hopper teleports them, in TICKS - 20 is one second.
   # Without it the hopper they land on would send them straight back.
   Teleportation-Cooldown: 20
-  # How often hoppers.yml is written, in seconds. Hopper balances and traits are kept in memory
+  # How often changed hoppers are written to the database, in seconds. Hopper balances and traits are kept in memory
   # between writes, so a crash can cost at most this much.
   Save-Interval-Seconds: 60
   Drop-Items-If-Full: true
@@ -99,8 +99,19 @@ RealHoppers:
         '2': { Power: 2.0, Price: 3000 }
         '3': { Power: 3.0, Price: 12000 }
 
+  # Every hopper has a name, an owner (whoever placed it) and an access. A PUBLIC hopper can be
+  # opened by anyone; a PRIVATE one only by its owner, the players on its whitelist and anyone with
+  # realhoppers.admin - and only they may break it or link it.
+  Hoppers:
+    Default-Name: "RealHopper"
+    # PUBLIC or PRIVATE
+    Default-Access: PUBLIC
+    # Colour codes don't count towards this.
+    Name-Max-Length: 32
+    Whitelist-Max-Size: 27
+
   Material-Values:
     COBBLESTONE: 5
     SAND: 2
 
-Version: 8
+Version: 9

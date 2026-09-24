@@ -18,8 +18,8 @@
 *trait*: move items to another hopper across the map, teleport whoever walks over it, break the block above it, kill
 what stands on it, or sell everything it swallows straight into the player's balance.
 
-Every hopper is stored by its block position in `plugins/RealHoppers/hoppers.yml`, so traits and balances survive a
-restart.
+Every hopper has a name, an owner and an access setting, and is stored in a database (SQLite by default, MySQL
+optional), so traits, balances and ownership survive a restart.
 
 ----
 
@@ -30,6 +30,7 @@ restart.
 * [Requirements](#requirements)
 * [Installation](#installation)
 * [Getting Started](#getting-started)
+* [Ownership and Access](#ownership-and-access)
 * [Commands and Permissions](#commands-and-permissions)
 * [Configuration](#configuration)
 * [Placeholders](#placeholders)
@@ -162,6 +163,17 @@ To link a hopper to another, hold a stick, right-click it and then the hopper it
 between calls it off — dropping the stick, clicking another block, clicking a mob, or opening a hopper's panel without
 the stick in hand. Linking a hopper that already points somewhere just re-points it.
 
+## Ownership and Access
+
+Whoever places a hopper owns it. Every hopper has a name (`RealHopper` unless renamed) and an access setting:
+
+* **Public** — anyone can open its panel. New hoppers start public unless `Default-Access` says otherwise.
+* **Private** — only the owner, the players on the hopper's whitelist and anyone with `realhoppers.admin` can open
+  it, break it or link it.
+
+The owner manages the hopper from the bottom row of its panel (rename, toggle access, edit the whitelist) or with the
+`/rh name`, `/rh access` and `/rh whitelist` commands while looking at it.
+
 ## Commands and Permissions
 
 | Command                | Permission          | Description                                   |
@@ -169,11 +181,19 @@ the stick in hand. Linking a hopper that already points somewhere just re-points
 | `/realhoppers`, `/rh`  | —                   | Plugin info.                                  |
 | `/rh reload`, `/rh rl` | `realhoppers.admin` | Reloads the config and language files.        |
 | `/rh settrait <trait> [tier]` | `realhoppers.admin` | Gives the hopper you are looking at a trait, at an optional tier. |
+| `/rh info`             | —                   | Name, owner, access and whitelist of the hopper you are looking at. |
+| `/rh name <name>`      | owner               | Renames the hopper you are looking at. `&` colour codes are allowed. |
+| `/rh access <public\|private>` | owner       | Sets who can open the hopper you are looking at. |
+| `/rh whitelist <add\|remove> <player>` | owner | Lets a player use a private hopper, or stops them. |
+| `/rh whitelist list`   | owner               | Lists the players on the hopper's whitelist.  |
+| `/rh list [player]`    | — (another player: `realhoppers.admin`) | Lists the hoppers a player owns, including ones in unloaded worlds. |
+
+"owner" means the hopper's owner or anyone with `realhoppers.admin`, which bypasses every access check.
 
 ## Configuration
 
-`config.yml` holds the prefix, the sound and particle toggles, the teleport cooldown, how often hoppers.yml is
-written, whether a full hopper drops what it cannot take, what each trait does at tier 1, and the sell price of each
+`config.yml` holds the prefix, the sound and particle toggles, the teleport cooldown, how often changed hoppers are
+written to the database, the default name and access of new hoppers, the name and whitelist limits, whether a full hopper drops what it cannot take, what each trait does at tier 1, and the sell price of each
 material:
 
 ```yaml
@@ -198,6 +218,20 @@ RealHoppers:
 
 `language.yml` holds every message the plugin sends, including the trait names shown in the GUI.
 
+`sql.yml` says where hoppers are stored. The default is SQLite, in `plugins/RealHoppers/RealHoppers.db`. For MySQL:
+
+```yaml
+driver: "MYSQL"
+host: "localhost"
+database: "RealHoppers"
+username: "user"
+password: "secret"
+port: 3306
+```
+
+The tables are `realhoppers_hoppers` (location, name, owner, access, balance, XP, link),
+`realhoppers_hopper_traits` and `realhoppers_hopper_whitelist`.
+
 ## Placeholders
 
 With PlaceholderAPI installed:
@@ -208,6 +242,7 @@ With PlaceholderAPI installed:
 | `%realhoppers_balance%`     | The total banked across every hopper.            |
 | `%realhoppers_trait_<T>%`   | How many hoppers carry trait `<T>`, e.g. `SUCTION`. |
 | `%realhoppers_version%`     | The plugin version.                              |
+| `%realhoppers_owned%`       | How many loaded hoppers the player owns.         |
 
 ## Building
 

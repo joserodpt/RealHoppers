@@ -14,14 +14,17 @@ package joserodpt.realhoppers.plugin.managers;
  */
 
 import com.google.common.collect.ImmutableList;
-import joserodpt.realhoppers.api.RealHoppersAPI;
 import joserodpt.realhoppers.api.config.RHConfig;
-import joserodpt.realhoppers.api.config.RHHoppers;
 import joserodpt.realhoppers.api.hopper.RHopper;
+import joserodpt.realhoppers.api.hopper.RHopperAccess;
 import joserodpt.realhoppers.api.hopper.trait.RHopperTrait;
 import joserodpt.realhoppers.api.hopper.trait.RHopperTraitBase;
 import joserodpt.realhoppers.api.managers.HopperManagerAPI;
 import joserodpt.realhoppers.api.utils.LocationUtil;
+import joserodpt.realhoppers.plugin.RealHoppers;
+import joserodpt.realhoppers.plugin.database.HopperRow;
+import joserodpt.realhoppers.plugin.database.HopperTraitRow;
+import joserodpt.realhoppers.plugin.database.HopperWhitelistRow;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -29,11 +32,13 @@ import org.bukkit.block.Block;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 public class HopperManager extends HopperManagerAPI {
-    private final RealHoppersAPI rh;
+    private final RealHoppers rh;
 
-    public HopperManager(RealHoppersAPI rh) {
+    public HopperManager(RealHoppers rh) {
         this.rh = rh;
     }
 
@@ -55,6 +60,13 @@ public class HopperManager extends HopperManagerAPI {
         return this.getHoppersMap().get(b);
     }
 
+    @Override
+    public List<RHopper> getHoppersOwnedBy(final UUID owner) {
+        return this.getHoppersMap().values().stream()
+                .filter(hopper -> owner.equals(hopper.getOwner()))
+                .collect(Collectors.toList());
+    }
+
 
     @Override
     public void loadHoppers() {
@@ -62,73 +74,51 @@ public class HopperManager extends HopperManagerAPI {
         //Dropping them without stopping first left every task running against an orphaned hopper.
         this.stopHoppers();
         this.getHoppersMap().clear();
-        if (RHHoppers.file().isSection("Hoppers")) {
-            for (String hopperSTR : RHHoppers.file().getSection("Hoppers").getRoutesAsStrings(false)) {
-                Location l = LocationUtil.deserializeLocation(hopperSTR);
-                if (l == null) {
-                    rh.getLogger().severe("Could not parse location for hopper " + hopperSTR + "! Skipping.");
-                    continue;
-                }
+        for (final DatabaseManager.StoredHopper stored : rh.getDatabaseManager().loadAll()) {
+            final HopperRow row = stored.getHopper();
 
-                Block b = l.getBlock();
-                if (b == null || b.getType() != Material.HOPPER) {
-                    rh.getLogger().severe("Block at location " + hopperSTR + " isn't a Hopper! Skipping.");
-                    continue;
-                }
-
-                Map<RHopperTrait, RHopperTraitBase> traitMap = new HashMap<>();
-                RHopper loaded = new RHopper(b, false);
-                //not setBalance: that fires a state change event and queues a write, for a value
-                //that was just read out of the file
-                loaded.restoreBalance(RHHoppers.file().getDouble("Hoppers." + hopperSTR + ".Balance"));
-                loaded.setLinkLocation(RHHoppers.file().getString("Hoppers." + hopperSTR + ".Link"));
-                loaded.restoreXp(RHHoppers.file().getInt("Hoppers." + hopperSTR + ".XP", 0));
-
-                final String traitsRoute = "Hoppers." + hopperSTR + ".Traits";
-                boolean migrated = false;
-
-                if (RHHoppers.file().isList(traitsRoute)) {
-                    //the old shape: a list of names, where a linked trait carried its destination
-                    //after a pipe. Both move - the destination to the hopper's own Link, the trait
-                    //to a section entry with a tier - and the file is rewritten below.
-                    migrated = true;
-                    for (final String entry : RHHoppers.file().getStringList(traitsRoute)) {
-                        final String[] split = entry.split("\\|");
-                        if (split.length > 1 && !RHHoppers.file().isString("Hoppers." + hopperSTR + ".Link")) {
-                            RHHoppers.file().set("Hoppers." + hopperSTR + ".Link", split[1]);
-                            loaded.setLinkLocation(split[1]);
-                        }
-                        putTrait(traitMap, loaded, split[0], 1);
-                    }
-                } else if (RHHoppers.file().isSection(traitsRoute)) {
-                    for (final String name : RHHoppers.file().getSection(traitsRoute).getRoutesAsStrings(false)) {
-                        final String route = traitsRoute + "." + name;
-
-                        //a trait is a section of its own settings now. A bare number is the shape
-                        //before that, and means the tier with nothing else alongside it.
-                        if (RHHoppers.file().isSection(route)) {
-                            putTrait(traitMap, loaded, name, RHHoppers.file().getInt(route + ".Tier", 1));
-                        } else {
-                            migrated = true;
-                            putTrait(traitMap, loaded, name, RHHoppers.file().getInt(route, 1));
-                        }
-                    }
-                }
-
-                loaded.setTraits(traitMap, false);
-
-                if (migrated) {
-                    loaded.saveData(RHopper.Data.TRAITS);
-                }
-
-                this.getHoppersMap().put(b, loaded);
+            //a world that is not loaded, or a block that is no longer a hopper, is skipped but left
+            //in the database: unloading a world for a while should not cost its hoppers
+            final Location l = LocationUtil.deserializeLocation(row.getLocation());
+            if (l == null) {
+                rh.getLogger().warning("Could not find the world of the hopper at " + row.getLocation() + "! Skipping.");
+                continue;
             }
 
-            //links first: a hopper can be linked to one stored after it, and a trait that follows
-            //the link cannot run until the link has been resolved
-            this.getHoppersMap().values().forEach(RHopper::loadLink);
-            this.getHoppersMap().values().forEach(RHopper::startTraitTasks);
+            final Block b = l.getBlock();
+            if (b.getType() != Material.HOPPER) {
+                rh.getLogger().warning("Block at location " + row.getLocation() + " isn't a Hopper! Skipping.");
+                continue;
+            }
+
+            final RHopper loaded = new RHopper(b, false);
+            //not the setters: those fire state change events and queue writes, for values that
+            //were just read out of the database
+            loaded.restoreName(row.getName());
+            loaded.restoreOwner(row.getOwnerUUID(), row.getOwnerName());
+            loaded.restoreAccess(RHopperAccess.parse(row.getAccess()));
+            loaded.restoreCreatedAt(row.getCreatedAt());
+            loaded.restoreBalance(row.getBalance());
+            loaded.restoreXp(row.getXp());
+            loaded.setLinkLocation(row.getLink());
+
+            for (final HopperWhitelistRow entry : stored.getWhitelist()) {
+                loaded.restoreWhitelisted(entry.getPlayerUUID(), entry.getPlayerName());
+            }
+
+            final Map<RHopperTrait, RHopperTraitBase> traitMap = new HashMap<>();
+            for (final HopperTraitRow trait : stored.getTraits()) {
+                putTrait(traitMap, loaded, trait.getTrait(), trait.getTier(), trait.getSettings());
+            }
+            loaded.setTraits(traitMap, false);
+
+            this.getHoppersMap().put(b, loaded);
         }
+
+        //links first: a hopper can be linked to one stored after it, and a trait that follows
+        //the link cannot run until the link has been resolved
+        this.getHoppersMap().values().forEach(RHopper::loadLink);
+        this.getHoppersMap().values().forEach(RHopper::startTraitTasks);
 
         //load material cost
         this.getMaterialCost().clear();
@@ -147,10 +137,11 @@ public class HopperManager extends HopperManagerAPI {
     }
 
     /**
-     * Builds one trait onto a hopper being read from disk, at the tier the file gives it.
+     * Builds one trait onto a hopper being read from the database, at its stored tier and with
+     * whatever else it stored for itself.
      */
     private void putTrait(final Map<RHopperTrait, RHopperTraitBase> traitMap, final RHopper hopper,
-                          final String name, final int tier) {
+                          final String name, final int tier, final String settings) {
         final RHopperTrait type;
         try {
             type = RHopperTrait.valueOf(name);
@@ -170,16 +161,16 @@ public class HopperManager extends HopperManagerAPI {
         }
 
         built.setTier(tier);
-        //whatever else the trait keeps for itself, read from its own section
-        built.loadSettings();
+        built.deserializeSettings(settings);
         traitMap.put(type, built);
     }
 
     @Override
     public void delete(RHopper h) {
-        RHHoppers.file().remove("Hoppers." + h.getSerializedLocation());
-        RHHoppers.save();
         h.stopHopper();
+        //out of the map before the database is told, so the flush cannot write it back
+        this.getHoppersMap().remove(h.getBlock());
+        rh.getDatabaseManager().delete(h);
         //anything pointing at the hopper that is going away is left pointing at nothing, so the
         //link is dropped and whatever followed it stops
         for (RHopper hopper : this.getHoppers()) {
@@ -187,8 +178,6 @@ public class HopperManager extends HopperManagerAPI {
                 hopper.removeLink();
             }
         }
-
-        this.getHoppersMap().remove(h.getBlock());
     }
 
     @Override
@@ -213,9 +202,8 @@ public class HopperManager extends HopperManagerAPI {
 
     @Override
     public void stopHoppers() {
+        //stopHopper only marks the hopper; the flush task, or close on shutdown, writes it
         this.getHoppers().forEach(RHopper::stopHopper);
-        //stopHopper only queues the balance write, and on shutdown there is no flush left to run
-        RHHoppers.saveIfDirty();
     }
 
     @Override

@@ -5,6 +5,51 @@ Hoppers:
   Xp-Collected: "&fYou collected &a%value% experience &ffrom this hopper."
   Balance-Collected-On-Break: "&fYou collected &e%money% &ffrom the hopper you broke."
   Not-Looking-At: "&cYou are not looking at a hopper."
+  Placed: "&fYou placed &d%name%&f. It is %value%&f."
+  Unknown-Owner: "&7Nobody"
+  Access:
+    Names:
+      PUBLIC: "&apublic"
+      PRIVATE: "&cprivate"
+    Denied: "&c%name% &cis private. Only &f%player% &cand the players they allow can open it."
+    No-Break: "&c%name% &cis private. You can't break it."
+    No-Link: "&c%name% &cis private. You can't link it."
+    No-Manage: "&cOnly this hopper's owner can do that."
+    Set: "&d%name% &fis now %value%&f."
+  Name:
+    # The two title lines shown while waiting for the new name.
+    Prompt:
+      - "&6Type in the chat"
+      - "&fthe hopper's new name. &7Type 'cancel' to cancel."
+    Set: "&fThis hopper is now called &d%name%&f."
+    Too-Long: "&cThat name is too long. The most is &e%value% &ccharacters."
+    Empty: "&cA hopper's name can't be empty."
+  Whitelist:
+    # The two title lines shown while waiting for a player's name.
+    Prompt:
+      - "&6Type in the chat"
+      - "&fthe player to allow. &7Type 'cancel' to cancel."
+    Added: "&b%player% &fcan now use &d%name%&f."
+    Removed: "&b%player% &fcan no longer use &d%name%&f."
+    Already: "&c%player% is already on this hopper's whitelist."
+    Not-On: "&c%player% isn't on this hopper's whitelist."
+    Not-Found: "&cNo player called %player% has played here."
+    Full: "&cThis hopper's whitelist is full. The most is &e%value%&c."
+    Is-Owner: "&cThe owner can always use their own hopper."
+    Empty: "&7Nobody"
+    List-Header: "&d%name% &fwhitelist &7(%value%)&f:"
+    List-Entry: " &7- &b%player%"
+  Info:
+    Header: "&d%name%"
+    Owner: " &fOwner: &b%player%"
+    Access: " &fAccess: %value%"
+    Location: " &fLocation: &b%value%"
+    Whitelist: " &fWhitelist: &b%value%"
+  List:
+    Header: "&b%player% &fowns &e%value% &fhoppers:"
+    Entry: " &7- &d%name% &7at &f%value%"
+    Empty: "&c%player% doesn't own any hoppers."
+    Player-Not-Found: "&cNo player called %player% has played here."
   Traits:
     Added: "&fGave this hopper the %trait% &ftrait."
     Already-Present: "&cThis hopper already has the %trait% &ctrait."
@@ -28,7 +73,8 @@ Hoppers:
     Cancelled: "&cLinking cancelled."
 
 GUI:
-  Title: "&8Real&dHoppers"
+  Title: "&8%name%"
+  Whitelist-Title: "&8%name% &8- Whitelist"
   Filter-Title: "&8Hopper Filter"
   Picker-Title: "&8Pick a material"
   Items:
@@ -109,6 +155,49 @@ GUI:
       No-Traits: " &7None."
       Trait-Entry: "&7- &f%trait% &8(tier %value%)"
       Collect: "&fClick here to collect hopper's balance."
+      Owner: "&fOwner: &b%player%"
+      Access: "&fAccess: %value%"
+    Owner:
+      Name: "&fOwned by &b%player%"
+      # %value% is the access, %whitelisted% how many players are on the whitelist.
+      Description:
+        - "&fAccess: %value%"
+        - "&fWhitelisted players: &b%whitelisted%"
+    Rename:
+      Name: "&fName: &d%name%"
+      Description:
+        - "&7Click to rename this hopper."
+    Access:
+      Name: "&fAccess: %value%"
+      Public-Description:
+        - "&7Anyone can open this hopper."
+        - ""
+        - "&7Click to make it &cprivate&7."
+      Private-Description:
+        - "&7Only you and your whitelist"
+        - "&7can open, break or link it."
+        - ""
+        - "&7Click to make it &apublic&7."
+    Whitelist:
+      Name: "&fWhitelist &7(%value%)"
+      Description:
+        - "&7Players allowed into this"
+        - "&7hopper while it is private."
+        - ""
+        - "&7Click to edit."
+      Add:
+        Name: "&aAdd a player"
+        Description:
+          - "&7Click, then type their name in chat."
+      Entry:
+        Name: "&b%player%"
+        Description:
+          - "&7Click to &cremove&7."
+      Empty:
+        Name: "&eNobody is whitelisted"
+        Description:
+          - "&7Only the owner can use this"
+          - "&7hopper while it is private."
 
 System:
   # The two title lines shown while the plugin is waiting for something to be typed in chat.
@@ -186,4 +275,4 @@ Traits:
   XP_COLLECT: "&aExperience"
   FILTER: "&3Filter"
 
-Version: 13
+Version: 14

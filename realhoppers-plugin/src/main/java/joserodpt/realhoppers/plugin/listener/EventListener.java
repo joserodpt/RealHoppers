@@ -52,7 +52,30 @@ public class EventListener implements Listener {
         //asking what is in the main hand misses a hopper placed from the off hand; the placed
         //block is what decides whether this is a hopper
         if (e.getBlockPlaced().getType() == Material.HOPPER) {
-            rh.getHopperManager().getHoppersMap().put(e.getBlockPlaced(), new RHopper(e.getBlockPlaced(), true));
+            //whoever placed it owns it
+            final RHopper placed = new RHopper(e.getBlockPlaced(), e.getPlayer());
+            rh.getHopperManager().getHoppersMap().put(e.getBlockPlaced(), placed);
+            TranslatableLine.HOPPER_PLACED
+                    .setV1(TranslatableLine.ReplacableVar.NAME.eq(placed.getName()))
+                    .setV2(TranslatableLine.ReplacableVar.VALUE.eq(placed.getAccess().getDisplayName())).send(e.getPlayer());
+        }
+    }
+
+    /**
+     * Keeps a private hopper from being broken by anyone it is not open to. Refused here, at HIGH,
+     * so the break never reaches the MONITOR handler below that pays the balance out and deletes
+     * the hopper - and so a protection plugin at HIGHEST still gets the last word.
+     */
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onBreakPrivateHopper(BlockBreakEvent e) {
+        if (e.getBlock().getType() != Material.HOPPER) {
+            return;
+        }
+        final RHopper h = rh.getHopperManager().getHopper(e.getBlock());
+        if (h != null && !h.canAccess(e.getPlayer())) {
+            e.setCancelled(true);
+            TranslatableLine.ACCESS_NO_BREAK
+                    .setV1(TranslatableLine.ReplacableVar.NAME.eq(h.getName())).send(e.getPlayer());
         }
     }
 

@@ -68,6 +68,8 @@
                                     <include>io.github.revxrsal:lamp.bukkit</include>
                                     <include>io.github.revxrsal:lamp.brigadier</include>
                                     <include>joserodpt:realhoppers-api</include>
+                                    <include>com.j256.ormlite:ormlite-core</include>
+                                    <include>com.j256.ormlite:ormlite-jdbc</include>
                                 </includes>
                             </artifactSet>
 
@@ -81,6 +83,12 @@
                                 <relocation>
                                     <pattern>revxrsal.commands</pattern>
                                     <shadedPattern>joserodpt.realhoppers.shaded.lamp</shadedPattern>
+                                </relocation>
+                                <!-- Relocated so another plugin shading a different ORMLite cannot
+                                     clash with ours. -->
+                                <relocation>
+                                    <pattern>com.j256.ormlite</pattern>
+                                    <shadedPattern>joserodpt.realhoppers.shaded.ormlite</shadedPattern>
                                 </relocation>
                             </relocations>
 
@@ -96,6 +104,14 @@
                                      reflection and version probing, so minimizeJar can't see they are used. -->
                                 <filter>
                                     <artifact>io.github.revxrsal:*</artifact>
+                                    <includes>
+                                        <include>**</include>
+                                    </includes>
+                                </filter>
+                                <!-- ORMLite picks its database types and field converters by reflection,
+                                     which minimizeJar can't follow. -->
+                                <filter>
+                                    <artifact>com.j256.ormlite:*</artifact>
                                     <includes>
                                         <include>**</include>
                                     </includes>
@@ -168,6 +184,18 @@
             <groupId>io.github.revxrsal</groupId>
             <artifactId>lamp.bukkit</artifactId>
             <version>${lamp.version}</version>
+        </dependency>
+        <!-- Hopper storage. The JDBC drivers (SQLite, MySQL) come with the server, as they do for
+             RealSkywars, so only ORMLite itself is shaded. -->
+        <dependency>
+            <groupId>com.j256.ormlite</groupId>
+            <artifactId>ormlite-core</artifactId>
+            <version>6.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.j256.ormlite</groupId>
+            <artifactId>ormlite-jdbc</artifactId>
+            <version>6.1</version>
         </dependency>
         <dependency>
             <groupId>com.github.MilkBowl</groupId>

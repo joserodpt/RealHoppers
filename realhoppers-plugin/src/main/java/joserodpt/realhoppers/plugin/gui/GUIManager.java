@@ -16,13 +16,17 @@ package joserodpt.realhoppers.plugin.gui;
 import joserodpt.realhoppers.api.config.RHLanguage;
 import joserodpt.realhoppers.api.config.TranslatableLine;
 import joserodpt.realhoppers.api.hopper.RHopper;
+import joserodpt.realhoppers.api.hopper.RHopperAccess;
 import joserodpt.realhoppers.api.hopper.trait.RHopperTrait;
 import joserodpt.realhoppers.api.hopper.trait.RHopperTraitBase;
 import joserodpt.realhoppers.api.hopper.trait.traits.RHFilterTrait;
 import joserodpt.realhoppers.api.utils.GUIBuilder;
 import joserodpt.realhoppers.api.utils.Items;
+import joserodpt.realhoppers.api.utils.Pagination;
+import joserodpt.realhoppers.api.utils.PlayerInput;
 import joserodpt.realhoppers.api.utils.Text;
 import joserodpt.realhoppers.plugin.RealHoppers;
+import joserodpt.realhoppers.plugin.managers.HopperOwnership;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Sound;
@@ -33,6 +37,7 @@ import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.SkullMeta;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -79,6 +84,28 @@ public class GUIManager {
     /** In among where the entries would be, since it only shows when there are none. */
     private static final int FILTER_EMPTY_SLOT = 31;
 
+    /**
+     * The hopper screen's bottom row: who owns it, shown to everyone, and the owner's controls,
+     * shown only to those who may manage it.
+     */
+    private static final int RENAME_SLOT = 47;
+    private static final int ACCESS_SLOT = 49;
+    private static final int WHITELIST_SLOT = 51;
+    private static final int OWNER_SLOT = 53;
+
+    /** The whitelist screen: four rows of players, and its buttons along the bottom. */
+    private static final int[] WHITELIST_SLOTS = {
+            10, 11, 12, 13, 14, 15, 16,
+            19, 20, 21, 22, 23, 24, 25,
+            28, 29, 30, 31, 32, 33, 34,
+            37, 38, 39, 40, 41, 42, 43};
+    private static final int WHITELIST_BACK_SLOT = 45;
+    private static final int WHITELIST_PREVIOUS_SLOT = 48;
+    private static final int WHITELIST_ADD_SLOT = 49;
+    private static final int WHITELIST_NEXT_SLOT = 50;
+    private static final int WHITELIST_CLOSE_SLOT = 53;
+    private static final int WHITELIST_EMPTY_SLOT = 22;
+
     private final RealHoppers rh;
 
     /**
@@ -114,17 +141,30 @@ public class GUIManager {
         };
     }
 
-    /** Redraws the hopper screen for anybody looking at this hopper. */
+    /**
+     * Redraws the hopper screen for anybody looking at this hopper, and closes it on anybody it has
+     * just been made private to.
+     */
     public void refresh(final RHopper hopper) {
-        openHoppers.entrySet().stream()
+        //collected first: closing a screen removes its entry from the map being walked
+        final List<Player> viewers = openHoppers.entrySet().stream()
                 .filter(entry -> entry.getValue() == hopper)
                 .map(entry -> Bukkit.getPlayer(entry.getKey()))
                 .filter(player -> player != null && player.isOnline())
-                .forEach(player -> openHopper(player, hopper));
+                .collect(Collectors.toList());
+
+        for (final Player player : viewers) {
+            if (hopper.canAccess(player)) {
+                openHopper(player, hopper);
+            } else {
+                player.closeInventory();
+            }
+        }
     }
 
     public void openHopper(final Player target, final RHopper hopper) {
-        final GUIBuilder inventory = new GUIBuilder(TranslatableLine.GUI_TITLE.get(), GUI_SIZE, target.getUniqueId());
+        final GUIBuilder inventory = new GUIBuilder(TranslatableLine.GUI_TITLE
+                .setV1(TranslatableLine.ReplacableVar.NAME.eq(hopper.getName())).get(), GUI_SIZE, target.getUniqueId());
 
         //the hopper's own five slots, along the top, with its contents in them. They used to be a
         //button that closed this screen and opened the vanilla hopper one; there is one screen now
@@ -179,8 +219,145 @@ public class GUIManager {
                 Items.createItem(Material.OAK_DOOR, 1, TranslatableLine.GUI_CLOSE_NAME.get(),
                         RHLanguage.file().getStringList("GUI.Items.Close.Description")), CLOSE_SLOT);
 
+        this.addOwnershipButtons(inventory, target, hopper);
+
         inventory.openInventory(target);
         this.openHoppers.put(target.getUniqueId(), hopper);
+    }
+
+    private void addOwnershipButtons(final GUIBuilder inventory, final Player target, final RHopper hopper) {
+        final List<String> ownerLore = new ArrayList<>();
+        for (final String line : RHLanguage.file().getStringList("GUI.Items.Owner.Description")) {
+            ownerLore.add(line
+                    .replace("%value%", hopper.getAccess().getDisplayName())
+                    .replace("%whitelisted%", String.valueOf(hopper.getWhitelist().size())));
+        }
+        inventory.setItem(head(hopper.getOwner(), TranslatableLine.GUI_OWNER_NAME
+                .setV1(TranslatableLine.ReplacableVar.PLAYER.eq(hopper.getOwnerDisplayName())).get(), ownerLore), OWNER_SLOT);
+
+        //only the owner and admins see the controls; everyone else just sees whose it is
+        if (!hopper.canManage(target)) {
+            return;
+        }
+
+        inventory.addItem(e -> this.rename(target, hopper),
+                Items.createItem(Material.NAME_TAG, 1, TranslatableLine.GUI_RENAME_NAME
+                                .setV1(TranslatableLine.ReplacableVar.NAME.eq(hopper.getName())).get(),
+                        RHLanguage.file().getStringList("GUI.Items.Rename.Description")), RENAME_SLOT);
+
+        final boolean isPublic = hopper.getAccess() == RHopperAccess.PUBLIC;
+        //setAccess fires the state change event, which redraws this screen through refresh
+        inventory.addItem(e -> HopperOwnership.setAccess(target, hopper, hopper.getAccess().next()),
+                Items.createItem(isPublic ? Material.LIME_DYE : Material.RED_DYE, 1,
+                        TranslatableLine.GUI_ACCESS_NAME
+                                .setV1(TranslatableLine.ReplacableVar.VALUE.eq(hopper.getAccess().getDisplayName())).get(),
+                        RHLanguage.file().getStringList(isPublic
+                                ? "GUI.Items.Access.Public-Description"
+                                : "GUI.Items.Access.Private-Description")), ACCESS_SLOT);
+
+        inventory.addItem(e -> openLater(target, () -> openWhitelist(target, hopper, 0)),
+                Items.createItem(Material.BOOK, 1, TranslatableLine.GUI_WHITELIST_NAME
+                                .setV1(TranslatableLine.ReplacableVar.VALUE.eq(String.valueOf(hopper.getWhitelist().size()))).get(),
+                        RHLanguage.file().getStringList("GUI.Items.Whitelist.Description")), WHITELIST_SLOT);
+    }
+
+    /** Asks for the new name in chat, then brings the hopper screen back either way. */
+    private void rename(final Player target, final RHopper hopper) {
+        if (!HopperOwnership.checkManage(target, hopper)) {
+            return;
+        }
+        //colours are kept, so a hopper can be named in them
+        new PlayerInput(false, target, RHLanguage.file().getStringList("Hoppers.Name.Prompt"),
+                input -> {
+                    HopperOwnership.rename(target, hopper, input);
+                    this.reopen(target, hopper);
+                },
+                input -> this.reopen(target, hopper));
+    }
+
+    /**
+     * Brings the hopper screen back after a chat prompt, unless the hopper went while the player
+     * was typing or they may no longer open it.
+     */
+    private void reopen(final Player target, final RHopper hopper) {
+        if (target.isOnline() && rh.getHopperManager().getHopper(hopper.getBlock()) == hopper && hopper.canAccess(target)) {
+            openHopper(target, hopper);
+        }
+    }
+
+    /** The players allowed into a private hopper. Clicking one takes them off; the owner and admins only. */
+    public void openWhitelist(final Player target, final RHopper hopper, final int page) {
+        if (!hopper.canManage(target)) {
+            this.reopen(target, hopper);
+            return;
+        }
+
+        final GUIBuilder inventory = new GUIBuilder(TranslatableLine.GUI_WHITELIST_TITLE
+                .setV1(TranslatableLine.ReplacableVar.NAME.eq(hopper.getName())).get(), GUI_SIZE, target.getUniqueId());
+
+        final Pagination<Map.Entry<UUID, String>> pages = new Pagination<>(WHITELIST_SLOTS.length,
+                new ArrayList<>(hopper.getWhitelist().entrySet()));
+        //a removal can empty the last page out from under the player
+        final int shown = pages.exists(page) ? page : Math.max(0, pages.totalPages() - 1);
+
+        if (pages.isEmpty()) {
+            inventory.setItem(Items.createItem(Material.BARRIER, 1, TranslatableLine.GUI_WHITELIST_EMPTY_NAME.get(),
+                    RHLanguage.file().getStringList("GUI.Items.Whitelist.Empty.Description")), WHITELIST_EMPTY_SLOT);
+        } else {
+            final List<Map.Entry<UUID, String>> entries = pages.getPage(shown);
+            for (int i = 0; i < entries.size(); i++) {
+                final UUID uuid = entries.get(i).getKey();
+                final String name = entries.get(i).getValue() == null ? uuid.toString() : entries.get(i).getValue();
+                inventory.addItem(e -> {
+                    HopperOwnership.removeFromWhitelist(target, hopper, uuid, name);
+                    openWhitelist(target, hopper, shown);
+                }, head(uuid, TranslatableLine.GUI_WHITELIST_ENTRY_NAME
+                                .setV1(TranslatableLine.ReplacableVar.PLAYER.eq(name)).get(),
+                        RHLanguage.file().getStringList("GUI.Items.Whitelist.Entry.Description")), WHITELIST_SLOTS[i]);
+            }
+        }
+
+        if (pages.exists(shown - 1)) {
+            inventory.addItem(e -> openWhitelist(target, hopper, shown - 1),
+                    Items.createItem(Material.YELLOW_STAINED_GLASS, 1, TranslatableLine.GUI_PREVIOUS_PAGE_NAME.get(),
+                            RHLanguage.file().getStringList("GUI.Items.Picker.Back-Description")), WHITELIST_PREVIOUS_SLOT);
+        }
+        if (pages.exists(shown + 1)) {
+            inventory.addItem(e -> openWhitelist(target, hopper, shown + 1),
+                    Items.createItem(Material.GREEN_STAINED_GLASS, 1, TranslatableLine.GUI_NEXT_PAGE_NAME.get(),
+                            RHLanguage.file().getStringList("GUI.Items.Picker.Next-Description")), WHITELIST_NEXT_SLOT);
+        }
+
+        inventory.addItem(e -> new PlayerInput(true, target, RHLanguage.file().getStringList("Hoppers.Whitelist.Prompt"),
+                        input -> {
+                            HopperOwnership.addToWhitelist(target, hopper, input);
+                            openWhitelist(target, hopper, shown);
+                        },
+                        input -> openWhitelist(target, hopper, shown)),
+                Items.createItem(Material.EMERALD, 1, TranslatableLine.GUI_WHITELIST_ADD_NAME.get(),
+                        RHLanguage.file().getStringList("GUI.Items.Whitelist.Add.Description")), WHITELIST_ADD_SLOT);
+
+        inventory.addItem(e -> openLater(target, () -> this.reopen(target, hopper)),
+                Items.createItem(Material.RED_BED, 1, TranslatableLine.GUI_BACK_NAME.get()), WHITELIST_BACK_SLOT);
+
+        inventory.addItem(e -> target.closeInventory(),
+                Items.createItem(Material.OAK_DOOR, 1, TranslatableLine.GUI_CLOSE_NAME.get(),
+                        RHLanguage.file().getStringList("GUI.Items.Close.Description")), WHITELIST_CLOSE_SLOT);
+
+        inventory.openInventory(target);
+        //not the hopper screen, so nothing here should be redrawn by refresh
+        this.openHoppers.remove(target.getUniqueId());
+    }
+
+    /** A player's head, or a plain one for a hopper nobody owns. */
+    private ItemStack head(final UUID owner, final String name, final List<String> lore) {
+        final ItemStack head = Items.createItem(Material.PLAYER_HEAD, 1, name, lore);
+        if (owner != null && head.getItemMeta() instanceof SkullMeta) {
+            final SkullMeta meta = (SkullMeta) head.getItemMeta();
+            meta.setOwningPlayer(Bukkit.getOfflinePlayer(owner));
+            head.setItemMeta(meta);
+        }
+        return head;
     }
 
     /**

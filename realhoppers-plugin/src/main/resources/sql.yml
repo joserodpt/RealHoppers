@@ -1,0 +1,12 @@
+# Where RealHoppers keeps its hoppers.
+#
+# driver: SQLITE (the default, a file in the plugin's folder), MYSQL, MARIADB or POSTGRESQL.
+# SQLite and MySQL drivers come with the server. MariaDB and PostgreSQL need their drivers
+# installed on the server separately.
+driver: "SQLITE"
+host: "localhost"
+# For SQLite, the name of the file (RealHoppers.db).
+database: "RealHoppers"
+username: ""
+password: ""
+port: 3306

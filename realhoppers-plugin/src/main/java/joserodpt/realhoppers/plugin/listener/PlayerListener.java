@@ -85,6 +85,22 @@ public class PlayerListener implements Listener {
 
         event.setCancelled(true);
 
+        //a private hopper is closed to everyone but its owner, its whitelist and admins - its
+        //screen and its link alike
+        if (!clicked.canAccess(player)) {
+            if (player.getInventory().getItemInMainHand().getType() == LINK_TOOL) {
+                //kept pending, so the player can go and click a hopper they may link to
+                TranslatableLine.ACCESS_NO_LINK
+                        .setV1(TranslatableLine.ReplacableVar.NAME.eq(clicked.getName())).send(player);
+                return;
+            }
+            cancelLink(player);
+            TranslatableLine.ACCESS_DENIED
+                    .setV1(TranslatableLine.ReplacableVar.NAME.eq(clicked.getName()))
+                    .setV2(TranslatableLine.ReplacableVar.PLAYER.eq(clicked.getOwnerDisplayName())).send(player);
+            return;
+        }
+
         if (player.getInventory().getItemInMainHand().getType() == LINK_TOOL) {
             this.link(player, clicked);
             return;
@@ -141,6 +157,14 @@ public class PlayerListener implements Listener {
         }
 
         rh.getPlayerManager().getPendingLinks().remove(player.getUniqueId());
+
+        //the destination was checked when it was clicked; the source was when it was picked, but
+        //its owner may have made it private since
+        if (!source.canAccess(player)) {
+            TranslatableLine.ACCESS_NO_LINK
+                    .setV1(TranslatableLine.ReplacableVar.NAME.eq(source.getName())).send(player);
+            return;
+        }
 
         //replaces whatever it pointed at before, rather than refusing: one link per hopper means
         //this is the only way to change it

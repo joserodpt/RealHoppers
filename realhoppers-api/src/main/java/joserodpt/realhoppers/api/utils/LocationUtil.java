@@ -48,7 +48,7 @@ public class LocationUtil {
             y = Double.parseDouble(parts[1]);
             z = Double.parseDouble(parts[2]);
         } catch (final NumberFormatException e) {
-            //hoppers.yml is editable by hand, so a coordinate that is not a number is a config
+            //a stored location can be hand-edited, so a coordinate that is not a number is a config
             //mistake to report, not an exception to throw out of the middle of a world load
             RealHoppersAPI.getInstance().getLogger().severe("Invalid coordinates in serialized location '" + serializedLocation + "'");
             return null;
