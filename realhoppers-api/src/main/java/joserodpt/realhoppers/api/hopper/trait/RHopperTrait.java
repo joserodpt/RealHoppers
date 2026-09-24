@@ -33,6 +33,7 @@ import joserodpt.realhoppers.api.hopper.trait.traits.RHTeleportationTrait;
 import joserodpt.realhoppers.api.hopper.trait.traits.RHVoidTrait;
 import joserodpt.realhoppers.api.hopper.trait.traits.RHXpCollectTrait;
 import org.bukkit.Material;
+import org.bukkit.permissions.Permissible;
 
 import java.util.HashMap;
 import java.util.List;
@@ -53,6 +54,9 @@ public enum RHopperTrait {
     AUTO_COMPACT(Material.IRON_BLOCK, false, false, true),
     XP_COLLECT(Material.EXPERIENCE_BOTTLE, false, false, true),
     FILTER(Material.HOPPER, false, false, false);
+
+    /** Grants every trait's permission at once. */
+    public static final String WILDCARD_PERMISSION = "realhoppers.trait.*";
 
     private final Material icon;
     private final boolean hasEconomyCapabilities;
@@ -183,6 +187,21 @@ public enum RHopperTrait {
 
     public Material getIcon() {
         return icon;
+    }
+
+    /** The permission needed to switch this trait on, realhoppers.trait.<trait> in lower case. */
+    public String getPermission() {
+        return "realhoppers.trait." + this.name().toLowerCase();
+    }
+
+    /**
+     * Whether someone may switch this trait on. The wildcard is checked by hand as well as declared
+     * in plugin.yml, because a permissions plugin that doesn't expand wildcards would otherwise
+     * leave it doing nothing. Admins pass regardless.
+     */
+    public boolean canActivate(final Permissible p) {
+        return p.hasPermission(this.getPermission()) || p.hasPermission(WILDCARD_PERMISSION)
+                || p.hasPermission(RHopper.ADMIN_PERMISSION);
     }
 
     /**

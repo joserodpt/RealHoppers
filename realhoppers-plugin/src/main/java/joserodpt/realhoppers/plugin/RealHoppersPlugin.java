@@ -37,8 +37,10 @@ import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 public final class RealHoppersPlugin extends JavaPlugin {
 
@@ -142,13 +144,20 @@ public final class RealHoppersPlugin extends JavaPlugin {
      */
     private void registerRealPermissions() {
         try {
+            final List<ExternalPluginPermission> permissions = new ArrayList<>();
+            permissions.add(new ExternalPluginPermission("realhoppers.admin",
+                    "Allow access to the main operator commands of RealHoppers, and to open, break, link and manage any hopper, private or not.",
+                    Arrays.asList("rh reload", "rh settrait <trait>", "rh list <player>")));
+            permissions.add(new ExternalPluginPermission(RHopperTrait.WILDCARD_PERMISSION,
+                    "Allow adding every trait to a hopper.", Collections.emptyList()));
+            for (final RHopperTrait trait : RHopperTrait.values()) {
+                permissions.add(new ExternalPluginPermission(trait.getPermission(),
+                        "Allow adding the " + trait.name() + " trait to a hopper.", Collections.emptyList()));
+            }
+
             RealPermissionsAPI.getInstance().getHooksAPI().addHook(new ExternalPlugin(
                     this.getDescription().getName(), "&fReal&6Hoppers", this.getDescription().getDescription(),
-                    Material.HOPPER,
-                    Collections.singletonList(new ExternalPluginPermission("realhoppers.admin",
-                            "Allow access to the main operator commands of RealHoppers, and to open, break, link and manage any hopper, private or not.",
-                            Arrays.asList("rh reload", "rh settrait <trait>", "rh list <player>"))),
-                    this.getDescription().getVersion()));
+                    Material.HOPPER, permissions, this.getDescription().getVersion()));
         } catch (final Exception e) {
             getLogger().warning("Error while trying to register RealHoppers permissions onto RealPermissions.");
             e.printStackTrace();

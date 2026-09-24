@@ -274,7 +274,7 @@ public class GUIManager {
                 } else {
                     toggle(target, hopper, trait);
                 }
-            }), traitIcon(hopper, trait), TRAIT_SLOTS[i]);
+            }), traitIcon(target, hopper, trait), TRAIT_SLOTS[i]);
         }
 
         inventory.addItem(this.guarded(target, hopper, e -> collect(target, hopper, e.getClick())),
@@ -598,7 +598,7 @@ public class GUIManager {
         Bukkit.getScheduler().scheduleSyncDelayedTask(rh.getPlugin(), open, 2);
     }
 
-    private ItemStack traitIcon(final RHopper hopper, final RHopperTrait trait) {
+    private ItemStack traitIcon(final Player target, final RHopper hopper, final RHopperTrait trait) {
         //what the trait does comes first, before whether this hopper has it
         final List<String> lore = new ArrayList<>(trait.getDescription());
         if (!lore.isEmpty()) {
@@ -627,6 +627,11 @@ public class GUIManager {
                             : "GUI.Items.Trait.Tier-Description")
                     .forEach(line -> lore.add(line.replace("%value%", tier).replace("%money%", price)));
         }
+
+        //whether this player could switch it on, shown before it's clicked rather than only refused after
+        lore.addAll(RHLanguage.file().getStringList(trait.canActivate(target)
+                ? "GUI.Items.Trait.Permission-Description"
+                : "GUI.Items.Trait.No-Permission-Description"));
 
         //a trait that follows the hopper's link can be switched on with no link there; it just has
         //nowhere to go until one is made, and the icon says so
@@ -698,6 +703,13 @@ public class GUIManager {
             TranslatableLine.TRAIT_REMOVED
                     .with(TRAIT, trait.getName()).send(target);
             openHopper(target, hopper);
+            return;
+        }
+
+        //only switching one on is gated: taking a trait off a hopper you manage is always allowed
+        if (!trait.canActivate(target)) {
+            TranslatableLine.TRAIT_NO_PERMISSION
+                    .with(TRAIT, trait.getName()).send(target);
             return;
         }
 

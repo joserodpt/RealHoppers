@@ -7,3 +7,64 @@ api-version: '1.13'
 authors: [JoseGamer_PT]
 softdepend: [ Vault, PlaceholderAPI, RealPermissions ]
 website: https://www.spigotmc.org/members/40267/
+permissions:
+  realhoppers.trait.*:
+    description: Lets the player add every trait to their hoppers.
+    default: op
+    children:
+      realhoppers.trait.teleport: true
+      realhoppers.trait.item_transf: true
+      realhoppers.trait.auto_sell: true
+      realhoppers.trait.auto_smelt: true
+      realhoppers.trait.suction: true
+      realhoppers.trait.block_breaking: true
+      realhoppers.trait.kill_mob: true
+      realhoppers.trait.void: true
+      realhoppers.trait.mob_pull: true
+      realhoppers.trait.harvest: true
+      realhoppers.trait.grow: true
+      realhoppers.trait.auto_compact: true
+      realhoppers.trait.xp_collect: true
+      realhoppers.trait.filter: true
+  realhoppers.trait.teleport:
+    description: Lets the player add the TELEPORT trait to their hoppers.
+    default: op
+  realhoppers.trait.item_transf:
+    description: Lets the player add the ITEM_TRANSF trait to their hoppers.
+    default: op
+  realhoppers.trait.auto_sell:
+    description: Lets the player add the AUTO_SELL trait to their hoppers.
+    default: op
+  realhoppers.trait.auto_smelt:
+    description: Lets the player add the AUTO_SMELT trait to their hoppers.
+    default: op
+  realhoppers.trait.suction:
+    description: Lets the player add the SUCTION trait to their hoppers.
+    default: op
+  realhoppers.trait.block_breaking:
+    description: Lets the player add the BLOCK_BREAKING trait to their hoppers.
+    default: op
+  realhoppers.trait.kill_mob:
+    description: Lets the player add the KILL_MOB trait to their hoppers.
+    default: op
+  realhoppers.trait.void:
+    description: Lets the player add the VOID trait to their hoppers.
+    default: op
+  realhoppers.trait.mob_pull:
+    description: Lets the player add the MOB_PULL trait to their hoppers.
+    default: op
+  realhoppers.trait.harvest:
+    description: Lets the player add the HARVEST trait to their hoppers.
+    default: op
+  realhoppers.trait.grow:
+    description: Lets the player add the GROW trait to their hoppers.
+    default: op
+  realhoppers.trait.auto_compact:
+    description: Lets the player add the AUTO_COMPACT trait to their hoppers.
+    default: op
+  realhoppers.trait.xp_collect:
+    description: Lets the player add the XP_COLLECT trait to their hoppers.
+    default: op
+  realhoppers.trait.filter:
+    description: Lets the player add the FILTER trait to their hoppers.
+    default: op

@@ -55,6 +55,7 @@ Hoppers:
     Already-Present: "&cThis hopper already has the %trait% &ctrait."
     Needs-Link: "&eThe %trait% &etrait follows this hopper's link, and it has none yet. Hold a stick, right-click this hopper, then the one it should point at."
     Unavailable: "&cThe %trait% &ctrait is not available yet."
+    No-Permission: "&cYou don't have permission to add the %trait% &ctrait."
     Removed: "&fRemoved the %trait% &ftrait from this hopper."
     Tier-Set: "&f%trait% &fis now tier &b%value%&f."
     Tier-Upgraded: "&f%trait% &fupgraded to tier &b%value%&f."
@@ -129,6 +130,12 @@ GUI:
         - "&8Not active"
         - ""
         - "&7Click to &aadd&7."
+      Permission-Description:
+        - ""
+        - "&aYou have permission to add this trait."
+      No-Permission-Description:
+        - ""
+        - "&cYou don't have permission to add this trait."
       Needs-Link-Description:
         - ""
         - "&cThis hopper is not linked."
@@ -275,4 +282,4 @@ Traits:
   XP_COLLECT: "&aExperience"
   FILTER: "&3Filter"
 
-Version: 14
+Version: 15

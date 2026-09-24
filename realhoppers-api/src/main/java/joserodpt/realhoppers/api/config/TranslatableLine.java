@@ -78,6 +78,7 @@ public enum TranslatableLine {
     TRAIT_ALREADY_PRESENT("Hoppers.Traits.Already-Present"),
     TRAIT_NEEDS_LINK("Hoppers.Traits.Needs-Link"),
     TRAIT_UNAVAILABLE("Hoppers.Traits.Unavailable"),
+    TRAIT_NO_PERMISSION("Hoppers.Traits.No-Permission"),
     TRAIT_REMOVED("Hoppers.Traits.Removed"),
     FILTER_ADDED("Hoppers.Filter.Added"),
     FILTER_REMOVED("Hoppers.Filter.Removed"),
