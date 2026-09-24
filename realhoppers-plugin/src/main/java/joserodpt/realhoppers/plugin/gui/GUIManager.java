@@ -64,23 +64,28 @@ public class GUIManager {
     private static final int GUI_SIZE = 54;
 
     /**
-     * Rows four and five, a column of padding either side: fourteen places for fourteen traits.
+     * Rows three and four, a column of padding either side: fourteen places for fourteen traits.
      *
      * <p>Exactly full, so a fifteenth trait has nowhere to go. The render loop stops at this
      * array's length and used to do so silently - that is how an eighth trait went missing when
      * this held seven - so {@link #openHopper} says so in the log now instead.</p>
      */
     private static final int[] TRAIT_SLOTS = {
+            19, 20, 21, 22, 23, 24, 25,
+            28, 29, 30, 31, 32, 33, 34};
+
+    /** The hopper's own five slots, centred on the top row. */
+    private static final int[] HOPPER_SLOTS = {2, 3, 4, 5, 6};
+
+    /** The rest of the top row, around them: experience and the balance on the left, close on the right. */
+    private static final int XP_SLOT = 0;
+    private static final int BALANCE_SLOT = 1;
+    private static final int CLOSE_SLOT = 7;
+
+    /** Where the filter screen lists its materials: rows four and five, as the traits used to sit. */
+    private static final int[] FILTER_SLOTS = {
             28, 29, 30, 31, 32, 33, 34,
             37, 38, 39, 40, 41, 42, 43};
-
-    /** The hopper's own five slots, centred on row two. */
-    private static final int[] HOPPER_SLOTS = {11, 12, 13, 14, 15};
-
-    /** The rest of row two, around them: experience and the balance on the left, close on the right. */
-    private static final int XP_SLOT = 9;
-    private static final int BALANCE_SLOT = 10;
-    private static final int CLOSE_SLOT = 16;
 
     /** The filter screen puts its buttons on the bottom row instead. */
     private static final int FILTER_BACK_SLOT = 45;
@@ -91,13 +96,12 @@ public class GUIManager {
     private static final int FILTER_EMPTY_SLOT = 31;
 
     /**
-     * The hopper screen's bottom row: who owns it, shown to everyone, and the owner's controls,
-     * shown only to those who may manage it.
+     * The hopper screen's bottom row: who owns it in the middle, shown to everyone and switching
+     * the access for those who may manage it, and the owner's other controls either side.
      */
     private static final int RENAME_SLOT = 47;
-    private static final int ACCESS_SLOT = 49;
+    private static final int OWNER_SLOT = 49;
     private static final int WHITELIST_SLOT = 51;
-    private static final int OWNER_SLOT = 53;
 
     /** The whitelist screen: four rows of players, and its buttons along the bottom. */
     private static final int[] WHITELIST_SLOTS = {
@@ -306,28 +310,28 @@ public class GUIManager {
                     .replace("%value%", hopper.getAccess().getDisplayName())
                     .replace("%whitelisted%", String.valueOf(hopper.getWhitelist().size())));
         }
-        inventory.setItem(head(hopper.getOwner(), TranslatableLine.GUI_OWNER_NAME
-                .with(PLAYER, hopper.getOwnerDisplayName()).get(), ownerLore), OWNER_SLOT);
+        final String ownerName = TranslatableLine.GUI_OWNER_NAME
+                .with(PLAYER, hopper.getOwnerDisplayName()).get();
 
         //only the owner and admins see the controls; everyone else just sees whose it is
         if (!hopper.canManage(target)) {
+            inventory.setItem(head(hopper.getOwner(), ownerName, ownerLore), OWNER_SLOT);
             return;
         }
+
+        //the head is also the public/private switch, so it says what a click would do
+        ownerLore.add("");
+        ownerLore.addAll(RHLanguage.file().getStringList(hopper.getAccess() == RHopperAccess.PUBLIC
+                ? "GUI.Items.Access.Public-Description"
+                : "GUI.Items.Access.Private-Description"));
+        //setAccess fires the state change event, which redraws this screen through refresh
+        inventory.addItem(this.guarded(target, hopper, e -> HopperOwnership.setAccess(target, hopper, hopper.getAccess().next())),
+                head(hopper.getOwner(), ownerName, ownerLore), OWNER_SLOT);
 
         inventory.addItem(this.guarded(target, hopper, e -> this.rename(target, hopper)),
                 Items.createItem(Material.NAME_TAG, 1, TranslatableLine.GUI_RENAME_NAME
                                 .with(NAME, hopper.getName()).get(),
                         RHLanguage.file().getStringList("GUI.Items.Rename.Description")), RENAME_SLOT);
-
-        final boolean isPublic = hopper.getAccess() == RHopperAccess.PUBLIC;
-        //setAccess fires the state change event, which redraws this screen through refresh
-        inventory.addItem(this.guarded(target, hopper, e -> HopperOwnership.setAccess(target, hopper, hopper.getAccess().next())),
-                Items.createItem(isPublic ? Material.LIME_DYE : Material.RED_DYE, 1,
-                        TranslatableLine.GUI_ACCESS_NAME
-                                .with(VALUE, hopper.getAccess().getDisplayName()).get(),
-                        RHLanguage.file().getStringList(isPublic
-                                ? "GUI.Items.Access.Public-Description"
-                                : "GUI.Items.Access.Private-Description")), ACCESS_SLOT);
 
         inventory.addItem(this.guarded(target, hopper, e -> openLater(target, () -> openWhitelist(target, hopper, 0))),
                 Items.createItem(Material.BOOK, 1, TranslatableLine.GUI_WHITELIST_NAME
@@ -520,7 +524,7 @@ public class GUIManager {
                 GUI_SIZE, target.getUniqueId());
 
         final List<Material> listed = new ArrayList<>(filter.getMaterials());
-        for (int i = 0; i < listed.size() && i < TRAIT_SLOTS.length; i++) {
+        for (int i = 0; i < listed.size() && i < FILTER_SLOTS.length; i++) {
             final Material material = listed.get(i);
             inventory.addItem(this.guarded(target, hopper, e -> {
                 filter.remove(material);
@@ -528,7 +532,7 @@ public class GUIManager {
                         .with(MATERIAL, Text.beautifyMaterialName(material)).send(target);
                 openFilter(target, hopper);
             }), Items.createItem(material, 1, "&f" + Text.beautifyMaterialName(material),
-                    RHLanguage.file().getStringList("GUI.Items.Filter.Entry-Description")), TRAIT_SLOTS[i]);
+                    RHLanguage.file().getStringList("GUI.Items.Filter.Entry-Description")), FILTER_SLOTS[i]);
         }
 
         //an empty list keeps everything, which is worth saying on the screen that looks empty

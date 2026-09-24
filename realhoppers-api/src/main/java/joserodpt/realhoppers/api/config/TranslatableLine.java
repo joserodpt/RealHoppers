@@ -121,7 +121,6 @@ public enum TranslatableLine {
     GUI_HOPPER_OWNER("GUI.Items.Hopper.Owner"),
     GUI_HOPPER_ACCESS("GUI.Items.Hopper.Access"),
     GUI_RENAME_NAME("GUI.Items.Rename.Name"),
-    GUI_ACCESS_NAME("GUI.Items.Access.Name"),
     GUI_WHITELIST_NAME("GUI.Items.Whitelist.Name"),
     GUI_OWNER_NAME("GUI.Items.Owner.Name"),
     GUI_WHITELIST_TITLE("GUI.Whitelist-Title"),

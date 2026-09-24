@@ -174,8 +174,8 @@ GUI:
       Name: "&fName: &d%name%"
       Description:
         - "&7Click to rename this hopper."
+    # shown under the owner's head to those who can manage the hopper, which is what switches it
     Access:
-      Name: "&fAccess: %value%"
       Public-Description:
         - "&7Anyone can open this hopper."
         - ""
