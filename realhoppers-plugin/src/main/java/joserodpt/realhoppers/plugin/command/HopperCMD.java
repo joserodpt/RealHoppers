@@ -22,6 +22,7 @@ import joserodpt.realhoppers.api.utils.Format;
 import joserodpt.realhoppers.plugin.RealHoppers;
 import joserodpt.realhoppers.plugin.gui.ConfigEditor;
 import joserodpt.realhoppers.plugin.managers.HopperOwnership;
+import joserodpt.realutils.BuildInfo;
 import joserodpt.realutils.text.Text;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
@@ -67,6 +68,10 @@ public class HopperCMD {
     public void defaultCommand(final CommandSender commandSender) {
         Text.sendList(commandSender, Arrays.asList("         &fReal&dHoppers",
                 "         &7Release &a" + rh.getPlugin().getDescription().getVersion()));
+        if (!(commandSender instanceof Player)) {
+            Text.sendRaw(commandSender, "         &7Built &a" + BuildInfo.time(rh.getPlugin()));
+            Text.sendRaw(commandSender, "         &7RealUtils &a" + BuildInfo.realUtilsVersion(rh.getPlugin()));
+        }
     }
 
     @Subcommand({"reload", "rl"})
