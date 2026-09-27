@@ -13,27 +13,22 @@ package joserodpt.realhoppers.api.config;
  * @link https://github.com/joserodpt/RealHoppers
  */
 
-import joserodpt.realutils.text.Text;
-import org.bukkit.command.CommandSender;
-
-import java.util.LinkedHashMap;
-import java.util.Map;
+import dev.dejvokep.boostedyaml.YamlDocument;
+import joserodpt.realutils.text.LanguageLine;
+import joserodpt.realutils.text.LanguageMessage;
+import joserodpt.realutils.text.Placeholder;
 
 /**
  * Every line the plugin says to a player, as a constant pointing at its route in language.yml.
  *
- * <p>Placeholders are filled with {@link #with(TranslatableLinePlaceholder, Object)}, which hands back a new
- * {@link Message} rather than changing the constant:</p>
+ * <p>Placeholders are filled with {@link #with(Placeholder, Object)}, which hands back a new
+ * {@link LanguageMessage} rather than changing the constant:</p>
  *
  * <pre>{@code
  * TranslatableLine.ACCESS_DENIED.with(NAME, hopper.getName()).with(PLAYER, owner).send(p);
  * }</pre>
- *
- * <p>The values used to be stored on the constants themselves, which are shared by every caller -
- * so a value set for one message stayed behind for the next, a line could hold at most two, and
- * the same placeholder could not appear twice with different values.</p>
  */
-public enum TranslatableLine {
+public enum TranslatableLine implements LanguageLine {
     // Hopper related messages
     HOPPER_TELEPORTED("Hoppers.Teleported"),
     HOPPER_REMOVED("Hoppers.Removed"),
@@ -158,64 +153,18 @@ public enum TranslatableLine {
         this.configPath = configPath;
     }
 
-    /** Starts a message from this line with one placeholder filled; chain more with {@link Message#with}. */
-    public Message with(TranslatableLinePlaceholder placeholder, Object value) {
-        return new Message(this.configPath).with(placeholder, value);
+    @Override
+    public String getPath() {
+        return this.configPath;
     }
 
-    /** The line with no placeholders filled, coloured. */
-    public String get() {
-        return new Message(this.configPath).get();
-    }
-
-    public void send(CommandSender p) {
-        new Message(this.configPath).send(p);
+    @Override
+    public YamlDocument getLanguageFile() {
+        return RHLanguage.file();
     }
 
     /** The tokens a line in language.yml may contain. {@code NAME} is written {@code %name%}. */
-    public enum TranslatableLinePlaceholder {
-        MONEY, TRAIT, MATERIAL, PLAYER, VALUE, NAME;
-
-        private final String token = "%" + this.name().toLowerCase() + "%";
-
-        public String getToken() {
-            return this.token;
-        }
-    }
-
-    /**
-     * One line with its placeholders filled in. A new one per message and never shared, so nothing
-     * set here can leak into the next.
-     */
-    public static final class Message {
-        private final String configPath;
-        private final Map<TranslatableLinePlaceholder, String> values = new LinkedHashMap<>();
-
-        private Message(String configPath) {
-            this.configPath = configPath;
-        }
-
-        /** Fills a placeholder. Setting the same one again replaces its value. */
-        public Message with(TranslatableLinePlaceholder placeholder, Object value) {
-            this.values.put(placeholder, String.valueOf(value));
-            return this;
-        }
-
-        public String get() {
-            String s = RHLanguage.file().getString(this.configPath);
-            if (s == null) {
-                //a route missing from a hand-edited or older language.yml, said plainly rather than
-                //printed to the player as the word "null"
-                return Text.color("&cMissing language entry: " + this.configPath);
-            }
-            for (final Map.Entry<TranslatableLinePlaceholder, String> entry : this.values.entrySet()) {
-                s = s.replace(entry.getKey().getToken(), entry.getValue());
-            }
-            return Text.color(s);
-        }
-
-        public void send(CommandSender p) {
-            Text.send(p, this.get());
-        }
+    public enum TranslatableLinePlaceholder implements Placeholder {
+        MONEY, TRAIT, MATERIAL, PLAYER, VALUE, NAME
     }
 }
