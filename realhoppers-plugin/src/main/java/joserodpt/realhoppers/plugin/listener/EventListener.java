@@ -13,6 +13,7 @@ package joserodpt.realhoppers.plugin.listener;
  * @link https://github.com/joserodpt/RealHoppers
  */
 
+import joserodpt.realhoppers.api.RealHoppersAPI;
 import joserodpt.realhoppers.api.config.TranslatableLine;
 import joserodpt.realhoppers.api.config.RHConfig;
 import joserodpt.realhoppers.plugin.RealHoppers;
@@ -43,12 +44,15 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.metadata.MetadataValue;
+import org.bukkit.permissions.PermissionAttachmentInfo;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 import static joserodpt.realhoppers.api.config.TranslatableLine.TranslatableLinePlaceholder.MONEY;
 import static joserodpt.realhoppers.api.config.TranslatableLine.TranslatableLinePlaceholder.NAME;
+import static joserodpt.realhoppers.api.config.TranslatableLine.TranslatableLinePlaceholder.VALUE;
 
 public class EventListener implements Listener {
     /** Needed, on top of the config option, for a broken private hopper to keep its owner and contents. */
@@ -59,6 +63,89 @@ public class EventListener implements Listener {
         this.rh = rh;
     }
 
+    /** Prefix of the permissions that cap how many hoppers a player can own: .none, .5, .20... */
+    public static final String LIMIT_PERMISSION_PREFIX = "realhoppers.limit.";
+
+    /**
+     * Refuses a hopper its owner has no room for. Here, at HIGH, because the MONITOR handler below
+     * can no longer cancel the placement.
+     *
+     * <p>With Hoppers.Place-Default-When-Limit-Reached on, the placement goes ahead as a plain
+     * vanilla hopper instead, which {@link #onPlaceSpecialHopper} then leaves unregistered. A private
+     * hopper being put back is refused either way: as a plain hopper its owner and items would be lost.</p>
+     */
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onPlaceOverLimit(BlockPlaceEvent e) {
+        if (e.getBlockPlaced().getType() != Material.HOPPER) {
+            return;
+        }
+        final StoredHopper stored = StoredHopper.fromItem(rh.getPlugin(), e.getItemInHand());
+        final int limit = reachedLimit(e, stored);
+        if (limit >= 0 && (stored != null || !placeDefaultWhenLimitReached())) {
+            e.setCancelled(true);
+            TranslatableLine.HOPPER_LIMIT_REACHED.with(VALUE, limit).send(e.getPlayer());
+        }
+    }
+
+    /**
+     * The limit this placement runs into, or -1 when its owner still has room.
+     *
+     * <p>A private hopper being put back counts against its old owner, since that is who it goes
+     * back to - not against whoever happens to be placing it.</p>
+     */
+    private int reachedLimit(final BlockPlaceEvent e, final StoredHopper stored) {
+        final UUID owner = stored != null && stored.getOwner() != null ? stored.getOwner() : e.getPlayer().getUniqueId();
+        final int limit = hopperLimit(owner.equals(e.getPlayer().getUniqueId()) ? e.getPlayer() : Bukkit.getPlayer(owner));
+        return limit >= 0 && rh.getHopperManager().getHoppersOwnedBy(owner).size() >= limit ? limit : -1;
+    }
+
+    private static boolean placeDefaultWhenLimitReached() {
+        return RHConfig.file().getBoolean("RealHoppers.Hoppers.Place-Default-When-Limit-Reached", false);
+    }
+
+    /**
+     * How many hoppers a player may own, or -1 for no limit. realhoppers.limit.none and
+     * realhoppers.admin lift it; otherwise the highest realhoppers.limit.&lt;n&gt; the player has
+     * wins, and a player with none of them - or one who is offline, whose permissions can't be
+     * asked - gets Hoppers.Max-Per-Player.
+     */
+    private static int hopperLimit(final Player player) {
+        if (player == null) {
+            return defaultHopperLimit();
+        }
+        if (player.hasPermission(LIMIT_PERMISSION_PREFIX + "none") || player.hasPermission(RHopper.ADMIN_PERMISSION)) {
+            return -1;
+        }
+        int limit = -1;
+        for (final PermissionAttachmentInfo info : player.getEffectivePermissions()) {
+            final String permission = info.getPermission().toLowerCase();
+            if (!info.getValue() || !permission.startsWith(LIMIT_PERMISSION_PREFIX)) {
+                continue;
+            }
+            try {
+                limit = Math.max(limit, Integer.parseInt(permission.substring(LIMIT_PERMISSION_PREFIX.length())));
+            } catch (final NumberFormatException ignored) {
+                //realhoppers.limit.* and the like: not a number, so not a limit
+            }
+        }
+        return limit >= 0 ? limit : defaultHopperLimit();
+    }
+
+    /** Hoppers.Max-Per-Player as a number, or -1 when it is "unlimited" or not a number at all. */
+    private static int defaultHopperLimit() {
+        final String value = RHConfig.file().getString("RealHoppers.Hoppers.Max-Per-Player", "unlimited").trim();
+        if (value.equalsIgnoreCase("unlimited")) {
+            return -1;
+        }
+        try {
+            return Math.max(-1, Integer.parseInt(value));
+        } catch (final NumberFormatException ex) {
+            RealHoppersAPI.getInstance().getLogger().warning("Hoppers.Max-Per-Player is \"" + value
+                    + "\", which is neither \"unlimited\" nor a number. Treating it as unlimited.");
+            return -1;
+        }
+    }
+
     //MONITOR with ignoreCancelled: a protection plugin gets to refuse the break first. At NORMAL
     //the hopper was deleted from disk even when the block was never actually broken.
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -66,13 +153,24 @@ public class EventListener implements Listener {
         //asking what is in the main hand misses a hopper placed from the off hand; the placed
         //block is what decides whether this is a hopper
         if (e.getBlockPlaced().getType() == Material.HOPPER) {
+            final StoredHopper stored = StoredHopper.fromItem(rh.getPlugin(), e.getItemInHand());
+
+            //over the limit and let through by onPlaceOverLimit: it stays a plain vanilla hopper.
+            //Told here rather than there, so a protection plugin refusing it after HIGH says nothing
+            if (stored == null) {
+                final int limit = reachedLimit(e, null);
+                if (limit >= 0) {
+                    TranslatableLine.HOPPER_LIMIT_REACHED_DEFAULT.with(VALUE, limit).send(e.getPlayer());
+                    return;
+                }
+            }
+
             //whoever placed it owns it
             final RHopper placed = new RHopper(e.getBlockPlaced(), e.getPlayer());
             rh.getHopperManager().getHoppersMap().put(e.getBlockPlaced(), placed);
 
             //unless it is a private hopper that was broken and is being put back: then it is still
             //its old owner's, still private, and has its items again
-            final StoredHopper stored = StoredHopper.fromItem(rh.getPlugin(), e.getItemInHand());
             if (stored != null) {
                 placed.restoreOwner(stored.getOwner(), stored.getOwnerName());
                 placed.restoreAccess(RHopperAccess.PRIVATE);

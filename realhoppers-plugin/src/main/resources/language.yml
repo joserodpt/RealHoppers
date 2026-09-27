@@ -5,6 +5,8 @@ Hoppers:
   Xp-Collected: "&fYou collected &a%value% experience &ffrom this hopper."
   Balance-Collected-On-Break: "&fYou collected &e%money% &ffrom the hopper you broke."
   Not-Looking-At: "&cYou are not looking at a hopper."
+  Limit-Reached: "&cYou can't have more than &e%value% &choppers."
+  Limit-Reached-Default: "&7You have reached your limit of &e%value% &7hoppers, so this one is a normal hopper."
   # the item a private hopper drops as. %player% is the owner, %value% how many items it holds
   Stored-Item:
     Name: "&dPrivate Hopper &7(%player%&7)"
@@ -287,4 +289,4 @@ Traits:
   XP_COLLECT: "&aExperience"
   FILTER: "&3Filter"
 
-Version: 16
+Version: 17
