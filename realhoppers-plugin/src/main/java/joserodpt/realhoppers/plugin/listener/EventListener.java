@@ -49,8 +49,6 @@ import java.util.List;
 
 import static joserodpt.realhoppers.api.config.TranslatableLine.TranslatableLinePlaceholder.MONEY;
 import static joserodpt.realhoppers.api.config.TranslatableLine.TranslatableLinePlaceholder.NAME;
-import static joserodpt.realhoppers.api.config.TranslatableLine.TranslatableLinePlaceholder.PLAYER;
-import static joserodpt.realhoppers.api.config.TranslatableLine.TranslatableLinePlaceholder.VALUE;
 
 public class EventListener implements Listener {
     /** Needed, on top of the config option, for a broken private hopper to keep its owner and contents. */
@@ -83,15 +81,7 @@ public class EventListener implements Listener {
                 if (inventory != null) {
                     inventory.setContents(Arrays.copyOf(stored.getContents(), inventory.getSize()));
                 }
-                TranslatableLine.HOPPER_RESTORED
-                        .with(NAME, placed.getName())
-                        .with(PLAYER, placed.getOwnerDisplayName()).send(e.getPlayer());
-                return;
             }
-
-            TranslatableLine.HOPPER_PLACED
-                    .with(NAME, placed.getName())
-                    .with(VALUE, placed.getAccess().getDisplayName()).send(e.getPlayer());
         }
     }
 
