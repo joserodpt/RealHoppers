@@ -15,7 +15,7 @@ package joserodpt.realhoppers.api.hopper;
 
 import joserodpt.realhoppers.api.config.RHConfig;
 import joserodpt.realhoppers.api.config.RHLanguage;
-import joserodpt.realhoppers.api.utils.Text;
+import joserodpt.realutils.text.Text;
 
 /**
  * Who may open a hopper's screen. A public hopper is open to anyone; a private one only to its

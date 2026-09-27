@@ -13,7 +13,7 @@ package joserodpt.realhoppers.api.config;
  * @link https://github.com/joserodpt/RealHoppers
  */
 
-import joserodpt.realhoppers.api.utils.Text;
+import joserodpt.realutils.text.Text;
 import org.bukkit.command.CommandSender;
 
 import java.util.LinkedHashMap;

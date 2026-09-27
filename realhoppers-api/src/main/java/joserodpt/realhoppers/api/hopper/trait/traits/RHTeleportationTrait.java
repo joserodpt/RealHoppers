@@ -17,7 +17,6 @@ import joserodpt.realhoppers.api.RealHoppersAPI;
 import joserodpt.realhoppers.api.config.TranslatableLine;
 import joserodpt.realhoppers.api.config.RHConfig;
 import joserodpt.realhoppers.api.utils.LocationUtil;
-import joserodpt.realhoppers.api.utils.Text;
 import joserodpt.realhoppers.api.hopper.RHopper;
 import joserodpt.realhoppers.api.hopper.trait.RHopperTrait;
 import joserodpt.realhoppers.api.hopper.trait.RHopperTraitBase;

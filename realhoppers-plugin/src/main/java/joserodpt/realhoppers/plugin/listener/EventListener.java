@@ -14,15 +14,15 @@ package joserodpt.realhoppers.plugin.listener;
  */
 
 import joserodpt.realhoppers.api.RealHoppersAPI;
-import joserodpt.realhoppers.api.config.TranslatableLine;
 import joserodpt.realhoppers.api.config.RHConfig;
-import joserodpt.realhoppers.plugin.RealHoppers;
+import joserodpt.realhoppers.api.config.TranslatableLine;
 import joserodpt.realhoppers.api.hopper.RHopper;
 import joserodpt.realhoppers.api.hopper.RHopperAccess;
-import joserodpt.realhoppers.plugin.managers.StoredHopper;
 import joserodpt.realhoppers.api.hopper.events.RHopperStateChangeEvent;
-import joserodpt.realhoppers.api.utils.Text;
 import joserodpt.realhoppers.api.hopper.trait.RHopperTrait;
+import joserodpt.realhoppers.plugin.RealHoppers;
+import joserodpt.realhoppers.plugin.managers.StoredHopper;
+import joserodpt.realutils.text.Text;
 import net.milkbowl.vault.economy.EconomyResponse;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;

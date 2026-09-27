@@ -15,7 +15,7 @@ package joserodpt.realhoppers.plugin;
 
 import joserodpt.realhoppers.api.hopper.RHopper;
 import joserodpt.realhoppers.api.hopper.trait.RHopperTrait;
-import joserodpt.realhoppers.api.utils.Text;
+import joserodpt.realutils.text.Text;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.OfflinePlayer;
 import org.jetbrains.annotations.NotNull;

@@ -15,19 +15,20 @@ package joserodpt.realhoppers.plugin;
 
 import joserodpt.realhoppers.api.RealHoppersAPI;
 import joserodpt.realhoppers.api.config.RHConfig;
+import joserodpt.realhoppers.api.config.RHLanguage;
 import joserodpt.realhoppers.api.config.TranslatableLine;
 import joserodpt.realhoppers.api.event.RealHoppersPluginLoadedEvent;
 import joserodpt.realhoppers.api.hopper.trait.RHopperTrait;
 import joserodpt.realhoppers.api.utils.Compacting;
-import joserodpt.realhoppers.api.utils.GUIBuilder;
-import joserodpt.realhoppers.api.utils.PlayerInput;
-import joserodpt.realhoppers.plugin.gui.MaterialPickerGUI;
 import joserodpt.realhoppers.api.utils.Smelting;
-import joserodpt.realhoppers.api.utils.Text;
 import joserodpt.realhoppers.plugin.command.RHCommandManager;
 import joserodpt.realhoppers.plugin.listener.EventListener;
 import joserodpt.realhoppers.plugin.listener.PlayerListener;
+import joserodpt.realutils.RealUtils;
 import joserodpt.realutils.dialog.Dialogs;
+import joserodpt.realutils.gui.MaterialPickerGUI;
+import joserodpt.realutils.input.PlayerInput;
+import joserodpt.realutils.text.Text;
 import joserodpt.realpermissions.api.RealPermissionsAPI;
 import joserodpt.realpermissions.api.pluginhook.ExternalPlugin;
 import joserodpt.realpermissions.api.pluginhook.ExternalPluginPermission;
@@ -43,6 +44,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+
+import static joserodpt.realhoppers.api.config.TranslatableLine.TranslatableLinePlaceholder.MATERIAL;
 
 public final class RealHoppersPlugin extends JavaPlugin {
 
@@ -65,6 +68,10 @@ public final class RealHoppersPlugin extends JavaPlugin {
         final long start = System.currentTimeMillis();
 
         instance = this;
+        //first: the GUIs' listeners, and the plugin RealUtils schedules and logs through
+        RealUtils.setup(this);
+        //read on every message, so a reloaded prefix applies
+        Text.prefix(() -> RHConfig.file().getString("RealHoppers.Prefix") + " &r");
         realHoppers = new RealHoppers(this);
         RealHoppersAPI.setInstance(realHoppers);
 
@@ -77,14 +84,30 @@ public final class RealHoppersPlugin extends JavaPlugin {
         PluginManager pm = Bukkit.getPluginManager();
         pm.registerEvents(new PlayerListener(realHoppers), this);
         pm.registerEvents(new EventListener(realHoppers), this);
-        pm.registerEvents(GUIBuilder.getListener(), this);
-        pm.registerEvents(MaterialPickerGUI.getListener(), this);
         pm.registerEvents(PlayerInput.getListener(), this);
         //typed input is asked for in a dialog on servers that have them, in chat everywhere else
         Dialogs.setup(this, () -> RHConfig.file().getBoolean("RealHoppers.useDialogs", true));
         Dialogs.labels(TranslatableLine.SYSTEM_DIALOG_CONFIRM.get(), TranslatableLine.SYSTEM_DIALOG_CANCEL.get(),
                 TranslatableLine.SYSTEM_DIALOG_CLOSE.get(), TranslatableLine.SYSTEM_DIALOG_BACK.get(), TranslatableLine.SYSTEM_DIALOG_SAVE.get());
-        PlayerInput.setup(this);
+        PlayerInput.setup(this,
+                p -> RHLanguage.file().getStringList("System.Type-Input"),
+                p -> RHLanguage.file().getStringList("System.Type-Input-Dialog"),
+                TranslatableLine.SYSTEM_INPUT_CANCELLED::send,
+                TranslatableLine.SYSTEM_ERROR_OCCURRED::send);
+        //the picker's words, read for every picker opened so a reloaded language applies
+        MaterialPickerGUI.labels(() -> {
+            final MaterialPickerGUI.Labels labels = new MaterialPickerGUI.Labels();
+            labels.nextName = TranslatableLine.GUI_NEXT_PAGE_NAME.get();
+            labels.nextLore = RHLanguage.file().getStringList("GUI.Items.Picker.Next-Description");
+            labels.previousName = TranslatableLine.GUI_PREVIOUS_PAGE_NAME.get();
+            labels.previousLore = RHLanguage.file().getStringList("GUI.Items.Picker.Back-Description");
+            labels.closeName = TranslatableLine.GUI_CLOSE_NAME.get();
+            labels.closeLore = RHLanguage.file().getStringList("GUI.Items.Close.Description");
+            labels.searchName = TranslatableLine.GUI_SEARCH_ITEM_NAME.get();
+            labels.pickName = m -> TranslatableLine.GUI_PICK_NAME.with(MATERIAL, Text.beautifyMaterialName(m)).get();
+            labels.pickLore = RHLanguage.file().getStringList("GUI.Items.Picker.Pick-Description");
+            return labels;
+        });
         pm.registerEvents(realHoppers.getGUIManager().getListener(), this);
 
         //the server's furnace recipes, which is what AUTO_SMELT smelts by. Read here rather than

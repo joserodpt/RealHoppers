@@ -20,15 +20,16 @@ import joserodpt.realhoppers.api.hopper.RHopperAccess;
 import joserodpt.realhoppers.api.hopper.trait.RHopperTrait;
 import joserodpt.realhoppers.api.hopper.trait.RHopperTraitBase;
 import joserodpt.realhoppers.api.hopper.trait.traits.RHFilterTrait;
-import joserodpt.realhoppers.api.utils.GUIBuilder;
-import joserodpt.realhoppers.api.utils.Items;
-import joserodpt.realhoppers.api.utils.Pagination;
-import joserodpt.realhoppers.api.utils.PlayerInput;
-import joserodpt.realhoppers.api.utils.Text;
 import joserodpt.realhoppers.plugin.RealHoppers;
 import joserodpt.realhoppers.plugin.managers.HopperOwnership;
 import joserodpt.realutils.dialog.DialogForm;
 import joserodpt.realutils.dialog.Dialogs;
+import joserodpt.realutils.gui.GUIBuilder;
+import joserodpt.realutils.gui.MaterialPickerGUI;
+import joserodpt.realutils.gui.Pagination;
+import joserodpt.realutils.input.PlayerInput;
+import joserodpt.realutils.item.Items;
+import joserodpt.realutils.text.Text;
 import net.milkbowl.vault.economy.EconomyResponse;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -423,7 +424,7 @@ public class GUIManager {
             return;
         }
         //colours are kept, so a hopper can be named in them
-        new PlayerInput(false, target, RHLanguage.file().getStringList("Hoppers.Name.Prompt"),
+        new PlayerInput(target, false, RHLanguage.file().getStringList("Hoppers.Name.Prompt"),
                 RHLanguage.file().getStringList("Hoppers.Name.Dialog"),
                 input -> {
                     //the hopper may have been broken or reloaded away while they typed
@@ -488,7 +489,7 @@ public class GUIManager {
                             RHLanguage.file().getStringList("GUI.Items.Picker.Next-Description")), WHITELIST_NEXT_SLOT);
         }
 
-        inventory.addItem(this.guarded(target, hopper, e -> new PlayerInput(true, target, RHLanguage.file().getStringList("Hoppers.Whitelist.Prompt"),
+        inventory.addItem(this.guarded(target, hopper, e -> new PlayerInput(target, true, RHLanguage.file().getStringList("Hoppers.Whitelist.Prompt"),
                         RHLanguage.file().getStringList("Hoppers.Whitelist.Dialog"),
                         input -> {
                             if (this.isLive(hopper)) {
@@ -636,11 +637,13 @@ public class GUIManager {
         //always there, as they are on the picker, and a turn past either end stays put
         for (final int slot : FILTER_PREVIOUS_SLOTS) {
             inventory.addItem(e -> this.turnFilterPage(target, hopper, pages, shown - 1),
-                    MaterialPickerGUI.back.clone(), slot);
+                    Items.createItem(Material.YELLOW_STAINED_GLASS, 1, TranslatableLine.GUI_PREVIOUS_PAGE_NAME.get(),
+                            RHLanguage.file().getStringList("GUI.Items.Picker.Back-Description")), slot);
         }
         for (final int slot : FILTER_NEXT_SLOTS) {
             inventory.addItem(e -> this.turnFilterPage(target, hopper, pages, shown + 1),
-                    MaterialPickerGUI.next.clone(), slot);
+                    Items.createItem(Material.GREEN_STAINED_GLASS, 1, TranslatableLine.GUI_NEXT_PAGE_NAME.get(),
+                            RHLanguage.file().getStringList("GUI.Items.Picker.Next-Description")), slot);
         }
 
         inventory.addItem(this.guarded(target, hopper, e -> openLater(target, () -> {

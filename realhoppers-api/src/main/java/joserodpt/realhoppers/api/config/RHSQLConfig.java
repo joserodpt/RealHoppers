@@ -14,11 +14,8 @@ package joserodpt.realhoppers.api.config;
  */
 
 import dev.dejvokep.boostedyaml.YamlDocument;
-import joserodpt.realhoppers.api.RealHoppersAPI;
+import joserodpt.realutils.config.YamlConfig;
 import org.bukkit.plugin.java.JavaPlugin;
-
-import java.io.File;
-import java.io.IOException;
 
 /**
  * sql.yml: where the hoppers are stored. Kept apart from config.yml, as RealSkywars does, so the
@@ -26,33 +23,23 @@ import java.io.IOException;
  */
 public class RHSQLConfig {
 
-    private static final String name = "sql.yml";
-
-    private static YamlDocument document;
+    private static YamlConfig config;
 
     public static void setup(final JavaPlugin rm) {
-        try {
-            document = YamlDocument.create(new File(rm.getDataFolder(), name), rm.getResource(name));
-        } catch (final IOException e) {
-            //the plugin's logger: setup runs before the API instance is set
-            rm.getLogger().severe("Couldn't setup " + name + "!");
-            rm.getLogger().severe(e.getMessage());
-        }
+        //not versioned: it never was, and a server's credentials are left exactly as written
+        config = YamlConfig.of(rm, "sql.yml").load();
     }
 
     /** Null when sql.yml could not be read at setup; the database manager refuses to start then. */
     public static YamlDocument file() {
-        return document;
+        return config == null ? null : config.file();
     }
 
     public static void reload() {
-        if (document == null) {
+        //nothing to reload when it could not be read at setup, and nothing worth logging again
+        if (file() == null) {
             return;
         }
-        try {
-            document.reload();
-        } catch (final IOException e) {
-            RealHoppersAPI.getInstance().getLogger().severe("Couldn't reload " + name + "!");
-        }
+        config.reload();
     }
 }

@@ -13,7 +13,9 @@ package joserodpt.realhoppers.plugin.command;
  * @link https://github.com/joserodpt/RealHoppers
  */
 
+import joserodpt.realhoppers.api.config.TranslatableLine;
 import joserodpt.realhoppers.plugin.RealHoppers;
+import joserodpt.realutils.command.LampExceptionHandler;
 import revxrsal.commands.Lamp;
 import revxrsal.commands.bukkit.BukkitLamp;
 import revxrsal.commands.bukkit.actor.BukkitCommandActor;
@@ -34,9 +36,11 @@ public final class RHCommandManager {
         //Brigadier stays on. Lamp's own matcher treats leftover input as merely a worse match, so
         //`/rh reload junk` would quietly fall back to the bare `/rh` handler; Brigadier's tree
         //refuses it outright. Where it can't attach Lamp falls back on its own and
-        //RHExceptionHandler's @Usage messages are what players see instead.
+        //the exception handler's @Usage messages are what players see instead.
         this.lamp = BukkitLamp.builder(rh.getPlugin())
-                .exceptionHandler(new RHExceptionHandler())
+                .exceptionHandler(new LampExceptionHandler(TranslatableLine.SYSTEM_ERROR_COMMAND::send,
+                        TranslatableLine.SYSTEM_ERROR_PERMISSION::send, TranslatableLine.SYSTEM_PLAYER_ONLY::send,
+                        TranslatableLine.SYSTEM_ERROR_USAGE::get))
                 .build();
 
         this.lamp.register(new HopperCMD(rh));

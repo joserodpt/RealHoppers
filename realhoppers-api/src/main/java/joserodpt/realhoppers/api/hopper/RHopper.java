@@ -22,8 +22,9 @@ import joserodpt.realhoppers.api.hopper.trait.RHopperTraitBase;
 import joserodpt.realhoppers.api.hopper.trait.traits.RHAutoSellTrait;
 import joserodpt.realhoppers.api.hopper.trait.traits.RHAutoSmeltTrait;
 import joserodpt.realhoppers.api.hopper.trait.traits.RHFilterTrait;
+import joserodpt.realhoppers.api.utils.Format;
 import joserodpt.realhoppers.api.utils.LocationUtil;
-import joserodpt.realhoppers.api.utils.Text;
+import joserodpt.realutils.text.Text;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -321,7 +322,7 @@ public class RHopper {
         }
         if (this.hasLink()) {
             desc.add(TranslatableLine.GUI_HOPPER_LINK
-                    .with(VALUE, Text.cords(this.link.getLocation())).get());
+                    .with(VALUE, Format.cords(this.link.getLocation())).get());
         }
 
         desc.add(TranslatableLine.GUI_HOPPER_TRAITS_HEADER.get());

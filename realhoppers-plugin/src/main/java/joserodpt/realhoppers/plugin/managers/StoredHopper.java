@@ -15,7 +15,7 @@ package joserodpt.realhoppers.plugin.managers;
 
 import joserodpt.realhoppers.api.config.RHLanguage;
 import joserodpt.realhoppers.api.hopper.RHopper;
-import joserodpt.realhoppers.api.utils.Items;
+import joserodpt.realutils.item.Items;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;

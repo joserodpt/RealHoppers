@@ -18,10 +18,11 @@ import joserodpt.realhoppers.api.hopper.RHopper;
 import joserodpt.realhoppers.api.hopper.RHopperAccess;
 import joserodpt.realhoppers.api.hopper.trait.RHopperTrait;
 import joserodpt.realhoppers.api.hopper.trait.RHopperTraitBase;
-import joserodpt.realhoppers.api.utils.Text;
+import joserodpt.realhoppers.api.utils.Format;
 import joserodpt.realhoppers.plugin.RealHoppers;
 import joserodpt.realhoppers.plugin.gui.ConfigEditor;
 import joserodpt.realhoppers.plugin.managers.HopperOwnership;
+import joserodpt.realutils.text.Text;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.block.Block;
@@ -173,7 +174,7 @@ public class HopperCMD {
                 TranslatableLine.INFO_HEADER.with(NAME, hopper.getName()).get(),
                 TranslatableLine.INFO_OWNER.with(PLAYER, hopper.getOwnerDisplayName()).get(),
                 TranslatableLine.INFO_ACCESS.with(VALUE, hopper.getAccess().getDisplayName()).get(),
-                TranslatableLine.INFO_LOCATION.with(VALUE, Text.cords(hopper.getLocation())).get(),
+                TranslatableLine.INFO_LOCATION.with(VALUE, Format.cords(hopper.getLocation())).get(),
                 TranslatableLine.INFO_WHITELIST.with(VALUE, whitelist).get()));
     }
 
