@@ -83,12 +83,9 @@ Hoppers:
     # And before switching off a trait that has been upgraded, since the upgrade goes with it.
     Remove-Confirm: "&fSwitch off %trait%&f? Its tier &b%value% &fupgrade will be lost."
     Remove-Confirm-Button: "&cSwitch off"
-  # The hopper's name, access and traits on one dialog, on servers that have dialogs (1.21.6 and up).
+  # Heads the upgrade and switch-off confirmations, on servers that have dialogs (1.21.6 and up).
   Settings:
     Title: "&d%name% &8| &fSettings"
-    Description: "&7Switching off an upgraded trait loses its tier."
-    Name: "&eName"
-    Private: "&ePrivate &7(only you and your whitelist can use it)"
   Filter:
     Added: "&fThe filter now keeps &b%material%&f."
     Removed: "&fThe filter no longer keeps &b%material%&f."
@@ -201,12 +198,6 @@ GUI:
       Name: "&fName: &d%name%"
       Description:
         - "&7Click to rename this hopper."
-    # only on servers that have dialogs (1.21.6 and up)
-    Settings:
-      Name: "&bHopper settings"
-      Description:
-        - "&7Its name, access and traits"
-        - "&7on one screen."
     # shown under the owner's head to those who can manage the hopper, which is what switches it
     Access:
       Public-Description:

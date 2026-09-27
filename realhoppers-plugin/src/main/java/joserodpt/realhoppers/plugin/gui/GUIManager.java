@@ -22,7 +22,6 @@ import joserodpt.realhoppers.api.hopper.trait.RHopperTraitBase;
 import joserodpt.realhoppers.api.hopper.trait.traits.RHFilterTrait;
 import joserodpt.realhoppers.plugin.RealHoppers;
 import joserodpt.realhoppers.plugin.managers.HopperOwnership;
-import joserodpt.realutils.dialog.DialogForm;
 import joserodpt.realutils.dialog.Dialogs;
 import joserodpt.realutils.gui.GUIBuilder;
 import joserodpt.realutils.gui.MaterialPickerGUI;
@@ -114,8 +113,6 @@ public class GUIManager {
     private static final int RENAME_SLOT = 47;
     private static final int OWNER_SLOT = 49;
     private static final int WHITELIST_SLOT = 51;
-    /** The hopper's own settings dialog, in the corner: only where the server has dialogs. */
-    private static final int SETTINGS_SLOT = 53;
 
     /** The whitelist screen: four rows of players, and its buttons along the bottom. */
     private static final int[] WHITELIST_SLOTS = {
@@ -351,71 +348,6 @@ public class GUIManager {
                 Items.createItem(Material.BOOK, 1, TranslatableLine.GUI_WHITELIST_NAME
                                 .with(VALUE, String.valueOf(hopper.getWhitelist().size())).get(),
                         RHLanguage.file().getStringList("GUI.Items.Whitelist.Description")), WHITELIST_SLOT);
-
-        //everything above on one screen; without dialogs there is nothing to open
-        if (Dialogs.isSupported()) {
-            inventory.addItem(this.guarded(target, hopper, e -> this.openSettings(target, hopper)),
-                    Items.createItem(Material.COMPARATOR, 1, TranslatableLine.GUI_SETTINGS_NAME.get(),
-                            RHLanguage.file().getStringList("GUI.Items.Settings.Description")), SETTINGS_SLOT);
-        }
-    }
-
-    /**
-     * The hopper's name, access and traits as one dialog. Only the traits it has, or that this
-     * player may switch on, are listed; saving applies each change the way its own button would.
-     */
-    private void openSettings(final Player target, final RHopper hopper) {
-        if (!HopperOwnership.checkManage(target, hopper)) {
-            return;
-        }
-
-        final String name = hopper.getName();
-        final boolean wasPrivate = hopper.getAccess() == RHopperAccess.PRIVATE;
-        final List<RHopperTrait> shown = new ArrayList<>();
-
-        final DialogForm form = new DialogForm(TranslatableLine.HOPPER_SETTINGS_TITLE.with(NAME, name).get(),
-                TranslatableLine.HOPPER_SETTINGS_DESCRIPTION.get())
-                //colour codes are allowed and don't count towards the limit, which rename checks
-                .text("name", TranslatableLine.HOPPER_SETTINGS_NAME.get(), name, 128)
-                .toggle("private", TranslatableLine.HOPPER_SETTINGS_PRIVATE.get(), wasPrivate);
-        for (final RHopperTrait trait : RHopperTrait.values()) {
-            final boolean has = hopper.hasTrait(trait);
-            if (trait.build(hopper) == null || (!has && !trait.canActivate(target))) {
-                continue;
-            }
-            final int tier = hopper.getTraitTier(trait);
-            form.toggle(trait.name(), trait.getName() + (tier > 1 ? " &7(tier " + tier + ")" : ""), has)
-                    .sprite(trait.getIcon());
-            shown.add(trait);
-        }
-        form.buttons(TranslatableLine.SYSTEM_DIALOG_SAVE.get(), TranslatableLine.SYSTEM_DIALOG_CANCEL.get());
-
-        final boolean opened = form.open(target, answers -> {
-            //the hopper may have been broken, reloaded away or given to someone else meanwhile
-            if (!this.isLive(hopper) || !HopperOwnership.checkManage(target, hopper)) {
-                return;
-            }
-            final String newName = answers.text("name", name).trim();
-            if (!newName.equals(name)) {
-                HopperOwnership.rename(target, hopper, newName);
-            }
-            final boolean nowPrivate = answers.toggle("private", wasPrivate);
-            if (nowPrivate != wasPrivate) {
-                HopperOwnership.setAccess(target, hopper, nowPrivate ? RHopperAccess.PRIVATE : RHopperAccess.PUBLIC);
-            }
-            for (final RHopperTrait trait : shown) {
-                final boolean has = hopper.hasTrait(trait);
-                final boolean on = answers.toggle(trait.name(), has);
-                if (on != has) {
-                    this.setTrait(target, hopper, trait, on);
-                }
-            }
-            this.reopen(target, hopper);
-        }, () -> this.reopen(target, hopper), () -> this.reopen(target, hopper));
-
-        if (!opened) {
-            this.reopen(target, hopper);
-        }
     }
 
     /** Asks for the new name in chat, then brings the hopper screen back either way. */
