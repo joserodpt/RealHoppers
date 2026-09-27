@@ -18,6 +18,8 @@ import joserodpt.realhoppers.api.hopper.RHopper;
 import joserodpt.realhoppers.api.hopper.trait.RHopperTrait;
 import joserodpt.realhoppers.api.hopper.trait.RHopperTraitBase;
 import joserodpt.realhoppers.plugin.RealHoppers;
+import joserodpt.realhoppers.plugin.managers.LinkHighlighter;
+import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -43,10 +45,16 @@ public class PlayerListener implements Listener {
     /** What a player holds to link two hoppers instead of opening one. */
     private static final Material LINK_TOOL = Material.STICK;
 
+    /** The outline on the hopper a link starts from, and on the one it ends at. */
+    private static final Color LINK_SOURCE_COLOR = Color.AQUA;
+    private static final Color LINK_TARGET_COLOR = Color.LIME;
+
     private final RealHoppers rh;
+    private final LinkHighlighter highlighter;
 
     public PlayerListener(RealHoppers rh) {
         this.rh = rh;
+        this.highlighter = new LinkHighlighter(rh.getPlugin());
     }
 
     @EventHandler
@@ -54,6 +62,7 @@ public class PlayerListener implements Listener {
         //a half-finished link and a teleport cooldown are both meaningless once they are gone,
         //and holding either keeps the entry around for a player who may never come back
         rh.getPlayerManager().clear(e.getPlayer().getUniqueId());
+        highlighter.stop(e.getPlayer());
     }
 
     //HIGH, so protection plugins have had their say by the time this reads it
@@ -141,6 +150,7 @@ public class PlayerListener implements Listener {
      */
     private void cancelLink(final Player player) {
         if (rh.getPlayerManager().getPendingLinks().remove(player.getUniqueId()) != null) {
+            highlighter.stop(player);
             TranslatableLine.LINK_CANCELLED.send(player);
         }
     }
@@ -162,6 +172,9 @@ public class PlayerListener implements Listener {
 
         if (source == null) {
             rh.getPlayerManager().getPendingLinks().put(player.getUniqueId(), clicked);
+            //a new link drops whatever is left outlined from the last one
+            highlighter.stop(player);
+            highlighter.highlight(player, clicked.getBlock(), LINK_SOURCE_COLOR);
             TranslatableLine.LINK_SOURCE_SELECTED.send(player);
             return;
         }
@@ -177,6 +190,7 @@ public class PlayerListener implements Listener {
         //the destination was checked when it was clicked; the source was when it was picked, but
         //its owner may have made it private since
         if (!source.canAccess(player)) {
+            highlighter.stop(player);
             TranslatableLine.ACCESS_NO_LINK
                     .with(NAME, source.getName()).send(player);
             return;
@@ -186,6 +200,9 @@ public class PlayerListener implements Listener {
         //this is the only way to change it
         source.setLink(clicked);
         TranslatableLine.LINK_DONE.send(player);
+        //both ends stay outlined a moment longer, so the player sees what they just linked
+        highlighter.highlight(player, clicked.getBlock(), LINK_TARGET_COLOR);
+        highlighter.stopLater(player);
     }
 
     @EventHandler
