@@ -132,6 +132,8 @@ public enum TranslatableLine {
     // System related messages
     SYSTEM_RELOADED("System.Reloaded"),
     SYSTEM_INPUT_CANCELLED("System.Input-Cancelled"),
+    SYSTEM_DIALOG_CONFIRM("System.Dialog-Confirm"),
+    SYSTEM_DIALOG_CANCEL("System.Dialog-Cancel"),
     SYSTEM_ERROR_OCCURRED("System.Error-Occurred"),
     SYSTEM_NOTHING_FOUND("System.Nothing-Found"),
     SYSTEM_PLAYER_ONLY("System.Player-Only"),

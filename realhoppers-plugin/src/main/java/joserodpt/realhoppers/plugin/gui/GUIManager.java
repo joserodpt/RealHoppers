@@ -41,9 +41,11 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -82,18 +84,25 @@ public class GUIManager {
     private static final int BALANCE_SLOT = 1;
     private static final int CLOSE_SLOT = 7;
 
-    /** Where the filter screen lists its materials: rows four and five, as the traits used to sit. */
+    /**
+     * The filter screen is laid out as the material picker is: four rows of materials inside a
+     * glass border, a page at a time, turned by the arrows either side.
+     */
     private static final int[] FILTER_SLOTS = {
+            10, 11, 12, 13, 14, 15, 16,
+            19, 20, 21, 22, 23, 24, 25,
             28, 29, 30, 31, 32, 33, 34,
             37, 38, 39, 40, 41, 42, 43};
+    private static final int[] FILTER_PREVIOUS_SLOTS = {18, 27};
+    private static final int[] FILTER_NEXT_SLOTS = {26, 35};
 
-    /** The filter screen puts its buttons on the bottom row instead. */
+    /** Its own buttons stay on the bottom row, in the border. */
     private static final int FILTER_BACK_SLOT = 45;
     private static final int FILTER_PICK_SLOT = 48;
     private static final int FILTER_ADD_SLOT = 50;
     private static final int FILTER_CLOSE_SLOT = 53;
     /** In among where the entries would be, since it only shows when there are none. */
-    private static final int FILTER_EMPTY_SLOT = 31;
+    private static final int FILTER_EMPTY_SLOT = 22;
 
     /**
      * The hopper screen's bottom row: who owns it in the middle, shown to everyone and switching
@@ -272,7 +281,7 @@ public class GUIManager {
                 //shift click edits a trait that has something to edit, right click walks its tier
                 //up, plain click switches it on or off
                 if (e.getClick().isShiftClick() && trait == RHopperTrait.FILTER && hopper.hasTrait(trait)) {
-                    openLater(target, () -> openFilter(target, hopper));
+                    openLater(target, () -> openFilter(target, hopper, 0));
                 } else if (e.getClick().isRightClick() && hopper.hasTrait(trait)) {
                     raiseTier(target, hopper, trait);
                 } else {
@@ -346,6 +355,7 @@ public class GUIManager {
         }
         //colours are kept, so a hopper can be named in them
         new PlayerInput(false, target, RHLanguage.file().getStringList("Hoppers.Name.Prompt"),
+                RHLanguage.file().getStringList("Hoppers.Name.Dialog"),
                 input -> {
                     //the hopper may have been broken or reloaded away while they typed
                     if (this.isLive(hopper)) {
@@ -410,6 +420,7 @@ public class GUIManager {
         }
 
         inventory.addItem(this.guarded(target, hopper, e -> new PlayerInput(true, target, RHLanguage.file().getStringList("Hoppers.Whitelist.Prompt"),
+                        RHLanguage.file().getStringList("Hoppers.Whitelist.Dialog"),
                         input -> {
                             if (this.isLive(hopper)) {
                                 HopperOwnership.addToWhitelist(target, hopper, input);
@@ -510,7 +521,7 @@ public class GUIManager {
      * every material in the game - a player deciding what a hopper should keep is nearly always
      * holding the thing already.</p>
      */
-    public void openFilter(final Player target, final RHopper hopper) {
+    public void openFilter(final Player target, final RHopper hopper, final int page) {
         if (!this.isLive(hopper)) {
             return;
         }
@@ -523,22 +534,44 @@ public class GUIManager {
         final GUIBuilder inventory = new GUIBuilder(TranslatableLine.GUI_FILTER_TITLE.get(),
                 GUI_SIZE, target.getUniqueId());
 
-        final List<Material> listed = new ArrayList<>(filter.getMaterials());
-        for (int i = 0; i < listed.size() && i < FILTER_SLOTS.length; i++) {
-            final Material material = listed.get(i);
-            inventory.addItem(this.guarded(target, hopper, e -> {
-                filter.remove(material);
-                TranslatableLine.FILTER_REMOVED
-                        .with(MATERIAL, Text.beautifyMaterialName(material)).send(target);
-                openFilter(target, hopper);
-            }), Items.createItem(material, 1, "&f" + Text.beautifyMaterialName(material),
-                    RHLanguage.file().getStringList("GUI.Items.Filter.Entry-Description")), FILTER_SLOTS[i]);
+        //the border first, around the materials, for the buttons below to sit on
+        final Set<Integer> entrySlots = Arrays.stream(FILTER_SLOTS).boxed().collect(Collectors.toSet());
+        for (int slot = 0; slot < GUI_SIZE; slot++) {
+            if (!entrySlots.contains(slot)) {
+                inventory.setItem(MaterialPickerGUI.placeholder, slot);
+            }
         }
 
-        //an empty list keeps everything, which is worth saying on the screen that looks empty
-        if (listed.isEmpty()) {
+        final Pagination<Material> pages = new Pagination<>(FILTER_SLOTS.length, new ArrayList<>(filter.getMaterials()));
+        //a removal can empty the last page out from under the player
+        final int shown = pages.exists(page) ? page : Math.max(0, pages.totalPages() - 1);
+
+        if (pages.isEmpty()) {
+            //an empty list keeps everything, which is worth saying on the screen that looks empty
             inventory.setItem(Items.createItem(Material.BARRIER, 1, TranslatableLine.GUI_FILTER_EMPTY_NAME.get(),
                     RHLanguage.file().getStringList("GUI.Items.Filter.Empty-Description")), FILTER_EMPTY_SLOT);
+        } else {
+            final List<Material> listed = pages.getPage(shown);
+            for (int i = 0; i < listed.size(); i++) {
+                final Material material = listed.get(i);
+                inventory.addItem(this.guarded(target, hopper, e -> {
+                    filter.remove(material);
+                    TranslatableLine.FILTER_REMOVED
+                            .with(MATERIAL, Text.beautifyMaterialName(material)).send(target);
+                    openFilter(target, hopper, shown);
+                }), Items.createItem(material, 1, "&f" + Text.beautifyMaterialName(material),
+                        RHLanguage.file().getStringList("GUI.Items.Filter.Entry-Description")), FILTER_SLOTS[i]);
+            }
+        }
+
+        //always there, as they are on the picker, and a turn past either end stays put
+        for (final int slot : FILTER_PREVIOUS_SLOTS) {
+            inventory.addItem(e -> this.turnFilterPage(target, hopper, pages, shown - 1),
+                    MaterialPickerGUI.back.clone(), slot);
+        }
+        for (final int slot : FILTER_NEXT_SLOTS) {
+            inventory.addItem(e -> this.turnFilterPage(target, hopper, pages, shown + 1),
+                    MaterialPickerGUI.next.clone(), slot);
         }
 
         inventory.addItem(this.guarded(target, hopper, e -> openLater(target, () -> {
@@ -549,7 +582,7 @@ public class GUIManager {
                     TranslatableLine.FILTER_ADDED
                             .with(MATERIAL, Text.beautifyMaterialName(material)).send(target);
                 }
-                openFilter(target, hopper);
+                openFilter(target, hopper, material == null ? shown : pageOf(filter, material));
             });
             picker.openInventory(target);
         })), Items.createItem(Material.COMPASS, 1, TranslatableLine.GUI_FILTER_PICK_NAME.get(),
@@ -587,7 +620,22 @@ public class GUIManager {
 
         TranslatableLine.FILTER_ADDED
                 .with(MATERIAL, Text.beautifyMaterialName(held.getType())).send(target);
-        openFilter(target, hopper);
+        openFilter(target, hopper, pageOf(filter, held.getType()));
+    }
+
+    /** The filter page a material is listed on, so a player who adds one is shown it. */
+    private static int pageOf(final RHFilterTrait filter, final Material material) {
+        //the filter keeps its materials in the enum's order, not the order they were added in
+        return Math.max(0, new ArrayList<>(filter.getMaterials()).indexOf(material)) / FILTER_SLOTS.length;
+    }
+
+    /** Redraws the filter screen on another page, if there is one that way. */
+    private void turnFilterPage(final Player target, final RHopper hopper, final Pagination<Material> pages, final int page) {
+        if (!pages.exists(page)) {
+            return;
+        }
+        target.playSound(target.getLocation(), Sound.ITEM_BOOK_PAGE_TURN, 50, 50);
+        openFilter(target, hopper, page);
     }
 
     /**

@@ -28,6 +28,10 @@ Hoppers:
     Prompt:
       - "&6Type in the chat"
       - "&fthe hopper's new name. &7Type 'cancel' to cancel."
+    # The title and description of the text box asked in instead, on servers that have dialogs.
+    Dialog:
+      - "&dRename hopper"
+      - "&fThe hopper's new name. Colour codes work too."
     Set: "&fThis hopper is now called &d%name%&f."
     Too-Long: "&cThat name is too long. The most is &e%value% &ccharacters."
     Empty: "&cA hopper's name can't be empty."
@@ -36,6 +40,10 @@ Hoppers:
     Prompt:
       - "&6Type in the chat"
       - "&fthe player to allow. &7Type 'cancel' to cancel."
+    # The title and description of the text box asked in instead, on servers that have dialogs.
+    Dialog:
+      - "&bAllow a player"
+      - "&fThe name of the player to allow into this hopper."
     Added: "&b%player% &fcan now use &d%name%&f."
     Removed: "&b%player% &fcan no longer use &d%name%&f."
     Already: "&c%player% is already on this hopper's whitelist."
@@ -218,6 +226,12 @@ System:
   Type-Input:
     - "&6Type in the chat"
     - "&fwhat you want to search for. &7Type 'cancel' to cancel."
+  # The text box asked in instead, on servers that have dialogs (1.21.6 and up): its title and description.
+  Type-Input-Dialog:
+    - "&6Search"
+    - "&fWhat you want to search for."
+  Dialog-Confirm: "&aConfirm"
+  Dialog-Cancel: "&cCancel"
   Input-Cancelled: "&cInput cancelled."
   Error-Occurred: "&cAn error occurred."
   Nothing-Found: "&cNothing found for that search."
@@ -289,4 +303,4 @@ Traits:
   XP_COLLECT: "&aExperience"
   FILTER: "&3Filter"
 
-Version: 17
+Version: 18

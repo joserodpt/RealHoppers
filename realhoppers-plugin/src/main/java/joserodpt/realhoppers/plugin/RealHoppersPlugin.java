@@ -78,6 +78,8 @@ public final class RealHoppersPlugin extends JavaPlugin {
         pm.registerEvents(GUIBuilder.getListener(), this);
         pm.registerEvents(MaterialPickerGUI.getListener(), this);
         pm.registerEvents(PlayerInput.getListener(), this);
+        //typed input is asked for in a dialog on servers that have them, in chat everywhere else
+        PlayerInput.setupDialogs(this);
         pm.registerEvents(realHoppers.getGUIManager().getListener(), this);
 
         //the server's furnace recipes, which is what AUTO_SMELT smelts by. Read here rather than
@@ -184,6 +186,7 @@ public final class RealHoppersPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        PlayerInput.shutdownDialogs();
         if (this.hopperSweep != null) {
             this.hopperSweep.cancel();
         }
