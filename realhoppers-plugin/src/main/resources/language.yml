@@ -77,6 +77,18 @@ Hoppers:
     Tier-Max: "&e%trait% &eis already at its highest tier."
     Tier-Too-Expensive: "&cThat upgrade costs &e%money%&c, which you cannot afford."
     Not-Scalable: "&cThe %trait% &ctrait has no tiers."
+    # Asked in a dialog before an upgrade is paid for, on servers that have dialogs (1.21.6 and up).
+    Upgrade-Confirm: "&fUpgrade %trait% &fto tier &b%value% &ffor &e%money%&f?"
+    Upgrade-Confirm-Button: "&aUpgrade"
+    # And before switching off a trait that has been upgraded, since the upgrade goes with it.
+    Remove-Confirm: "&fSwitch off %trait%&f? Its tier &b%value% &fupgrade will be lost."
+    Remove-Confirm-Button: "&cSwitch off"
+  # The hopper's name, access and traits on one dialog, on servers that have dialogs (1.21.6 and up).
+  Settings:
+    Title: "&d%name% &8| &fSettings"
+    Description: "&7Switching off an upgraded trait loses its tier."
+    Name: "&eName"
+    Private: "&ePrivate &7(only you and your whitelist can use it)"
   Filter:
     Added: "&fThe filter now keeps &b%material%&f."
     Removed: "&fThe filter no longer keeps &b%material%&f."
@@ -189,6 +201,12 @@ GUI:
       Name: "&fName: &d%name%"
       Description:
         - "&7Click to rename this hopper."
+    # only on servers that have dialogs (1.21.6 and up)
+    Settings:
+      Name: "&bHopper settings"
+      Description:
+        - "&7Its name, access and traits"
+        - "&7on one screen."
     # shown under the owner's head to those who can manage the hopper, which is what switches it
     Access:
       Public-Description:
@@ -232,6 +250,11 @@ System:
     - "&fWhat you want to search for."
   Dialog-Confirm: "&aConfirm"
   Dialog-Cancel: "&cCancel"
+  Dialog-Save: "&aSave"
+  Dialog-Back: "&7Back"
+  Dialog-Close: "&cClose"
+  Settings-Saved: "&fSettings saved."
+  Settings-Need-Dialogs: "&fThe settings editor needs a server with dialogs (1.21.6 and up). Edit &bconfig.yml &fand use &b/rh reload &finstead."
   Input-Cancelled: "&cInput cancelled."
   Error-Occurred: "&cAn error occurred."
   Nothing-Found: "&cNothing found for that search."
@@ -303,4 +326,4 @@ Traits:
   XP_COLLECT: "&aExperience"
   FILTER: "&3Filter"
 
-Version: 18
+Version: 19

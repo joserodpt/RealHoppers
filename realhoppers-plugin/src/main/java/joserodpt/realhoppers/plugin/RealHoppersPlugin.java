@@ -15,6 +15,7 @@ package joserodpt.realhoppers.plugin;
 
 import joserodpt.realhoppers.api.RealHoppersAPI;
 import joserodpt.realhoppers.api.config.RHConfig;
+import joserodpt.realhoppers.api.config.TranslatableLine;
 import joserodpt.realhoppers.api.event.RealHoppersPluginLoadedEvent;
 import joserodpt.realhoppers.api.hopper.trait.RHopperTrait;
 import joserodpt.realhoppers.api.utils.Compacting;
@@ -26,6 +27,7 @@ import joserodpt.realhoppers.api.utils.Text;
 import joserodpt.realhoppers.plugin.command.RHCommandManager;
 import joserodpt.realhoppers.plugin.listener.EventListener;
 import joserodpt.realhoppers.plugin.listener.PlayerListener;
+import joserodpt.realutils.dialog.Dialogs;
 import joserodpt.realpermissions.api.RealPermissionsAPI;
 import joserodpt.realpermissions.api.pluginhook.ExternalPlugin;
 import joserodpt.realpermissions.api.pluginhook.ExternalPluginPermission;
@@ -79,7 +81,10 @@ public final class RealHoppersPlugin extends JavaPlugin {
         pm.registerEvents(MaterialPickerGUI.getListener(), this);
         pm.registerEvents(PlayerInput.getListener(), this);
         //typed input is asked for in a dialog on servers that have them, in chat everywhere else
-        PlayerInput.setupDialogs(this);
+        Dialogs.setup(this, () -> RHConfig.file().getBoolean("RealHoppers.useDialogs", true));
+        Dialogs.labels(TranslatableLine.SYSTEM_DIALOG_CONFIRM.get(), TranslatableLine.SYSTEM_DIALOG_CANCEL.get(),
+                TranslatableLine.SYSTEM_DIALOG_CLOSE.get(), TranslatableLine.SYSTEM_DIALOG_BACK.get(), TranslatableLine.SYSTEM_DIALOG_SAVE.get());
+        PlayerInput.setup(this);
         pm.registerEvents(realHoppers.getGUIManager().getListener(), this);
 
         //the server's furnace recipes, which is what AUTO_SMELT smelts by. Read here rather than
@@ -186,7 +191,7 @@ public final class RealHoppersPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        PlayerInput.shutdownDialogs();
+        Dialogs.shutdown();
         if (this.hopperSweep != null) {
             this.hopperSweep.cancel();
         }

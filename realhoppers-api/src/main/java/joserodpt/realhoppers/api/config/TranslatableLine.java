@@ -90,6 +90,14 @@ public enum TranslatableLine {
     TRAIT_TIER_UPGRADED("Hoppers.Traits.Tier-Upgraded"),
     TRAIT_TIER_MAX("Hoppers.Traits.Tier-Max"),
     TRAIT_TIER_TOO_EXPENSIVE("Hoppers.Traits.Tier-Too-Expensive"),
+    TRAIT_UPGRADE_CONFIRM("Hoppers.Traits.Upgrade-Confirm"),
+    TRAIT_UPGRADE_CONFIRM_BUTTON("Hoppers.Traits.Upgrade-Confirm-Button"),
+    TRAIT_REMOVE_CONFIRM("Hoppers.Traits.Remove-Confirm"),
+    TRAIT_REMOVE_CONFIRM_BUTTON("Hoppers.Traits.Remove-Confirm-Button"),
+    HOPPER_SETTINGS_TITLE("Hoppers.Settings.Title"),
+    HOPPER_SETTINGS_DESCRIPTION("Hoppers.Settings.Description"),
+    HOPPER_SETTINGS_NAME("Hoppers.Settings.Name"),
+    HOPPER_SETTINGS_PRIVATE("Hoppers.Settings.Private"),
 
     // Linking two hoppers with the stick
     LINK_SOURCE_SELECTED("Hoppers.Link.Source-Selected"),
@@ -122,6 +130,7 @@ public enum TranslatableLine {
     GUI_HOPPER_OWNER("GUI.Items.Hopper.Owner"),
     GUI_HOPPER_ACCESS("GUI.Items.Hopper.Access"),
     GUI_RENAME_NAME("GUI.Items.Rename.Name"),
+    GUI_SETTINGS_NAME("GUI.Items.Settings.Name"),
     GUI_WHITELIST_NAME("GUI.Items.Whitelist.Name"),
     GUI_OWNER_NAME("GUI.Items.Owner.Name"),
     GUI_WHITELIST_TITLE("GUI.Whitelist-Title"),
@@ -131,6 +140,11 @@ public enum TranslatableLine {
 
     // System related messages
     SYSTEM_RELOADED("System.Reloaded"),
+    SYSTEM_DIALOG_SAVE("System.Dialog-Save"),
+    SYSTEM_DIALOG_BACK("System.Dialog-Back"),
+    SYSTEM_DIALOG_CLOSE("System.Dialog-Close"),
+    SYSTEM_SETTINGS_SAVED("System.Settings-Saved"),
+    SYSTEM_SETTINGS_NEED_DIALOGS("System.Settings-Need-Dialogs"),
     SYSTEM_INPUT_CANCELLED("System.Input-Cancelled"),
     SYSTEM_DIALOG_CONFIRM("System.Dialog-Confirm"),
     SYSTEM_DIALOG_CANCEL("System.Dialog-Cancel"),

@@ -20,6 +20,7 @@ import joserodpt.realhoppers.api.hopper.trait.RHopperTrait;
 import joserodpt.realhoppers.api.hopper.trait.RHopperTraitBase;
 import joserodpt.realhoppers.api.utils.Text;
 import joserodpt.realhoppers.plugin.RealHoppers;
+import joserodpt.realhoppers.plugin.gui.ConfigEditor;
 import joserodpt.realhoppers.plugin.managers.HopperOwnership;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
@@ -73,6 +74,14 @@ public class HopperCMD {
     public void reload(final CommandSender commandSender) {
         rh.reload();
         TranslatableLine.SYSTEM_RELOADED.send(commandSender);
+    }
+
+    /** config.yml as dialogs, where the server has them. */
+    @Subcommand("settings")
+    @CommandPermission("realhoppers.admin")
+    @SuppressWarnings("unused")
+    public void settings(final Player p) {
+        ConfigEditor.open(p);
     }
 
     /**
