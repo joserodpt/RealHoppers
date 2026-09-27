@@ -18,6 +18,7 @@ import joserodpt.realhoppers.api.hopper.RHopper;
 import joserodpt.realhoppers.api.hopper.trait.RHopperTrait;
 import joserodpt.realhoppers.api.hopper.trait.RHopperTraitBase;
 import joserodpt.realhoppers.plugin.RealHoppers;
+import joserodpt.realhoppers.plugin.RealHoppersPlugin;
 import joserodpt.realhoppers.plugin.managers.LinkHighlighter;
 import org.bukkit.Color;
 import org.bukkit.Location;
@@ -33,12 +34,14 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.EquipmentSlot;
 
 import static joserodpt.realhoppers.api.config.TranslatableLine.TranslatableLinePlaceholder.NAME;
 import static joserodpt.realhoppers.api.config.TranslatableLine.TranslatableLinePlaceholder.PLAYER;
+import static joserodpt.realhoppers.api.config.TranslatableLine.TranslatableLinePlaceholder.VALUE;
 
 public class PlayerListener implements Listener {
 
@@ -55,6 +58,16 @@ public class PlayerListener implements Listener {
     public PlayerListener(RealHoppers rh) {
         this.rh = rh;
         this.highlighter = new LinkHighlighter(rh.getPlugin());
+    }
+
+    /** Tells those who can do something about it that SpigotMC has a newer RealHoppers. */
+    @EventHandler
+    public void onPlayerJoin(PlayerJoinEvent e) {
+        final String version = rh.getPlugin().getNewVersion();
+        final Player p = e.getPlayer();
+        if (version != null && (p.isOp() || p.hasPermission("realhoppers.admin"))) {
+            TranslatableLine.SYSTEM_NEW_UPDATE.with(VALUE, version).with(NAME, RealHoppersPlugin.SPIGOT_URL).send(p);
+        }
     }
 
     @EventHandler

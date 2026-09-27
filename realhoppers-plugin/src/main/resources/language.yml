@@ -231,6 +231,8 @@ GUI:
           - "&7hopper while it is private."
 
 System:
+  # Shown to ops and realhoppers.admin on joining, when SpigotMC has a newer version.
+  New-Update: "&6&lWARNING! &r&fThere is a new update available for RealHoppers: &b%value%&f. %name%"
   # The two title lines shown while the plugin is waiting for something to be typed in chat.
   Type-Input:
     - "&6Type in the chat"
@@ -317,4 +319,4 @@ Traits:
   XP_COLLECT: "&aExperience"
   FILTER: "&3Filter"
 
-Version: 1
+Version: 2

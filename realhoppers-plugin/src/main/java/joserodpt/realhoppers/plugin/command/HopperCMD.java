@@ -66,12 +66,7 @@ public class HopperCMD {
     @CommandPlaceholder
     @SuppressWarnings("unused")
     public void defaultCommand(final CommandSender commandSender) {
-        Text.sendList(commandSender, Arrays.asList("         &fReal&dHoppers",
-                "         &7Release &a" + rh.getPlugin().getDescription().getVersion()));
-        if (!(commandSender instanceof Player)) {
-            Text.sendRaw(commandSender, "         &7Built &a" + BuildInfo.time(rh.getPlugin()));
-            Text.sendRaw(commandSender, "         &7RealUtils &a" + BuildInfo.realUtilsVersion(rh.getPlugin()));
-        }
+        BuildInfo.sendAbout(commandSender, rh.getPlugin(), "&fReal&dHoppers");
     }
 
     @Subcommand({"reload", "rl"})

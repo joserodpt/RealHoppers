@@ -29,6 +29,7 @@ import joserodpt.realutils.dialog.Dialogs;
 import joserodpt.realutils.gui.MaterialPickerGUI;
 import joserodpt.realutils.input.PlayerInput;
 import joserodpt.realutils.text.Text;
+import joserodpt.realutils.update.UpdateChecker;
 import joserodpt.realpermissions.api.RealPermissionsAPI;
 import joserodpt.realpermissions.api.pluginhook.ExternalPlugin;
 import joserodpt.realpermissions.api.pluginhook.ExternalPluginPermission;
@@ -50,6 +51,9 @@ import static joserodpt.realhoppers.api.config.TranslatableLine.TranslatableLine
 
 public final class RealHoppersPlugin extends JavaPlugin {
 
+    public static final int SPIGOT_RESOURCE_ID = 139161;
+    public static final String SPIGOT_URL = "https://www.spigotmc.org/resources/" + SPIGOT_RESOURCE_ID + "/";
+
     private static Economy econ = null;
 
     private static RealHoppersPlugin instance;
@@ -58,6 +62,8 @@ public final class RealHoppersPlugin extends JavaPlugin {
     private BukkitTask hopperSweep;
     private BukkitTask hopperFlush;
     private BukkitTask screenSync;
+    /** The newer version SpigotMC has, or null while this one is the latest (or it couldn't be asked). */
+    private volatile String newVersion;
 
     public static RealHoppersPlugin getPlugin() {
         return instance;
@@ -164,6 +170,15 @@ public final class RealHoppersPlugin extends JavaPlugin {
 
         new Metrics(this, 34359);
 
+        new UpdateChecker(this, SPIGOT_RESOURCE_ID).getVersion(version -> {
+            if (version != null && UpdateChecker.isNewer(version, this.getDescription().getVersion())) {
+                this.newVersion = version;
+                this.getLogger().warning("There is a new update available! Version: " + version + " -> " + SPIGOT_URL);
+            } else {
+                this.getLogger().info("The plugin is updated to the latest version.");
+            }
+        });
+
         Bukkit.getPluginManager().callEvent(new RealHoppersPluginLoadedEvent());
 
         getLogger().info("Finished loading in " + ((System.currentTimeMillis() - start) / 1000F) + " seconds.");
@@ -175,6 +190,11 @@ public final class RealHoppersPlugin extends JavaPlugin {
      * Publishes the plugin's permissions to RealPermissions, so they can be handed out from its GUI
      * instead of being typed from the wiki.
      */
+    /** The newer version on SpigotMC, or null when there is none. */
+    public String getNewVersion() {
+        return this.newVersion;
+    }
+
     private void registerRealPermissions() {
         try {
             final List<ExternalPluginPermission> permissions = new ArrayList<>();

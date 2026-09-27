@@ -131,6 +131,7 @@ public enum TranslatableLine implements LanguageLine {
 
     // System related messages
     SYSTEM_RELOADED("System.Reloaded"),
+    SYSTEM_NEW_UPDATE("System.New-Update"),
     SYSTEM_DIALOG_SAVE("System.Dialog-Save"),
     SYSTEM_DIALOG_BACK("System.Dialog-Back"),
     SYSTEM_DIALOG_CLOSE("System.Dialog-Close"),
