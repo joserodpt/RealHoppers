@@ -33,6 +33,7 @@ import joserodpt.realpermissions.api.RealPermissionsAPI;
 import joserodpt.realpermissions.api.pluginhook.ExternalPlugin;
 import joserodpt.realpermissions.api.pluginhook.ExternalPluginPermission;
 import net.milkbowl.vault.economy.Economy;
+import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.plugin.PluginManager;
@@ -160,6 +161,8 @@ public final class RealHoppersPlugin extends JavaPlugin {
         if (getServer().getPluginManager().getPlugin("RealPermissions") != null) {
             registerRealPermissions();
         }
+
+        new Metrics(this, 34359);
 
         Bukkit.getPluginManager().callEvent(new RealHoppersPluginLoadedEvent());
 

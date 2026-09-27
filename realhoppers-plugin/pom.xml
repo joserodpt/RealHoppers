@@ -72,6 +72,7 @@
                                     <include>com.j256.ormlite:ormlite-jdbc</include>
                                     <include>com.github.joserodpt:RealUtils</include>
                                     <include>io.github.projectunified:*</include>
+                                    <include>org.bstats:*</include>
                                 </includes>
                             </artifactSet>
 
@@ -100,6 +101,10 @@
                                 <relocation>
                                     <pattern>io.github.projectunified.unidialog</pattern>
                                     <shadedPattern>joserodpt.realhoppers.shaded.unidialog</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>org.bstats</pattern>
+                                    <shadedPattern>joserodpt.realhoppers.shaded.bstats</shadedPattern>
                                 </relocation>
                             </relocations>
 
@@ -227,6 +232,11 @@
             <groupId>com.github.joserodpt</groupId>
             <artifactId>RealUtils</artifactId>
             <version>${realutils.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.bstats</groupId>
+            <artifactId>bstats-bukkit</artifactId>
+            <version>3.2.1</version>
         </dependency>
         <dependency>
             <groupId>com.github.MilkBowl</groupId>
